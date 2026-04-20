@@ -8,7 +8,8 @@ import {
     Play, 
     Loader2, 
     Check, 
-    X 
+    X,
+    AlertCircle
 } from 'lucide-react';
 
 const ManageEpisodes = () => {
@@ -98,7 +99,12 @@ const ManageEpisodes = () => {
                         </h1>
                         <p className="text-gray-400 mt-1">Cấu hình link video cho từng tập phim.</p>
                     </div>
-                    {!showForm && (
+                    {movie?.type === 'single' && episodes.length >= 1 ? (
+                        <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 px-6 py-3 rounded-xl text-yellow-500 animate-in fade-in zoom-in duration-300">
+                            <AlertCircle size={20} />
+                            <span className="text-xs font-black uppercase tracking-widest">Phim lẻ đã có video. Không thể thêm tập mới.</span>
+                        </div>
+                    ) : !showForm && (
                         <button 
                             onClick={() => setShowForm(true)}
                             className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"

@@ -23,6 +23,17 @@ exports.addEpisode = async (req, res, next) => {
         const movie = await Movie.findById(req.params.movieId);
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
 
+        // Enforce business logic: Single movies (Phim lẻ) can only have max 1 episode
+        if (movie.type === 'single') {
+            const episodeCount = await Episode.countDocuments({ movie: req.params.movieId });
+            if (episodeCount >= 1) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Lỗi: Phim lẻ chỉ được phép có tối đa 1 tập.' 
+                });
+            }
+        }
+
         const episode = await Episode.create(req.body);
         res.status(201).json({ success: true, data: episode });
     } catch (error) {

@@ -90,7 +90,7 @@ const WatchMovie = () => {
 
             <main className="max-w-[1400px] mx-auto px-0 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-4 gap-12">
                 {/* Player Column */}
-                <div className="lg:col-span-3 space-y-8">
+                <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
                     {/* Video Embed */}
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode.videoUrl ? (
@@ -135,46 +135,48 @@ const WatchMovie = () => {
                 </div>
 
                 {/* Sidebar: Episodes List */}
-                <div className="px-6 md:px-0 space-y-8">
-                    <header className="flex items-center gap-3">
-                        <ListVideo size={24} className="text-primary" />
-                        <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
-                    </header>
+                {movie.type !== 'single' && (
+                    <div className="px-6 md:px-0 space-y-8">
+                        <header className="flex items-center gap-3">
+                            <ListVideo size={24} className="text-primary" />
+                            <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
+                        </header>
 
-                    <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                        {movie.episodes?.map((ep) => (
-                            <Link 
-                                key={ep._id}
-                                to={`/watch/${movie.slug}/${ep._id}`}
-                                className={`flex items-center gap-4 p-4 rounded-2xl border transition-all group ${
-                                    currentEpisode._id === ep._id 
-                                    ? 'bg-primary/20 border-primary shadow-lg shadow-primary/10' 
-                                    : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'
-                                }`}
-                            >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                                    currentEpisode._id === ep._id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/40' : 'bg-white/5 text-gray-500 group-hover:text-white group-hover:bg-white/10'
-                                }`}>
-                                    <Play size={16} fill={currentEpisode._id === ep._id ? 'white' : 'transparent'} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className={`font-black text-sm uppercase tracking-tight truncate ${currentEpisode._id === ep._id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
-                                        {ep.name}
-                                    </h4>
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">TẬP {ep.episodeNumber}</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                        <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                            {movie.episodes?.map((ep) => (
+                                <Link 
+                                    key={ep._id}
+                                    to={`/watch/${movie.slug}/${ep._id}`}
+                                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all group ${
+                                        currentEpisode._id === ep._id 
+                                        ? 'bg-primary/20 border-primary shadow-lg shadow-primary/10' 
+                                        : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'
+                                    }`}
+                                >
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                                        currentEpisode._id === ep._id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/40' : 'bg-white/5 text-gray-500 group-hover:text-white group-hover:bg-white/10'
+                                    }`}>
+                                        <Play size={16} fill={currentEpisode._id === ep._id ? 'white' : 'transparent'} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className={`font-black text-sm uppercase tracking-tight truncate ${currentEpisode._id === ep._id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                                            {ep.name}
+                                        </h4>
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">TẬP {ep.episodeNumber}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
 
-                    {/* Recommendation Card */}
-                    <div className="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-primary/20 space-y-4">
-                        <h5 className="font-black text-xs uppercase tracking-[0.2em] text-primary">NYAN PRO TIP</h5>
-                        <p className="text-xs font-medium text-gray-300 leading-relaxed">
-                            Bấm vào biểu tượng phóng to trên player để trải nghiệm xem phim chất lượng cao nhất!
-                        </p>
+                        {/* Recommendation Card */}
+                        <div className="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-primary/20 space-y-4">
+                            <h5 className="font-black text-xs uppercase tracking-[0.2em] text-primary">NYAN PRO TIP</h5>
+                            <p className="text-xs font-medium text-gray-300 leading-relaxed">
+                                Bấm vào biểu tượng phóng to trên player để trải nghiệm xem phim chất lượng cao nhất!
+                            </p>
+                        </div>
                     </div>
-                </div>
+                )}
             </main>
         </div>
     );
