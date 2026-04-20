@@ -11,7 +11,10 @@ import {
     Newspaper,
     Eye,
     X,
-    Check
+    Check,
+    Upload,
+    Image,
+    CheckCircle
 } from 'lucide-react';
 
 const ManageNews = () => {
@@ -24,6 +27,7 @@ const ManageNews = () => {
         thumbnail: '',
         content: ''
     });
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchNews();
@@ -38,6 +42,26 @@ const ManageNews = () => {
             console.error('Failed to fetch news', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleThumbnailUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        uploadData.append('image', file);
+
+        try {
+            setUploading(true);
+            const res = await axiosClient.post('/upload', uploadData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setFormData(prev => ({ ...prev, thumbnail: res.data.url }));
+        } catch (err) {
+            console.error('Upload failed', err);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -113,7 +137,7 @@ const ManageNews = () => {
                     <div key={item._id} className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden group hover:border-primary/30 transition-all duration-300 shadow-xl">
                         <div className="relative aspect-video overflow-hidden">
                             <img 
-                                src={item.thumbnail} 
+                                src={item.thumbnail.startsWith('http') ? item.thumbnail : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${item.thumbnail}`} 
                                 alt={item.title} 
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
@@ -169,22 +193,57 @@ const ManageNews = () => {
                                         required
                                         type="text" 
                                         className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-white placeholder:text-gray-700 focus:outline-none focus:border-primary/50 transition-all"
-                                        placeholder="Nhập tiêu đề nổ hũ..."
+                                        placeholder="Nhập tiêu đề bài viết..."
                                         value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                                     />
                                 </div>
+                                
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Thumbnail URL</label>
-                                    <input 
-                                        required
-                                        type="text" 
-                                        className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-white placeholder:text-gray-700 focus:outline-none focus:border-primary/50 transition-all"
-                                        placeholder="https://example.com/image.jpg"
-                                        value={formData.thumbnail}
-                                        onChange={(e) => setFormData({...formData, thumbnail: e.target.value})}
-                                    />
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Thumbnail</label>
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative group/thumb w-40 aspect-video rounded-2xl overflow-hidden border border-white/5 bg-black/40 flex items-center justify-center">
+                                            {formData.thumbnail ? (
+                                                <>
+                                                    <img 
+                                                        src={formData.thumbnail.startsWith('http') ? formData.thumbnail : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${formData.thumbnail}`} 
+                                                        className="w-full h-full object-cover" 
+                                                        alt="Thumbnail preview" 
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <label className="cursor-pointer p-2 bg-primary rounded-lg text-white">
+                                                            <Upload size={16} />
+                                                            <input type="file" className="hidden" accept="image/*" onChange={handleThumbnailUpload} />
+                                                        </label>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <label className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/5 transition-colors">
+                                                    {uploading ? (
+                                                        <Loader2 className="animate-spin text-primary" size={24} />
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500">
+                                                                <Image size={20} />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Tải ảnh lên</span>
+                                                        </>
+                                                    )}
+                                                    <input type="file" className="hidden" accept="image/*" onChange={handleThumbnailUpload} />
+                                                </label>
+                                            )}
+                                        </div>
+                                        {formData.thumbnail && (
+                                            <div className="flex items-center gap-2 text-green-500 animate-in fade-in slide-in-from-left-2 transition-all">
+                                                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                    <CheckCircle size={16} />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Đã tải lên</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Nội dung bài viết</label>
                                     <textarea 
@@ -208,7 +267,8 @@ const ManageNews = () => {
                                 </button>
                                 <button 
                                     type="submit"
-                                    className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+                                    disabled={uploading}
+                                    className={`bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-primary/20 flex items-center gap-2 ${uploading && 'opacity-50 cursor-not-allowed'}`}
                                 >
                                     <Check size={18} /> {editingNews ? 'Cập nhật' : 'Đăng bài'}
                                 </button>

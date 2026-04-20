@@ -54,7 +54,7 @@ const News = () => {
                     >
                         <div className="relative aspect-video overflow-hidden">
                             <img 
-                                src={item.thumbnail} 
+                                src={item.thumbnail.startsWith('http') ? item.thumbnail : `http://localhost:5000${item.thumbnail}`} 
                                 alt={item.title} 
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
