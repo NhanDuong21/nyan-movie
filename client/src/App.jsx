@@ -7,6 +7,7 @@ import ManageCategories from './pages/admin/ManageCategories';
 import ManageMovies from './pages/admin/ManageMovies';
 import ManageEpisodes from './pages/admin/ManageEpisodes';
 import ManageNews from './pages/admin/ManageNews';
+import ManageUsers from './pages/admin/ManageUsers';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import WatchMovie from './pages/WatchMovie';
@@ -50,6 +51,7 @@ function App() {
                     <Route path="movies" element={<ManageMovies />} />
                     <Route path="episodes/:movieId" element={<ManageEpisodes />} />
                     <Route path="news" element={<ManageNews />} />
+                    <Route path="users" element={<ManageUsers />} />
                 </Route>
 
                 {/* Fallback */}

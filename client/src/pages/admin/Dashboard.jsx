@@ -1,48 +1,186 @@
-import { LayoutDashboard, Film, Users, Tags, Smile } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import axiosClient from '../../api/axiosClient';
+import { 
+    Users, 
+    Film, 
+    Heart, 
+    Eye, 
+    TrendingUp, 
+    Clock, 
+    Loader2, 
+    AlertCircle,
+    Tv,
+    TrendingDown,
+    Activity
+} from 'lucide-react';
 
-const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="bg-dark-card p-6 rounded-2xl border border-white/5 flex items-center justify-between">
+const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
+    <div className="bg-dark-card p-6 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all">
         <div>
-            <p className="text-gray-400 text-sm mb-1">{title}</p>
-            <h3 className="text-3xl font-bold text-white">{value}</h3>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">{title}</p>
+            <h3 className="text-3xl font-black text-white italic">{value}</h3>
+            {subtitle && <p className="text-[10px] text-gray-400 mt-1 uppercase font-medium">{subtitle}</p>}
         </div>
-        <div className={`p-4 rounded-xl bg-opacity-10 ${color}`}>
-            <Icon size={24} className={color.replace('bg-', 'text-')} />
+        <div className={`p-4 rounded-2xl bg-opacity-10 ${color} group-hover:scale-110 transition-transform`}>
+            <Icon size={28} className={color.replace('bg-', 'text-')} />
+        </div>
+    </div>
+);
+
+const TopTable = ({ title, data, icon: Icon, metricLabel, metricKey }) => (
+    <div className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden flex flex-col h-full">
+        <div className="p-6 border-b border-white/5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Icon size={20} />
+            </div>
+            <h3 className="font-black text-white italic uppercase tracking-tight">{title}</h3>
+        </div>
+        <div className="flex-1">
+            {data && data.length > 0 ? (
+                <div className="divide-y divide-white/5">
+                    {data.map((item, index) => (
+                        <div key={item._id} className="p-4 flex items-center justify-between hover:bg-white/2 transition-colors group">
+                            <div className="flex items-center gap-4">
+                                <span className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-gray-500 group-hover:text-primary transition-colors">
+                                    {index + 1}
+                                </span>
+                                <span className="text-sm font-bold text-gray-300 group-hover:text-white truncate max-w-[150px]">
+                                    {item.title}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-black text-primary italic">
+                                    {metricKey === 'createdAt' ? new Date(item[metricKey]).toLocaleDateString('vi-VN') : (item[metricKey] || item.count || 0)}
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-tighter">
+                                    {metricLabel}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="h-full flex flex-col items-center justify-center py-10 opacity-20">
+                    <Activity size={40} />
+                    <p className="text-xs mt-2 uppercase font-bold">No Data</p>
+                </div>
+            )}
         </div>
     </div>
 );
 
 const Dashboard = () => {
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchStats = async () => {
+        try {
+            const res = await axiosClient.get('/admin/stats');
+            setStats(res.data.data);
+            setLoading(false);
+        } catch (err) {
+            setError('Failed to load statistics');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center py-40 gap-4">
+            <Loader2 className="animate-spin text-primary" size={48} />
+            <p className="text-gray-500 animate-pulse font-bold tracking-widest uppercase text-xs">Đang xử lý dữ liệu hệ thống...</p>
+        </div>
+    );
+
+    if (error) return (
+        <div className="flex flex-col items-center justify-center py-40 gap-4 text-red-500">
+            <AlertCircle size={48} />
+            <p className="font-bold">{error}</p>
+        </div>
+    );
+
     return (
-        <div className="space-y-10">
-            <header>
-                <div className="flex items-center gap-3">
-                    <h1 className="text-3xl font-bold text-white">Chào mừng quay lại</h1>
-                    <Smile className="text-primary animate-bounce-slow" size={32} />
+        <div className="space-y-10 pb-10">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">Hệ thống <span className="text-primary italic">NYAN</span> Dash</h1>
+                    <p className="text-gray-500 mt-1 uppercase font-bold tracking-widest text-[10px]">Real-time analytics and management</p>
                 </div>
-                <p className="text-gray-400 mt-1">Đây là tổng quan về hệ thống Nyan Movie của bạn.</p>
+                <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-primary font-black text-xs uppercase italic">System Operational</span>
+                </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Tổng Phim" value="128" icon={Film} color="bg-primary text-primary" />
-                <StatCard title="Người dùng" value="1.2K" icon={Users} color="bg-blue-500 text-blue-500" />
-                <StatCard title="Thể Loại" value="18" icon={Tags} color="bg-green-500 text-green-500" />
-                <StatCard title="Lượt xem" value="45.6K" icon={LayoutDashboard} color="bg-purple-500 text-purple-500" />
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-white text-xs">
+                <StatCard 
+                    title="Người dùng" 
+                    value={stats.counts.totalUsers} 
+                    icon={Users} 
+                    color="bg-blue-500"
+                    subtitle="Total Registered"
+                />
+                <StatCard 
+                    title="Phim Lẻ" 
+                    value={stats.counts.totalSingle} 
+                    icon={Film} 
+                    color="bg-primary"
+                    subtitle="Type: Single"
+                />
+                <StatCard 
+                    title="Phim Bộ" 
+                    value={stats.counts.totalSeries} 
+                    icon={Tv} 
+                    color="bg-purple-500"
+                    subtitle="Type: Series"
+                />
+                <StatCard 
+                    title="Yêu Thích" 
+                    value={stats.counts.totalFavorites} 
+                    icon={Heart} 
+                    color="bg-pink-500"
+                    subtitle="Total Interactions"
+                />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-10">
-                <div className="bg-dark-card p-8 rounded-3xl border border-white/5">
-                    <h3 className="text-xl font-bold mb-6">Hoạt động gần đây</h3>
-                    <div className="text-gray-500 text-sm italic text-center py-10 border-2 border-dashed border-white/5 rounded-2xl">
-                        Mô đun logs sẽ được cập nhật trong phase tiếp theo...
-                    </div>
+            {/* Content Lists */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TopTable 
+                        title="Phim Mới Nhất" 
+                        data={stats.latestMovies} 
+                        icon={Clock} 
+                        metricLabel="NGÀY ĐĂNG" 
+                        metricKey="createdAt"
+                    />
+                    <TopTable 
+                        title="Yêu Thích Nhất" 
+                        data={stats.topFavorited} 
+                        icon={TrendingUp} 
+                        metricLabel="LƯỢT THÍCH" 
+                        metricKey="count"
+                    />
                 </div>
-                <div className="bg-dark-card p-8 rounded-3xl border border-white/5">
-                    <h3 className="text-xl font-bold mb-6">Server Status</h3>
-                    <div className="flex items-center gap-3 p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-green-500 text-sm font-medium">Backend: Connected and Active</span>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TopTable 
+                        title="Top Phim Lẻ" 
+                        data={stats.topViewedSingle} 
+                        icon={Eye} 
+                        metricLabel="LƯỢT XEM" 
+                        metricKey="views"
+                    />
+                    <TopTable 
+                        title="Top Phim Bộ" 
+                        data={stats.topViewedSeries} 
+                        icon={Activity} 
+                        metricLabel="LƯỢT XEM" 
+                        metricKey="views"
+                    />
                 </div>
             </div>
         </div>
