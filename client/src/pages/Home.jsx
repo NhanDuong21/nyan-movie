@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axiosClient from '../api/axiosClient';
 import MovieCard from '../components/MovieCard';
-import { Loader2, Play, Info, ChevronRight, Star, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, Play, Info, ChevronRight, Star, Clock, AlertCircle, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -37,10 +37,6 @@ const Home = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    const heroMovie = useMemo(() => {
-        if (!latestMovies || latestMovies.length === 0) return null;
-        return latestMovies.find(m => m.backdrop) || latestMovies[0];
-    }, [latestMovies]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
@@ -109,60 +105,43 @@ const Home = () => {
 
     return (
         <div className="space-y-16 pb-20">
-            {/* Hero Banner */}
-            {heroMovie ? (
-                <section className="relative h-[85vh] -mt-24 group overflow-hidden">
-                    {/* Background with Zoom Effect */}
-                    <div className="absolute inset-0">
-                        <img 
-                            src={heroMovie.backdrop ? `http://localhost:5000${heroMovie.backdrop}` : `http://localhost:5000${heroMovie.poster}`}
-                            alt={heroMovie.title}
-                            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[10s] ease-out"
-                            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=1400&fit=crop'; }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/60 to-transparent"></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-center gap-6 pt-20">
-                        <div className="flex items-center gap-3">
-                            <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-primary/30 shadow-lg shadow-primary/20">POPULAR</span>
-                            <div className="flex items-center gap-1 text-yellow-500">
-                                <Star size={14} fill="currentColor" />
-                                <span className="text-xs font-bold text-white">8.5</span>
-                            </div>
+            {/* Native HTML5 Video Banner */}
+            <div className="relative w-full h-[500px] lg:h-[800px] overflow-hidden -mt-24">
+                <video 
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    src="/banner.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                ></video>
+                
+                {/* Dark overlay for text readability */}
+                <div className="absolute inset-0 bg-black/40 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
+                
+                {/* Banner Content (Title, Play Button, etc.) */}
+                <div className="absolute inset-0 flex flex-col justify-center items-start z-10 max-w-[1400px] mx-auto px-6 md:px-12 pt-20">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
+                            <Activity size={14} /> Live Experience
                         </div>
-
-                        <h1 className="text-5xl md:text-8xl font-black text-white max-w-3xl leading-[1.1] uppercase italic tracking-tighter">
-                            {heroMovie.title}
+                        <h1 className="text-6xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+                            NYAN <span className="text-primary italic">MOVIE</span>
                         </h1>
-
-                        <p className="text-gray-300 text-lg md:text-xl max-w-2xl line-clamp-3 leading-relaxed font-medium">
-                            {heroMovie.description || "Nội dung phim đang được cập nhật..."}
+                        <p className="text-lg md:text-xl text-gray-300 max-w-xl font-medium tracking-wide">
+                            Trải nghiệm không gian điện ảnh đỉnh cao ngay tại nhà với hàng ngàn bộ phim bom tấn cực nét.
                         </p>
-
-                        <div className="flex items-center gap-4 flex-wrap mt-4">
+                        <div className="flex items-center gap-4 pt-4">
                             <Link 
-                                to={`/movie/${heroMovie.slug}`}
-                                className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg"
+                                to="/browse"
+                                className="bg-primary hover:bg-primary-hover text-white font-black py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-primary/40 active:scale-95 text-lg"
                             >
-                                <Play size={24} fill="white" />
-                                XEM NGAY
-                            </Link>
-                            <Link 
-                                to={`/movie/${heroMovie.slug}`}
-                                className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 border border-white/10 active:scale-95 text-lg"
-                            >
-                                <Info size={24} />
-                                CHI TIẾT
+                                <Play size={24} fill="currentColor" /> XEM NGAY
                             </Link>
                         </div>
                     </div>
-                </section>
-            ) : (
-                <div className="h-24"></div> // Spacer when no hero
-            )}
+                </div>
+            </div>
 
             {/* Movie Sections */}
             <div className="max-w-[1400px] mx-auto px-6 md:px-12 space-y-24">
