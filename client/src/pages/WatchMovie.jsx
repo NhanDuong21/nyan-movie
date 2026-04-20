@@ -12,6 +12,7 @@ import {
     Calendar,
     Globe
 } from 'lucide-react';
+import CommentSection from '../components/movie/CommentSection';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
@@ -117,6 +118,8 @@ const WatchMovie = () => {
                         <p className="text-gray-400 leading-relaxed font-medium line-clamp-2 hover:line-clamp-none transition-all cursor-pointer">
                             {movie.description}
                         </p>
+
+                        <CommentSection movieId={movie._id} />
                     </div>
                 </div>
 

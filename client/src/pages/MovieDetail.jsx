@@ -13,6 +13,7 @@ import {
     Heart,
     Tv
 } from 'lucide-react';
+import CommentSection from '../components/movie/CommentSection';
 
 const MovieDetail = () => {
     const { slug } = useParams();
@@ -179,6 +180,9 @@ const MovieDetail = () => {
                             )}
                         </div>
                     </section>
+
+                    {/* Comment System Integration */}
+                    <CommentSection movieId={movie._id} />
                 </div>
 
                 {/* Right Side: Recommendations (Mock for now) */}
