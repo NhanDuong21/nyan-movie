@@ -2,16 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  background-color: #0f0f0f;
-  color: #ffffff;
-}
-
 body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  @apply bg-gray-900 text-white min-h-screen;
 }
 
+/* Custom patterns for movie site aesthetics */
 .bg-glass {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
