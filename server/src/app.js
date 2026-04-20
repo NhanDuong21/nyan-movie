@@ -23,12 +23,14 @@ const categoryRoutes = require('./routes/category.routes');
 const movieRoutes = require('./routes/movie.routes');
 const episodeRoutes = require('./routes/episode.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const commentRoutes = require('./routes/comment.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/episodes', episodeRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
