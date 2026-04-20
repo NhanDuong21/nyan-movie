@@ -3,7 +3,7 @@ const router = express.Router();
 const { 
     addEpisode, updateEpisode, deleteEpisode 
 } = require('../controllers/episode.controller');
-const { verifyToken, verifyAdmin } = require('../middlewares/auth');
+const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
 router.post('/:movieId', verifyToken, verifyAdmin, addEpisode);
 

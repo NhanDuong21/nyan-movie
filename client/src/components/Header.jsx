@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
-import { Search, User, LogOut, Menu, Play } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard } from 'lucide-react';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -74,6 +74,14 @@ const Header = () => {
                                     <button className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors flex items-center gap-3">
                                         <User size={16} /> Trang cá nhân
                                     </button>
+                                    {user.role === 'admin' && (
+                                        <Link 
+                                            to="/admin" 
+                                            className="w-full text-left px-4 py-3 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-3"
+                                        >
+                                            <LayoutDashboard size={16} /> Admin Panel
+                                        </Link>
+                                    )}
                                     <button 
                                         onClick={logout}
                                         className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-3"

@@ -3,7 +3,7 @@ const router = express.Router();
 const { 
     getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie 
 } = require('../controllers/movie.controller');
-const { verifyToken, verifyAdmin } = require('../middlewares/auth');
+const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
 router.route('/')
     .get(getMovies)

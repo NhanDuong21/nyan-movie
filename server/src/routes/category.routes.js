@@ -5,7 +5,7 @@ const {
     getAllCountries, createCountry, deleteCountry,
     getAllYears, createYear, deleteYear
 } = require('../controllers/category.controller');
-const { verifyToken, verifyAdmin } = require('../middlewares/auth');
+const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
 // GENRES
 router.route('/genres')
