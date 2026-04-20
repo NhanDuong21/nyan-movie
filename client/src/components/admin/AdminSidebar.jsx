@@ -6,7 +6,8 @@ import {
     Users, 
     ArrowLeft, 
     LogOut,
-    ChevronRight
+    ChevronRight,
+    Newspaper
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +20,7 @@ const AdminSidebar = () => {
         { title: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
         { title: 'Quản lý Danh mục', icon: Tags, path: '/admin/categories' },
         { title: 'Quản lý Phim', icon: Film, path: '/admin/movies' },
+        { title: 'Quản lý Tin tức', icon: Newspaper, path: '/admin/news' },
         { title: 'Quản lý Users', icon: Users, path: '/admin/users' },
     ];
 

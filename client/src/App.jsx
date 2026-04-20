@@ -6,10 +6,14 @@ import Dashboard from './pages/admin/Dashboard';
 import ManageCategories from './pages/admin/ManageCategories';
 import ManageMovies from './pages/admin/ManageMovies';
 import ManageEpisodes from './pages/admin/ManageEpisodes';
+import ManageNews from './pages/admin/ManageNews';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import WatchMovie from './pages/WatchMovie';
 import MyList from './pages/MyList';
+import BrowseMovies from './pages/BrowseMovies';
+import News from './pages/News';
+import NewsDetail from './pages/NewsDetail';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -31,6 +35,9 @@ function App() {
                     <Route path="/movie/:slug" element={<MovieDetail />} />
                     <Route path="/watch/:movieSlug/:episodeId" element={<WatchMovie />} />
                     <Route path="/my-list" element={<MyList />} />
+                    <Route path="/browse" element={<BrowseMovies />} />
+                    <Route path="/news" element={<News />} />
+                    <Route path="/news/:slug" element={<NewsDetail />} />
                 </Route>
 
                 <Route path="/login" element={<Login />} />
@@ -42,6 +49,7 @@ function App() {
                     <Route path="categories" element={<ManageCategories />} />
                     <Route path="movies" element={<ManageMovies />} />
                     <Route path="episodes/:movieId" element={<ManageEpisodes />} />
+                    <Route path="news" element={<ManageNews />} />
                 </Route>
 
                 {/* Fallback */}

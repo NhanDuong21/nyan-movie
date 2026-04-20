@@ -1,7 +1,8 @@
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown } from 'lucide-react';
+import axiosClient from '../api/axiosClient';
 
 import logo from '../assets/logo.png';
 
@@ -9,10 +10,31 @@ const Header = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
+    const [genres, setGenres] = useState([]);
+    const [countries, setCountries] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const [genreRes, countryRes] = await Promise.all([
+                    axiosClient.get('/categories/genres'),
+                    axiosClient.get('/categories/countries')
+                ]);
+                setGenres(genreRes.data.data);
+                setCountries(countryRes.data.data);
+            } catch (err) {
+                console.error('Failed to fetch categories', err);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        console.log('Searching for:', searchQuery);
+        if (searchQuery.trim()) {
+            navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
+            setSearchQuery('');
+        }
     };
 
     const navLinkClass = ({ isActive }) => 
@@ -41,15 +63,48 @@ const Header = () => {
                 {/* Nav Links */}
                 <ul className="hidden md:flex items-center gap-8">
                     <li>
-                        <NavLink to="/" className={navLinkClass}>
+                        <NavLink to="/" end className={navLinkClass}>
                             Trang Chủ
                         </NavLink>
                     </li>
-                    <li className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors">
-                        Thể Loại
+                    <li className="relative group/dropdown py-4">
+                        <div className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors flex items-center gap-1">
+                            Thể Loại <ChevronDown size={12} />
+                        </div>
+                        <div className="absolute top-full left-0 w-64 bg-dark-card border border-white/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 grid grid-cols-2 p-4 translate-y-2 group-hover/dropdown:translate-y-0">
+                            {genres.map(g => (
+                                <Link 
+                                    key={g._id} 
+                                    to={`/browse?genre=${g.slug}`}
+                                    className="px-3 py-2 text-[10px] font-bold text-gray-400 hover:text-primary hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest"
+                                >
+                                    {g.name}
+                                </Link>
+                            ))}
+                        </div>
                     </li>
-                    <li className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors">
-                        Quốc Gia
+                    <li className="relative group/dropdown py-4">
+                        <div className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors flex items-center gap-1">
+                            Quốc Gia <ChevronDown size={12} />
+                        </div>
+                        <div className="absolute top-full left-0 w-48 bg-dark-card border border-white/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 p-4 translate-y-2 group-hover/dropdown:translate-y-0">
+                            <div className="grid grid-cols-1 gap-1">
+                                {countries.map(c => (
+                                    <Link 
+                                        key={c._id} 
+                                        to={`/browse?country=${c.slug}`}
+                                        className="px-3 py-2 text-[10px] font-bold text-gray-400 hover:text-primary hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest"
+                                    >
+                                        {c.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <NavLink to="/news" className={navLinkClass}>
+                            Tin Tức
+                        </NavLink>
                     </li>
                     {user && (
                         <li>
