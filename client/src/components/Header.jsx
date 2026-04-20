@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { Search, User, LogOut, Menu, Play, LayoutDashboard } from 'lucide-react';
@@ -14,6 +14,11 @@ const Header = () => {
         e.preventDefault();
         console.log('Searching for:', searchQuery);
     };
+
+    const navLinkClass = ({ isActive }) => 
+        `transition-all duration-300 font-bold uppercase tracking-widest text-[11px] ${
+            isActive ? 'text-primary' : 'text-gray-400 hover:text-white'
+        }`;
 
     return (
         <header className="bg-dark sticky top-0 z-50 border-b border-white/5 shadow-lg backdrop-blur-md bg-dark/95">
@@ -34,19 +39,23 @@ const Header = () => {
                 </Link>
 
                 {/* Nav Links */}
-                <ul className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-                    <li className="hover:text-primary transition-colors cursor-pointer">
-                        <Link to="/">Trang Chủ</Link>
+                <ul className="hidden md:flex items-center gap-8">
+                    <li>
+                        <NavLink to="/" className={navLinkClass}>
+                            Trang Chủ
+                        </NavLink>
                     </li>
-                    <li className="hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1">
+                    <li className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors">
                         Thể Loại
                     </li>
-                    <li className="hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1">
+                    <li className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors">
                         Quốc Gia
                     </li>
                     {user && (
-                        <li className="hover:text-primary transition-colors cursor-pointer font-bold text-primary">
-                            <Link to="/my-list">Phim Của Tôi</Link>
+                        <li>
+                            <NavLink to="/my-list" className={navLinkClass}>
+                                Phim Của Tôi
+                            </NavLink>
                         </li>
                     )}
                 </ul>
