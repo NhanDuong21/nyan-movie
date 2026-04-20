@@ -1,4 +1,4 @@
-import { LayoutDashboard, Film, Users, Tags } from 'lucide-react';
+import { LayoutDashboard, Film, Users, Tags, Smile } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color }) => (
     <div className="bg-dark-card p-6 rounded-2xl border border-white/5 flex items-center justify-between">
@@ -16,7 +16,10 @@ const Dashboard = () => {
     return (
         <div className="space-y-10">
             <header>
-                <h1 className="text-3xl font-bold text-white">Chào mừng quay lại 👋</h1>
+                <div className="flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-white">Chào mừng quay lại</h1>
+                    <Smile className="text-primary animate-bounce-slow" size={32} />
+                </div>
                 <p className="text-gray-400 mt-1">Đây là tổng quan về hệ thống Nyan Movie của bạn.</p>
             </header>
 
