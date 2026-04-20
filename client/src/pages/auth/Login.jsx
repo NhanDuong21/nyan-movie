@@ -12,7 +12,11 @@ const Login = () => {
         e.preventDefault();
         const result = await login(email, password);
         if (result.success) {
-            navigate('/');
+            if (result.user && result.user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         }
     };
 
