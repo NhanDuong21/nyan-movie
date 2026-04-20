@@ -67,11 +67,10 @@ const movieSchema = new mongoose.Schema({
 // Search indexing
 movieSchema.index({ title: 'text', slug: 1 });
 
-movieSchema.pre('save', function(next) {
+movieSchema.pre('save', async function() {
     if (this.isModified('title')) {
         this.slug = slugify(this.title, { lower: true, strict: true });
     }
-    next();
 });
 
 module.exports = mongoose.model('Movie', movieSchema);

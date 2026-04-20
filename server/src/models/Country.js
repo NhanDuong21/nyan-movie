@@ -13,11 +13,10 @@ const countrySchema = new mongoose.Schema({
     }
 });
 
-countrySchema.pre('save', function(next) {
+countrySchema.pre('save', async function() {
     if (this.isModified('name')) {
         this.slug = slugify(this.name, { lower: true, strict: true });
     }
-    next();
 });
 
 module.exports = mongoose.model('Country', countrySchema);

@@ -8,7 +8,11 @@ exports.getAllGenres = async (req, res, next) => {
         const genres = await Genre.find().sort({ name: 1 });
         res.status(200).json({ success: true, count: genres.length, data: genres });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -17,7 +21,11 @@ exports.createGenre = async (req, res, next) => {
         const genre = await Genre.create(req.body);
         res.status(201).json({ success: true, data: genre });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -27,7 +35,11 @@ exports.deleteGenre = async (req, res, next) => {
         if (!genre) return res.status(404).json({ success: false, message: 'Genre not found' });
         res.status(200).json({ success: true, message: 'Genre deleted' });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -37,7 +49,11 @@ exports.getAllCountries = async (req, res, next) => {
         const countries = await Country.find().sort({ name: 1 });
         res.status(200).json({ success: true, count: countries.length, data: countries });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -46,7 +62,11 @@ exports.createCountry = async (req, res, next) => {
         const country = await Country.create(req.body);
         res.status(201).json({ success: true, data: country });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -56,7 +76,11 @@ exports.deleteCountry = async (req, res, next) => {
         if (!country) return res.status(404).json({ success: false, message: 'Country not found' });
         res.status(200).json({ success: true, message: 'Country deleted' });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -66,7 +90,11 @@ exports.getAllYears = async (req, res, next) => {
         const years = await Year.find().sort({ year: -1 });
         res.status(200).json({ success: true, count: years.length, data: years });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -75,7 +103,11 @@ exports.createYear = async (req, res, next) => {
         const year = await Year.create(req.body);
         res.status(201).json({ success: true, data: year });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
@@ -85,6 +117,10 @@ exports.deleteYear = async (req, res, next) => {
         if (!year) return res.status(404).json({ success: false, message: 'Year not found' });
         res.status(200).json({ success: true, message: 'Year deleted' });
     } catch (error) {
-        next(error);
+        if (typeof next === 'function') {
+            next(error);
+        } else {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
