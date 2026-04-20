@@ -1,6 +1,20 @@
 const Episode = require('../models/Episode');
 const Movie = require('../models/Movie');
 
+exports.getEpisodes = async (req, res, next) => {
+    try {
+        const { movieId } = req.query;
+        if (!movieId) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp movieId' });
+        }
+
+        const episodes = await Episode.find({ movie: movieId }).sort('episodeNumber');
+        res.status(200).json({ success: true, count: episodes.length, data: episodes });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.addEpisode = async (req, res, next) => {
     try {
         req.body.movie = req.params.movieId;

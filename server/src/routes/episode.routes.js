@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    addEpisode, updateEpisode, deleteEpisode 
+    addEpisode, updateEpisode, deleteEpisode, getEpisodes 
 } = require('../controllers/episode.controller');
 const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
+router.get('/', verifyToken, verifyAdmin, getEpisodes);
 router.post('/:movieId', verifyToken, verifyAdmin, addEpisode);
 
 router.route('/:id')

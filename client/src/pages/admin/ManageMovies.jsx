@@ -11,7 +11,8 @@ import {
     Clock, 
     CheckCircle, 
     XCircle, 
-    Loader2 
+    Loader2,
+    PlayCircle 
 } from 'lucide-react';
 import MovieForm from '../../components/admin/MovieForm';
 
@@ -180,6 +181,13 @@ const ManageMovies = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <Link 
+                                                        to={`/admin/episodes/${movie._id}`}
+                                                        className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary/5 text-primary hover:bg-primary/10 transition-all"
+                                                        title="Quản lý tập phim"
+                                                    >
+                                                        <PlayCircle size={16} />
+                                                    </Link>
                                                     <button 
                                                         onClick={() => handleEdit(movie)}
                                                         className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"

@@ -1,50 +1,67 @@
 import { Link } from 'react-router-dom';
-import { Play, Star, Calendar, Bookmark } from 'lucide-react';
+import { Play, Star, Calendar, Bookmark, Film } from 'lucide-react';
 
 const MovieCard = ({ movie }) => {
+    if (!movie) return null;
+
+    const posterUrl = movie.poster 
+        ? (movie.poster.startsWith('http') ? movie.poster : `http://localhost:5000${movie.poster}`)
+        : 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=400&fit=crop';
+
     return (
-        <div className="group cursor-pointer">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-3 shadow-lg border border-white/5 transition-transform duration-300 group-hover:-translate-y-2 group-hover:border-primary/50 group-hover:shadow-primary/10">
+        <Link to={`/movie/${movie.slug}`} className="group cursor-pointer block">
+            <div className="relative aspect-[2/3] rounded-[32px] overflow-hidden mb-4 shadow-2xl shadow-black/50 border border-white/5 transition-all duration-500 group-hover:-translate-y-3 group-hover:border-primary/50 group-hover:shadow-[0_20px_50px_rgba(255,50,50,0.2)]">
                 <img
-                    src={movie.poster}
+                    src={posterUrl}
                     alt={movie.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                     loading="lazy"
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=400&fit=crop'; }}
                 />
                 
                 {/* Badge for episodes or info */}
-                <div className="absolute top-3 left-3 bg-primary/90 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg backdrop-blur-sm flex items-center gap-1">
-                    {movie.episodeCount ? (
-                        <><span>{movie.episodeCount}</span> <span className="font-light opacity-80 text-[8px]">TẬP</span></>
+                <div className="absolute top-4 left-4 bg-primary/90 text-white text-[9px] font-black px-2.5 py-1.5 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-white/20">
+                    {movie.totalEpisodes > 1 ? (
+                        <>
+                            <span className="bg-white/20 px-1.5 rounded-md">{movie.totalEpisodes}</span> 
+                            <span className="tracking-widest opacity-80 uppercase">TẬP</span>
+                        </>
                     ) : (
-                        <><Calendar size={10} /> {movie.year}</>
+                        <>
+                            <Calendar size={12} className="opacity-80" /> 
+                            <span className="tracking-widest uppercase">{(movie.year?.year || movie.year) || 'N/A'}</span>
+                        </>
                     )}
                 </div>
 
-                <div className="absolute top-3 right-3 text-white/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+                <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-primary transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
                     <Bookmark size={18} />
                 </div>
                 
                 {/* Play Button Overlay */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center scale-50 group-hover:scale-100 transition-transform duration-300 shadow-xl shadow-primary/40">
-                        <Play size={24} fill="currentColor" className="ml-1" />
+                <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center scale-50 group-hover:scale-100 transition-all duration-500 shadow-[0_0_30px_rgba(255,50,50,0.6)]">
+                        <Play size={28} fill="currentColor" className="ml-1" />
                     </div>
                 </div>
             </div>
             
-            <h3 className="text-white text-sm font-semibold truncate group-hover:text-primary transition-colors leading-tight">
-                {movie.title}
-            </h3>
-            <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-[10px] text-gray-500 uppercase tracking-tighter truncate max-w-[70%]">
-                    {movie.genres.join(' • ')}
-                </span>
-                <span className="flex items-center gap-0.5 text-[10px] text-yellow-500 font-bold">
-                    <Star size={10} fill="currentColor" /> 8.5
-                </span>
+            <div className="space-y-1.5 px-1">
+                <h3 className="text-white text-base font-black truncate group-hover:text-primary transition-colors leading-tight uppercase italic tracking-tight">
+                    {movie.title}
+                </h3>
+                <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase">
+                    <span className="text-gray-500 truncate max-w-[75%]">
+                        {movie.genres && Array.isArray(movie.genres) 
+                            ? movie.genres.map(g => g.name || g).slice(0, 2).join(' • ')
+                            : (movie.type === 'series' ? 'Phim Bộ' : 'Phim Lẻ')}
+                    </span>
+                    <span className="flex items-center gap-1 text-yellow-500 bg-yellow-500/5 px-2 py-0.5 rounded-lg border border-yellow-500/10 shrink-0">
+                        <Star size={10} fill="currentColor" /> 8.5
+                    </span>
+                </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

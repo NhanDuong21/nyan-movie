@@ -1,0 +1,201 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import axiosClient from '../api/axiosClient';
+import { 
+    Play, 
+    Loader2, 
+    Star, 
+    Calendar, 
+    Globe, 
+    Clock, 
+    ChevronRight,
+    Share2,
+    Heart,
+    Tv
+} from 'lucide-react';
+
+const MovieDetail = () => {
+    const { slug } = useParams();
+    const [movie, setMovie] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedEpisode, setSelectedEpisode] = useState(null);
+
+    useEffect(() => {
+        const fetchMovie = async () => {
+            try {
+                const res = await axiosClient.get(`/movies/slug/${slug}`);
+                setMovie(res.data.data);
+                if (res.data.data.episodes?.length > 0) {
+                    setSelectedEpisode(res.data.data.episodes[0]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch movie details', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMovie();
+        window.scrollTo(0, 0);
+    }, [slug]);
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <Loader2 className="animate-spin text-primary" size={48} />
+            <p className="text-gray-500 font-medium tracking-widest uppercase text-xs">Đang tải phim...</p>
+        </div>
+    );
+
+    if (!movie) return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+            <h2 className="text-4xl font-black text-white uppercase italic">Không tìm thấy phim</h2>
+            <Link to="/" className="bg-primary text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest">Quay lại trang chủ</Link>
+        </div>
+    );
+
+    return (
+        <div className="pb-20 text-white">
+            {/* Backdrop Section */}
+            <section className="relative h-[65vh] md:h-[80vh] group">
+                <div className="absolute inset-0">
+                    <img 
+                        src={`http://localhost:5000${movie.backdrop || movie.poster}`} 
+                        alt={movie.title}
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/40 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-dark/60 via-transparent to-transparent"></div>
+                </div>
+
+                <div className="relative h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-end pb-12 gap-8">
+                    <div className="flex flex-col md:flex-row items-end md:items-center gap-8">
+                        {/* Poster Over Backdrop (Mobile: hidden or small) */}
+                        <div className="hidden md:block w-64 aspect-[2/3] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl shadow-black/50 shrink-0 transform -translate-y-4">
+                            <img 
+                                src={`http://localhost:5000${movie.poster}`} 
+                                alt={movie.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div className="flex-1 space-y-4 text-center md:text-left">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-2">
+                                <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-primary/20">
+                                    {movie.type === 'series' ? 'PHIM BỘ' : 'PHIM LẺ'}
+                                </span>
+                                {movie.genres?.map(g => (
+                                    <span key={g._id} className="text-gray-400 text-[10px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
+                                        {g.name}
+                                    </span>
+                                ))}
+                            </div>
+
+                            <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">{movie.title}</h1>
+                            
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm font-bold text-gray-400">
+                                <div className="flex items-center gap-2"><Star size={16} className="text-yellow-500" fill="currentColor" /> 8.5</div>
+                                <div className="flex items-center gap-2"><Calendar size={16} /> {movie.year?.year}</div>
+                                <div className="flex items-center gap-2"><Clock size={16} /> {movie.duration} min</div>
+                                <div className="flex items-center gap-2"><Globe size={16} /> {movie.country?.name}</div>
+                            </div>
+
+                            <div className="flex items-center justify-center md:justify-start gap-4 pt-4">
+                                <button className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg">
+                                    <Play size={24} fill="currentColor" />
+                                    XEM NGAY
+                                </button>
+                                <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90">
+                                    <Heart size={24} />
+                                </button>
+                                <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90">
+                                    <Share2 size={24} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Content Body */}
+            <main className="max-w-[1400px] mx-auto px-6 md:px-12 mt-16 grid grid-cols-1 lg:grid-cols-3 gap-16">
+                {/* Left Side: Info & Episodes */}
+                <div className="lg:col-span-2 space-y-12">
+                    <section className="space-y-4">
+                        <header className="flex items-center gap-3">
+                            <div className="w-1 h-6 bg-primary rounded-full"></div>
+                            <h2 className="text-xl font-black uppercase italic tracking-widest">Nội dung phim</h2>
+                        </header>
+                        <p className="text-gray-400 leading-relaxed text-lg font-medium">
+                            {movie.description}
+                        </p>
+                    </section>
+
+                    <section className="space-y-6">
+                        <header className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-1 h-6 bg-primary rounded-full"></div>
+                                <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
+                            </div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{movie.episodes?.length} TẬP</span>
+                        </header>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {movie.episodes?.length > 0 ? (
+                                movie.episodes.map((ep) => (
+                                    <button 
+                                        key={ep._id}
+                                        className={`group relative aspect-video rounded-xl overflow-hidden border transition-all ${
+                                            selectedEpisode?._id === ep._id 
+                                            ? 'border-primary ring-2 ring-primary/20' 
+                                            : 'border-white/5 hover:border-white/20'
+                                        }`}
+                                    >
+                                        <div className="absolute inset-0 bg-white/2 flex items-center justify-center group-hover:bg-white/5 transition-all">
+                                            <Play size={20} className={selectedEpisode?._id === ep._id ? 'text-primary' : 'text-white/20 group-hover:text-white'} fill="currentColor" />
+                                        </div>
+                                        <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                            <span className="text-[10px] font-black tracking-widest uppercase">{ep.name}</span>
+                                        </div>
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="col-span-full py-10 bg-white/2 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3 text-gray-500">
+                                    <Tv size={32} opacity={0.2} />
+                                    <p className="text-xs font-bold uppercase tracking-widest">Đang cập nhật tập mới...</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                </div>
+
+                {/* Right Side: Recommendations (Mock for now) */}
+                <div className="space-y-8">
+                    <header className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-primary rounded-full"></div>
+                        <h2 className="text-xl font-black uppercase italic tracking-widest">Đề xuất cho bạn</h2>
+                    </header>
+                    <div className="space-y-4">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="flex gap-4 p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all group cursor-pointer">
+                                <div className="w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-white/5">
+                                    <img src={`https://images.unsplash.com/photo-1542204172-3c1f81d89814?q=80&w=400&fit=crop`} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col justify-center gap-2">
+                                    <h4 className="font-bold uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors text-sm">Gợi ý phim {i}</h4>
+                                    <div className="flex items-center gap-3 text-[10px] font-bold text-gray-500 uppercase">
+                                        <span className="flex items-center gap-1"><Star size={10} fill="currentColor" className="text-yellow-500" /> 8.0</span>
+                                        <span>2024</span>
+                                    </div>
+                                    <button className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
+                                        Xem ngay <ChevronRight size={12} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default MovieDetail;
