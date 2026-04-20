@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { Search, User, LogOut, Menu, Play, LayoutDashboard } from 'lucide-react';
 
+import logo from '../assets/logo.png';
+
 const Header = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -14,12 +16,21 @@ const Header = () => {
     };
 
     return (
-        <header className="bg-dark sticky top-0 z-50 border-b border-white/5 shadow-lg">
+        <header className="bg-dark sticky top-0 z-50 border-b border-white/5 shadow-lg backdrop-blur-md bg-dark/95">
             <nav className="container mx-auto px-4 py-3 flex items-center justify-between gap-6">
                 {/* Logo */}
-                <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2">
-                    <span className="text-3xl tracking-tighter">NYAN</span>
-                    <span className="hidden sm:inline text-white font-light tracking-widest text-sm self-center mt-1">MOVIE</span>
+                <Link to="/" className="flex items-center gap-2 group">
+                    <div className="relative w-12 h-12 overflow-hidden rounded-xl shadow-lg shadow-primary/10 group-hover:shadow-primary/30 transition-all duration-500">
+                        <img 
+                            src={logo} 
+                            alt="Nyan Movie Logo" 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                    </div>
+                    <div className="flex flex-col justify-center leading-none">
+                        <span className="text-xl font-black text-white tracking-tighter group-hover:text-primary transition-colors italic">NYAN</span>
+                        <span className="text-[10px] font-black text-primary tracking-[0.3em] uppercase">MOVIE</span>
+                    </div>
                 </Link>
 
                 {/* Nav Links */}

@@ -8,6 +8,7 @@ import {
     LogOut,
     ChevronRight
 } from 'lucide-react';
+import logo from '../../assets/logo.png';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminSidebar = () => {
@@ -24,8 +25,14 @@ const AdminSidebar = () => {
     return (
         <aside className="w-64 bg-dark-card border-r border-white/5 flex flex-col h-screen sticky top-0">
             <div className="p-6 border-b border-white/5">
-                <Link to="/" className="text-xl font-bold text-primary flex items-center gap-2">
-                    NYAN <span className="text-white font-light text-xs bg-primary/20 px-2 py-0.5 rounded uppercase">Admin</span>
+                <Link to="/" className="flex items-center gap-2 group">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-primary/10">
+                        <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-black text-white leading-none italic">NYAN</span>
+                        <span className="text-[8px] font-black text-primary tracking-widest uppercase">ADMIN</span>
+                    </div>
                 </Link>
             </div>
 
