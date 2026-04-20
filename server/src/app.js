@@ -15,7 +15,14 @@ app.get('/api', (req, res) => {
 
 // Import Routes
 const authRoutes = require('./routes/auth.routes');
+const categoryRoutes = require('./routes/category.routes');
+const movieRoutes = require('./routes/movie.routes');
+const episodeRoutes = require('./routes/episode.routes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/movies', movieRoutes);
+app.use('/api/episodes', episodeRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
