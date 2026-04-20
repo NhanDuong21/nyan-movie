@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
+import { useAuth } from '../context/AuthContext';
 import { 
     Play, 
     Loader2, 
@@ -17,9 +18,13 @@ import CommentSection from '../components/movie/CommentSection';
 
 const MovieDetail = () => {
     const { slug } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [movie, setMovie] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedEpisode, setSelectedEpisode] = useState(null);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [favLoading, setFavLoading] = useState(false);
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -29,6 +34,12 @@ const MovieDetail = () => {
                 if (res.data.data.episodes?.length > 0) {
                     setSelectedEpisode(res.data.data.episodes[0]);
                 }
+                
+                // If logged in, check favorite status
+                if (user && res.data.data._id) {
+                    const favRes = await axiosClient.get(`/interactions/favorite/check/${res.data.data._id}`);
+                    setIsFavorite(favRes.data.isFavorite);
+                }
             } catch (err) {
                 console.error('Failed to fetch movie details', err);
             } finally {
@@ -37,7 +48,24 @@ const MovieDetail = () => {
         };
         fetchMovie();
         window.scrollTo(0, 0);
-    }, [slug]);
+    }, [slug, user]);
+
+    const handleToggleFavorite = async () => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            setFavLoading(true);
+            const res = await axiosClient.post('/interactions/favorite', { movieId: movie._id });
+            setIsFavorite(res.data.isFavorite);
+        } catch (err) {
+            console.error('Error toggling favorite', err);
+        } finally {
+            setFavLoading(false);
+        }
+    };
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -106,24 +134,36 @@ const MovieDetail = () => {
                                         className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg"
                                     >
                                         <Play size={24} fill="currentColor" />
-                                        XEM NGAY
-                                    </Link>
+                                    XEM NGAY
+                                </Link>
+                            ) : (
+                                <button 
+                                    disabled
+                                    className="bg-gray-700 text-gray-500 px-10 py-4 rounded-2xl font-black flex items-center gap-3 cursor-not-allowed text-lg"
+                                >
+                                    <Play size={24} fill="currentColor" />
+                                    CHƯA CÓ TẬP
+                                </button>
+                            )}
+                            <button 
+                                onClick={handleToggleFavorite}
+                                disabled={favLoading}
+                                className={`w-14 h-14 rounded-2xl backdrop-blur-md flex items-center justify-center border transition-all active:scale-90 shadow-lg ${
+                                    isFavorite 
+                                    ? 'bg-primary/20 border-primary/30 text-primary shadow-primary/10' 
+                                    : 'bg-white/10 border-white/10 hover:bg-white/20 text-white'
+                                }`}
+                            >
+                                {favLoading ? (
+                                    <Loader2 size={24} className="animate-spin" />
                                 ) : (
-                                    <button 
-                                        disabled
-                                        className="bg-gray-700 text-gray-500 px-10 py-4 rounded-2xl font-black flex items-center gap-3 cursor-not-allowed text-lg"
-                                    >
-                                        <Play size={24} fill="currentColor" />
-                                        CHƯA CÓ TẬP
-                                    </button>
+                                    <Heart size={24} fill={isFavorite ? "currentColor" : "none"} className={isFavorite ? "animate-pulse" : ""} />
                                 )}
-                                <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90">
-                                    <Heart size={24} />
-                                </button>
-                                <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90">
-                                    <Share2 size={24} />
-                                </button>
-                            </div>
+                            </button>
+                            <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90 shadow-lg">
+                                <Share2 size={24} />
+                            </button>
+                        </div>
                         </div>
                     </div>
                 </div>

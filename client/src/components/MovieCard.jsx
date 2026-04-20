@@ -1,7 +1,50 @@
-import { Link } from 'react-router-dom';
-import { Play, Star, Calendar, Bookmark, Film } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Play, Star, Calendar, Heart, Film, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import axiosClient from '../api/axiosClient';
 
 const MovieCard = ({ movie }) => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (user && movie?._id) {
+            checkFavoriteStatus();
+        }
+    }, [user, movie?._id]);
+
+    const checkFavoriteStatus = async () => {
+        try {
+            const res = await axiosClient.get(`/interactions/favorite/check/${movie._id}`);
+            setIsFavorite(res.data.isFavorite);
+        } catch (err) {
+            console.error('Error checking favorite status', err);
+        }
+    };
+
+    const handleToggleFavorite = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const res = await axiosClient.post('/interactions/favorite', { movieId: movie._id });
+            setIsFavorite(res.data.isFavorite);
+        } catch (err) {
+            console.error('Error toggling favorite', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!movie) return null;
 
     const posterUrl = movie.poster 
@@ -34,8 +77,17 @@ const MovieCard = ({ movie }) => {
                     )}
                 </div>
 
-                <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-primary transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
-                    <Bookmark size={18} />
+                <div 
+                    onClick={handleToggleFavorite}
+                    className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300 z-10 ${
+                        isFavorite ? 'text-primary' : 'text-white/50 hover:text-white'
+                    }`}
+                >
+                    {loading ? (
+                        <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                        <Heart size={18} fill={isFavorite ? "currentColor" : "none"} className={isFavorite ? "animate-pulse" : ""} />
+                    )}
                 </div>
                 
                 {/* Play Button Overlay */}

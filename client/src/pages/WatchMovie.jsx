@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
+import { useAuth } from '../context/AuthContext';
 import { 
     Play, 
     Loader2, 
@@ -16,6 +17,7 @@ import CommentSection from '../components/movie/CommentSection';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
+    const { user } = useAuth();
     const [movie, setMovie] = useState(null);
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -28,7 +30,16 @@ const WatchMovie = () => {
                 
                 // Find current episode in the movie's episodes list
                 const episode = res.data.data.episodes?.find(ep => ep._id === episodeId);
-                setCurrentEpisode(episode || (res.data.data.episodes?.length > 0 ? res.data.data.episodes[0] : null));
+                const activeEp = episode || (res.data.data.episodes?.length > 0 ? res.data.data.episodes[0] : null);
+                setCurrentEpisode(activeEp);
+
+                // Track Watch History if logged in
+                if (user && res.data.data._id && activeEp?._id) {
+                    await axiosClient.post('/interactions/history', {
+                        movieId: res.data.data._id,
+                        episodeId: activeEp._id
+                    });
+                }
             } catch (err) {
                 console.error('Failed to fetch watch data', err);
             } finally {
@@ -37,7 +48,7 @@ const WatchMovie = () => {
         };
         fetchData();
         window.scrollTo(0, 0);
-    }, [movieSlug, episodeId]);
+    }, [movieSlug, episodeId, user]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">

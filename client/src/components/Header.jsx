@@ -44,6 +44,11 @@ const Header = () => {
                     <li className="hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1">
                         Quốc Gia
                     </li>
+                    {user && (
+                        <li className="hover:text-primary transition-colors cursor-pointer font-bold text-primary">
+                            <Link to="/my-list">Phim Của Tôi</Link>
+                        </li>
+                    )}
                 </ul>
 
                 {/* Search Bar */}
