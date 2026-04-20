@@ -29,7 +29,7 @@ const ManageEpisodes = () => {
         setLoading(true);
         try {
             const [movieRes, epsRes] = await Promise.all([
-                axiosClient.get(`/movies/id/${movieId}`), // Need to ensure backend has getById
+                axiosClient.get(`/movies/${movieId}`),
                 axiosClient.get(`/episodes?movieId=${movieId}`)
             ]);
             setMovie(movieRes.data.data);

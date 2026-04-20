@@ -99,10 +99,23 @@ const MovieDetail = () => {
                             </div>
 
                             <div className="flex items-center justify-center md:justify-start gap-4 pt-4">
-                                <button className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg">
-                                    <Play size={24} fill="currentColor" />
-                                    XEM NGAY
-                                </button>
+                                {movie.episodes?.length > 0 ? (
+                                    <Link 
+                                        to={`/watch/${movie.slug}/${movie.episodes[0]._id}`}
+                                        className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg"
+                                    >
+                                        <Play size={24} fill="currentColor" />
+                                        XEM NGAY
+                                    </Link>
+                                ) : (
+                                    <button 
+                                        disabled
+                                        className="bg-gray-700 text-gray-500 px-10 py-4 rounded-2xl font-black flex items-center gap-3 cursor-not-allowed text-lg"
+                                    >
+                                        <Play size={24} fill="currentColor" />
+                                        CHƯA CÓ TẬP
+                                    </button>
+                                )}
                                 <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90">
                                     <Heart size={24} />
                                 </button>
@@ -141,8 +154,9 @@ const MovieDetail = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {movie.episodes?.length > 0 ? (
                                 movie.episodes.map((ep) => (
-                                    <button 
+                                    <Link 
                                         key={ep._id}
+                                        to={`/watch/${movie.slug}/${ep._id}`}
                                         className={`group relative aspect-video rounded-xl overflow-hidden border transition-all ${
                                             selectedEpisode?._id === ep._id 
                                             ? 'border-primary ring-2 ring-primary/20' 
@@ -155,7 +169,7 @@ const MovieDetail = () => {
                                         <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                                             <span className="text-[10px] font-black tracking-widest uppercase">{ep.name}</span>
                                         </div>
-                                    </button>
+                                    </Link>
                                 ))
                             ) : (
                                 <div className="col-span-full py-10 bg-white/2 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3 text-gray-500">

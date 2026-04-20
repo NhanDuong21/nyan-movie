@@ -8,6 +8,7 @@ import ManageMovies from './pages/admin/ManageMovies';
 import ManageEpisodes from './pages/admin/ManageEpisodes';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
+import WatchMovie from './pages/WatchMovie';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -27,6 +28,7 @@ function App() {
                 <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/movie/:slug" element={<MovieDetail />} />
+                    <Route path="/watch/:movieSlug/:episodeId" element={<WatchMovie />} />
                 </Route>
 
                 <Route path="/login" element={<Login />} />

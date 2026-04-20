@@ -63,6 +63,20 @@ exports.getMovies = async (req, res, next) => {
     }
 };
 
+exports.getMovieById = async (req, res, next) => {
+    try {
+        const movie = await Movie.findById(req.params.id).populate('genres country year');
+
+        if (!movie) {
+            return res.status(404).json({ success: false, message: 'Movie not found' });
+        }
+
+        res.status(200).json({ success: true, data: movie });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.getMovieBySlug = async (req, res, next) => {
     try {
         const movie = await Movie.findOne({ slug: req.params.slug }).populate('genres country year');
