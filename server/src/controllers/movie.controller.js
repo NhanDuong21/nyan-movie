@@ -6,8 +6,12 @@ const Year = require('../models/Year');
 
 exports.getMovies = async (req, res, next) => {
     try {
-        const { search, genre, country, year, status, select, sort, page, limit } = req.query;
+        const { search, type, genre, country, year, status, select, sort, page, limit } = req.query;
         let filters = {};
+
+        if (type) {
+            filters.type = type;
+        }
 
         // Search Logic (Regex on title)
         if (search) {
