@@ -25,6 +25,7 @@ const episodeRoutes = require('./routes/episode.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const commentRoutes = require('./routes/comment.routes');
 const interactionRoutes = require('./routes/interaction.routes');
+const newsRoutes = require('./routes/news.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -33,6 +34,7 @@ app.use('/api/episodes', episodeRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/api/news', newsRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -1,50 +1,69 @@
 const Movie = require('../models/Movie');
 const Episode = require('../models/Episode');
+const Genre = require('../models/Genre');
+const Country = require('../models/Country');
+const Year = require('../models/Year');
 
 exports.getMovies = async (req, res, next) => {
     try {
-        let query;
+        const { search, genre, country, year, status, select, sort, page, limit } = req.query;
+        let filters = {};
 
-        // Copy req.query
-        const reqQuery = { ...req.query };
-
-        // Fields to exclude
-        const removeFields = ['select', 'sort', 'page', 'limit'];
-        removeFields.forEach(param => delete reqQuery[param]);
-
-        // Support for hidden status filtering (Admin can see hidden, users can't)
-        if (!req.user || req.user.role !== 'admin') {
-            reqQuery.status = { $ne: 'hidden' };
+        // Search Logic (Regex on title)
+        if (search) {
+            filters.title = { $regex: search, $options: 'i' };
         }
 
-        // Create query string
-        let queryStr = JSON.stringify(reqQuery);
-        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+        // Category filtering by slug/value
+        if (genre) {
+            const genreDoc = await Genre.findOne({ slug: genre });
+            if (genreDoc) filters.genres = genreDoc._id;
+            else filters._id = null;
+        }
 
-        // Finding resource
-        query = Movie.find(JSON.parse(queryStr)).populate('genres country year');
+        if (country) {
+            const countryDoc = await Country.findOne({ slug: country });
+            if (countryDoc) filters.country = countryDoc._id;
+            else filters._id = null;
+        }
+
+        if (year) {
+            const yearDoc = await Year.findOne({ year: parseInt(year) });
+            if (yearDoc) filters.year = yearDoc._id;
+            else filters._id = null;
+        }
+
+        // Status/Visibility
+        if (!req.user || req.user.role !== 'admin') {
+            filters.status = { $ne: 'hidden' };
+        } else if (status) {
+            filters.status = status;
+        }
+
+        // Create query
+        let query = Movie.find(filters).populate('genres country year');
 
         // Select Fields
-        if (req.query.select) {
-            const fields = req.query.select.split(',').join(' ');
+        if (select) {
+            const fields = select.split(',').join(' ');
             query = query.select(fields);
         }
 
         // Sort
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ');
+        if (sort) {
+            const sortBy = sort.split(',').join(' ');
             query = query.sort(sortBy);
         } else {
             query = query.sort('-createdAt');
         }
 
         // Pagination
-        const page = parseInt(req.query.page, 10) || 1;
-        const limit = parseInt(req.query.limit, 10) || 10;
-        const startIndex = (page - 1) * limit;
-        const total = await Movie.countDocuments(JSON.parse(queryStr));
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 10;
+        const startIndex = (pageNum - 1) * limitNum;
+        const total = await Movie.countDocuments(filters);
 
-        query = query.skip(startIndex).limit(limit);
+        query = query.skip(startIndex).limit(limitNum);
 
         const movies = await query;
 
@@ -53,8 +72,8 @@ exports.getMovies = async (req, res, next) => {
             count: movies.length,
             pagination: {
                 total,
-                page,
-                pages: Math.ceil(total / limit)
+                page: pageNum,
+                pages: Math.ceil(total / limitNum)
             },
             data: movies
         });
