@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
 import { 
@@ -12,7 +12,9 @@ import {
     Lock,
     Calendar,
     Key,
-    RefreshCw
+    RefreshCw,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 
 const Profile = () => {
@@ -29,6 +31,11 @@ const Profile = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isChangingPass, setIsChangingPass] = useState(false);
     const [passMessage, setPassMessage] = useState({ type: '', text: '' });
+    const [showPasswords, setShowPasswords] = useState({
+        old: false,
+        new: false,
+        confirm: false
+    });
 
     const fileInputRef = useRef(null);
 
@@ -43,6 +50,21 @@ const Profile = () => {
             minute: '2-digit'
         });
     };
+
+    const passwordStrength = useMemo(() => {
+        let score = 0;
+        if (!newPassword) return null;
+        if (newPassword.length >= 6) score += 1;
+        if (newPassword.length >= 10) score += 1;
+        if (/[A-Z]/.test(newPassword)) score += 1;
+        if (/[0-9]/.test(newPassword)) score += 1;
+        if (/[^A-Za-z0-9]/.test(newPassword)) score += 1;
+
+        if (score <= 2) return { label: 'Yếu', color: 'bg-red-500', width: '25%' };
+        if (score === 3) return { label: 'Trung bình', color: 'bg-orange-500', width: '50%' };
+        if (score === 4) return { label: 'Mạnh', color: 'bg-yellow-500', width: '75%' };
+        return { label: 'Rất mạnh', color: 'bg-green-500', width: '100%' };
+    }, [newPassword]);
 
     const handleAvatarUpload = async (e) => {
         const file = e.target.files[0];
@@ -85,6 +107,9 @@ const Profile = () => {
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
+        if (newPassword.length < 6) {
+            return setPassMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+        }
         if (newPassword !== confirmPassword) {
             return setPassMessage({ type: 'error', text: 'Mật khẩu mới không trùng khớp' });
         }
@@ -103,6 +128,10 @@ const Profile = () => {
         } finally {
             setIsChangingPass(false);
         }
+    };
+
+    const togglePass = (field) => {
+        setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
     };
 
     if (!user) return null;
@@ -239,26 +268,54 @@ const Profile = () => {
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
                                         <input
                                             required
-                                            type="password"
+                                            type={showPasswords.old ? "text" : "password"}
                                             placeholder="••••••••"
-                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
                                             value={oldPassword}
                                             onChange={(e) => setOldPassword(e.target.value)}
                                         />
+                                        <button 
+                                            type="button"
+                                            onClick={() => togglePass('old')}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
+                                        >
+                                            {showPasswords.old ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu mới</label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu mới</label>
+                                        {passwordStrength && (
+                                            <span className={`text-[9px] font-black uppercase tracking-widest ${passwordStrength.color.replace('bg-', 'text-')}`}>
+                                                Độ mạnh: {passwordStrength.label}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="relative group">
                                         <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
                                         <input
                                             required
-                                            type="password"
+                                            type={showPasswords.new ? "text" : "password"}
                                             placeholder="••••••••"
-                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                         />
+                                        <button 
+                                            type="button"
+                                            onClick={() => togglePass('new')}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
+                                        >
+                                            {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    {/* Strength Meter Bar */}
+                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-1">
+                                        <div 
+                                            className={`h-full transition-all duration-500 ${passwordStrength?.color || ''}`}
+                                            style={{ width: passwordStrength?.width || '0%' }}
+                                        ></div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -267,12 +324,19 @@ const Profile = () => {
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
                                         <input
                                             required
-                                            type="password"
+                                            type={showPasswords.confirm ? "text" : "password"}
                                             placeholder="••••••••"
-                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                         />
+                                        <button 
+                                            type="button"
+                                            onClick={() => togglePass('confirm')}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
+                                        >
+                                            {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
