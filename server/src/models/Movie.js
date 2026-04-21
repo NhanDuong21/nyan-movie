@@ -24,7 +24,7 @@ const movieSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['single', 'series'],
+        enum: ['single', 'series', 'hoathinh', 'chieurap'],
         required: [true, 'Movie type is required']
     },
     duration: {
@@ -35,9 +35,17 @@ const movieSchema = new mongoose.Schema({
         type: Number,
         default: 1
     },
-    price: {
-        type: Number,
-        default: 0
+    actors: {
+        type: String,
+        default: ''
+    },
+    director: {
+        type: String,
+        default: ''
+    },
+    language: {
+        type: String,
+        default: ''
     },
     views: {
         type: Number,
