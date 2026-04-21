@@ -44,8 +44,8 @@ const BrowseMovies = () => {
 
                 // Set dynamic title
                 if (recent === '14') setTitle('Phim Mới Cập Nhật');
-                else if (type === 'series') setTitle('Toàn Bộ Phim Bộ');
-                else if (type === 'single') setTitle('Toàn Bộ Phim Lẻ');
+                else if (type === 'series') setTitle('Tất Cả Phim Bộ');
+                else if (type === 'single') setTitle('Tất Cả Phim Lẻ');
                 else if (search) setTitle(`Kết quả tìm kiếm cho: "${search}"`);
                 else if (genre) setTitle(`Phim theo Thể loại: ${genre.charAt(0).toUpperCase() + genre.slice(1).replace(/-/g, ' ')}`);
                 else if (country) setTitle(`Phim theo Quốc gia: ${country.charAt(0).toUpperCase() + country.slice(1).replace(/-/g, ' ')}`);

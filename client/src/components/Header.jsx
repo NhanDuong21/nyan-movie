@@ -125,8 +125,8 @@ const Header = () => {
                         <div className="text-gray-400 hover:text-white text-[11px] font-bold uppercase tracking-widest cursor-pointer transition-colors flex items-center gap-1">
                             Quốc Gia <ChevronDown size={12} />
                         </div>
-                        <div className="absolute top-full left-0 w-48 bg-dark-card border border-white/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 p-4 translate-y-2 group-hover/dropdown:translate-y-0">
-                            <div className="grid grid-cols-1 gap-1">
+                        <div className="absolute top-full left-0 w-64 bg-dark-card border border-white/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 p-4 translate-y-2 group-hover/dropdown:translate-y-0">
+                            <div className="grid grid-cols-2 gap-1">
                                 {countries.map(c => (
                                     <Link 
                                         key={c._id} 
