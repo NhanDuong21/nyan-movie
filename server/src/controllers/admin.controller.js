@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Movie = require('../models/Movie');
 const Interaction = require('../models/Interaction');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
@@ -107,7 +108,85 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// @desc    Update user role
+// @desc    Create new user
+// @route   POST /api/admin/users
+// @access  Private/Admin
+exports.createUser = async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+
+        if (!username || !email || !password) {
+            return res.status(400).json({ success: false, message: 'Please provide all required fields' });
+        }
+
+        const userExists = await User.findOne({ $or: [{ email }, { username }] });
+        if (userExists) {
+            return res.status(400).json({ success: false, message: 'User already exists with this email or username' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const user = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+            role: role || 'user'
+        });
+
+        res.status(201).json({
+            success: true,
+            data: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+// @desc    Update user
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
+exports.updateUser = async (req, res) => {
+    try {
+        const { username, email, role } = req.body;
+
+        // Check if updating to an email/username that already exists (for other users)
+        const duplicate = await User.findOne({
+            $and: [
+                { _id: { $ne: req.params.id } },
+                { $or: [{ email }, { username }] }
+            ]
+        });
+
+        if (duplicate) {
+            return res.status(400).json({ success: false, message: 'Email or Username already taken' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { username, email, role },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+// @desc    Update user role (Deprecated - merged into updateUser)
 // @route   PATCH /api/admin/users/:id/role
 // @access  Private/Admin
 exports.updateUserRole = async (req, res) => {

@@ -3,6 +3,8 @@ const router = express.Router();
 const { 
     getDashboardStats, 
     getAllUsers, 
+    createUser,
+    updateUser,
     updateUserRole, 
     deleteUser 
 } = require('../controllers/admin.controller');
@@ -14,6 +16,8 @@ router.use(verifyAdmin);
 
 router.get('/stats', getDashboardStats);
 router.get('/users', getAllUsers);
+router.post('/users', createUser);
+router.put('/users/:id', updateUser);
 router.patch('/users/:id/role', updateUserRole);
 router.delete('/users/:id', deleteUser);
 
