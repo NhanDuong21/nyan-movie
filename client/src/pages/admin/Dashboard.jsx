@@ -109,7 +109,7 @@ const Dashboard = () => {
         <div className="space-y-10 pb-10">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">Hệ thống <span className="text-primary italic">NYAN</span> Dash</h1>
+                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter"><span className="text-primary italic">ADMIN</span> Dashboard</h1>
                     <p className="text-gray-500 mt-1 uppercase font-bold tracking-widest text-[10px]">Real-time analytics and management</p>
                 </div>
                 <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-3">

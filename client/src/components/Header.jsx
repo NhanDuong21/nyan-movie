@@ -189,9 +189,12 @@ const Header = () => {
                                         <p className="text-sm text-white font-medium">{user.username}</p>
                                         <p className="text-[10px] text-primary uppercase">{user.role}</p>
                                     </div>
-                                    <button className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors flex items-center gap-3">
+                                    <Link 
+                                        to="/profile"
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors flex items-center gap-3"
+                                    >
                                         <User size={16} /> Trang cá nhân
-                                    </button>
+                                    </Link>
                                     {user.role === 'admin' && (
                                         <Link 
                                             to="/admin" 

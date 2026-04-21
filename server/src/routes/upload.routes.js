@@ -3,7 +3,7 @@ const router = express.Router();
 const upload = require('../middlewares/upload.middleware');
 const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
-router.post('/', verifyToken, verifyAdmin, upload.single('image'), (req, res) => {
+router.post('/', verifyToken, upload.single('image'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'Vui lòng chọn một file để upload' });
     }

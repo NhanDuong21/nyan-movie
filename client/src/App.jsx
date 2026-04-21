@@ -17,6 +17,7 @@ import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import Profile from './pages/Profile';
 
 function App() {
     const { loading } = useAuth();
@@ -39,6 +40,7 @@ function App() {
                     <Route path="/browse" element={<BrowseMovies />} />
                     <Route path="/news" element={<News />} />
                     <Route path="/news/:slug" element={<NewsDetail />} />
+                    <Route path="/profile" element={<Profile />} />
                 </Route>
 
                 <Route path="/login" element={<Login />} />
