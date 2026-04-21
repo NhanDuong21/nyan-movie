@@ -233,7 +233,7 @@ const Home = () => {
                     title="PHIM MỚI CẬP NHẬT" 
                     subtitle="LATEST RELEASES" 
                     movies={latestMovies} 
-                    viewAllLink="/movies" 
+                    viewAllLink="/browse?recent=14" 
                     layout="carousel"
                 />
 

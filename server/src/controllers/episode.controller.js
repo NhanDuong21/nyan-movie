@@ -35,6 +35,10 @@ exports.addEpisode = async (req, res, next) => {
         }
 
         const episode = await Episode.create(req.body);
+
+        // Update parent movie's timestamp so it moves to top of "Latest" lists
+        await Movie.findByIdAndUpdate(req.params.movieId, { updatedAt: Date.now() });
+
         res.status(201).json({ success: true, data: episode });
     } catch (error) {
         next(error);

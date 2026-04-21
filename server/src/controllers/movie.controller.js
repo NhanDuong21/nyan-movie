@@ -6,11 +6,19 @@ const Year = require('../models/Year');
 
 exports.getMovies = async (req, res, next) => {
     try {
-        const { search, type, genre, country, year, status, select, sort, page, limit } = req.query;
+        const { search, type, genre, country, year, status, recent, select, sort, page, limit } = req.query;
         let filters = {};
 
         if (type) {
             filters.type = type;
+        }
+
+        // Recent days rule (e.g., PHIM MỚI = 14 days)
+        if (recent) {
+            const days = parseInt(recent, 10);
+            if (!isNaN(days)) {
+                filters.updatedAt = { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) };
+            }
         }
 
         // Search Logic (Regex on title)
@@ -58,7 +66,8 @@ exports.getMovies = async (req, res, next) => {
             const sortBy = sort.split(',').join(' ');
             query = query.sort(sortBy);
         } else {
-            query = query.sort('-createdAt');
+            // Default to updatedAt so newly updated series jump to top
+            query = query.sort('-updatedAt');
         }
 
         // Pagination
