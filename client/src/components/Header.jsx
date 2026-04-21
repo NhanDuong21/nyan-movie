@@ -1,6 +1,6 @@
-import { Link, useNavigate, NavLink } from 'react-router-dom';
+import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
@@ -9,9 +9,48 @@ import logo from '../assets/logo.png';
 const Header = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
     const [genres, setGenres] = useState([]);
     const [countries, setCountries] = useState([]);
+    const searchTimeoutRef = useRef(null);
+
+    // Sync search input with URL if present
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const searchFromUrl = queryParams.get('search');
+        if (searchFromUrl) {
+            setSearchQuery(searchFromUrl);
+        } else if (location.pathname !== '/browse') {
+            setSearchQuery('');
+        }
+    }, [location.search, location.pathname]);
+
+    // Debounced real-time search
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        if (searchQuery.trim() && location.pathname === '/browse') {
+            searchTimeoutRef.current = setTimeout(() => {
+                const currentParams = new URLSearchParams(location.search);
+                if (currentParams.get('search') !== searchQuery.trim()) {
+                    navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`, { replace: true });
+                }
+            }, 500);
+        } else if (searchQuery.trim() && location.pathname !== '/browse') {
+             // If not on browse page, wait for user to type more or enter
+             // But user wants real-time, so we should jump to browse
+             searchTimeoutRef.current = setTimeout(() => {
+                navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
+            }, 800);
+        }
+
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, [searchQuery, navigate]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -33,7 +72,6 @@ const Header = () => {
         e.preventDefault();
         if (searchQuery.trim()) {
             navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
-            setSearchQuery('');
         }
     };
 

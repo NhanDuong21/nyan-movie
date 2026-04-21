@@ -85,7 +85,7 @@ const BrowseMovies = () => {
                     <div>
                         <h1 className="text-4xl font-black uppercase italic tracking-tighter line-clamp-1">{title}</h1>
                         <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
-                            Trang {pagination.page} / {pagination.pages} — Tìm thấy {pagination.total} phim
+                            Trang {pagination.page} / {pagination.pages || 1} — Tìm thấy {pagination.total} phim
                         </p>
                     </div>
                 </div>
