@@ -9,7 +9,9 @@ const MovieForm = ({ initialData, onSuccess }) => {
         type: 'single',
         duration: 0,
         totalEpisodes: 1,
-        price: 0,
+        actors: '',
+        director: '',
+        language: '',
         status: 'ongoing',
         genres: [],
         country: '',
@@ -59,7 +61,16 @@ const MovieForm = ({ initialData, onSuccess }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const newState = { ...prev, [name]: value };
+            
+            // Logic: Cinema or Single must be 1 episode
+            if (name === 'type' && (value === 'single' || value === 'chieurap')) {
+                newState.totalEpisodes = 1;
+            }
+            
+            return newState;
+        });
     };
 
     const handleGenreChange = (genreId) => {
@@ -157,6 +168,8 @@ const MovieForm = ({ initialData, onSuccess }) => {
                             >
                                 <option value="single">Phim Lẻ (Single)</option>
                                 <option value="series">Phim Bộ (Series)</option>
+                                <option value="hoathinh">Phim Hoạt Hình (Animation)</option>
+                                <option value="chieurap">Phim Chiếu Rạp (Cinema)</option>
                             </select>
                         </div>
                         <div className="space-y-2">
@@ -174,7 +187,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400">Thời lượng (phút)</label>
                             <input
@@ -192,15 +205,41 @@ const MovieForm = ({ initialData, onSuccess }) => {
                                 name="totalEpisodes"
                                 value={formData.totalEpisodes}
                                 onChange={handleChange}
+                                disabled={formData.type === 'single' || formData.type === 'chieurap'}
+                                className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-400">Ngôn ngữ</label>
+                        <input
+                            type="text"
+                            name="language"
+                            value={formData.language}
+                            onChange={handleChange}
+                            className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
+                            placeholder="Tiếng Anh, Vietsub..."
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-400">Đạo diễn</label>
+                            <input
+                                type="text"
+                                name="director"
+                                value={formData.director}
+                                onChange={handleChange}
                                 className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400">Giá (VND)</label>
+                            <label className="text-sm font-medium text-gray-400">Diễn viên</label>
                             <input
-                                type="number"
-                                name="price"
-                                value={formData.price}
+                                type="text"
+                                name="actors"
+                                value={formData.actors}
                                 onChange={handleChange}
                                 className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
                             />

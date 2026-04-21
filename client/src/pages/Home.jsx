@@ -24,8 +24,8 @@ const Home = () => {
                 axiosClient.get('/movies?recent=14&limit=20'),
                 axiosClient.get('/movies?type=series&limit=20'),
                 axiosClient.get('/movies?type=single&limit=8'),
-                axiosClient.get('/movies?genre=hoat-hinh&type=series&limit=20'),
-                axiosClient.get('/movies?genre=phim-chieu-rap&type=single&limit=8')
+                axiosClient.get('/movies?type=hoathinh&limit=20'),
+                axiosClient.get('/movies?type=chieurap&limit=8')
             ]);
             
             setLatestMovies(latestRes.data.data || []);
@@ -293,7 +293,7 @@ const Home = () => {
                     title="PHIM HOẠT HÌNH" 
                     subtitle="ANIMATION & ANIME" 
                     movies={animationMovies} 
-                    viewAllLink="/browse?genre=hoat-hinh&type=series" 
+                    viewAllLink="/browse?type=hoathinh" 
                     layout="carousel"
                 />
 
@@ -301,7 +301,7 @@ const Home = () => {
                     title="PHIM CHIẾU RẠP" 
                     subtitle="CINEMA MOVIES" 
                     movies={cinemaMovies} 
-                    viewAllLink="/browse?genre=phim-chieu-rap&type=single" 
+                    viewAllLink="/browse?type=chieurap" 
                     layout="large-grid"
                 />
             </div>

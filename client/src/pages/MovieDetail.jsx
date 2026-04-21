@@ -22,13 +22,16 @@ const MovieDetail = () => {
     const { user } = useAuth();
     const [movie, setMovie] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [selectedEpisode, setSelectedEpisode] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [favLoading, setFavLoading] = useState(false);
 
     useEffect(() => {
         const fetchMovie = async () => {
-            try {
+        setLoading(true);
+        setError(null);
+        try {
                 const res = await axiosClient.get(`/movies/slug/${slug}`);
                 setMovie(res.data.data);
                 if (res.data.data.episodes?.length > 0) {
@@ -181,6 +184,32 @@ const MovieDetail = () => {
                         <p className="text-gray-400 leading-relaxed text-lg font-medium">
                             {movie.description}
                         </p>
+
+                        {/* Additional Metadata */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 pt-6 border-t border-white/5 text-sm uppercase tracking-widest font-black italic">
+                            {(movie.director || movie.actors || movie.language) && (
+                                <>
+                                    {movie.director && (
+                                        <div className="space-y-1">
+                                            <span className="text-gray-600 block">Đạo diễn</span>
+                                            <span className="text-gray-300">{movie.director}</span>
+                                        </div>
+                                    )}
+                                    {movie.actors && (
+                                        <div className="space-y-1">
+                                            <span className="text-gray-600 block">Diễn viên</span>
+                                            <span className="text-gray-300">{movie.actors}</span>
+                                        </div>
+                                    )}
+                                    {movie.language && (
+                                        <div className="space-y-1">
+                                            <span className="text-gray-600 block">Ngôn ngữ</span>
+                                            <span className="text-gray-300">{movie.language}</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
                         {movie.type !== 'single' && (
                             <section className="space-y-6">
                                 <header className="flex items-center justify-between">
