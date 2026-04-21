@@ -11,6 +11,8 @@ const Home = () => {
     const [latestMovies, setLatestMovies] = useState([]);
     const [seriesMovies, setSeriesMovies] = useState([]);
     const [singleMovies, setSingleMovies] = useState([]);
+    const [animationMovies, setAnimationMovies] = useState([]);
+    const [cinemaMovies, setCinemaMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -18,15 +20,19 @@ const Home = () => {
         setLoading(true);
         setError(null);
         try {
-            const [latestRes, seriesRes, singleRes] = await Promise.all([
-                axiosClient.get('/movies?limit=20'),
+            const [latestRes, seriesRes, singleRes, animationRes, cinemaRes] = await Promise.all([
+                axiosClient.get('/movies?recent=14&limit=20'),
                 axiosClient.get('/movies?type=series&limit=20'),
-                axiosClient.get('/movies?type=single&limit=12')
+                axiosClient.get('/movies?type=single&limit=8'),
+                axiosClient.get('/movies?genre=hoat-hinh&type=series&limit=20'),
+                axiosClient.get('/movies?genre=phim-chieu-rap&type=single&limit=8')
             ]);
             
             setLatestMovies(latestRes.data.data || []);
             setSeriesMovies(seriesRes.data.data || []);
             setSingleMovies(singleRes.data.data || []);
+            setAnimationMovies(animationRes.data.data || []);
+            setCinemaMovies(cinemaRes.data.data || []);
         } catch (err) {
             console.error('Failed to fetch home data', err);
             setError("Không thể kết nối với máy chủ. Vui lòng thử lại sau.");
@@ -278,8 +284,24 @@ const Home = () => {
                 <MovieSection 
                     title="PHIM LẺ" 
                     subtitle="LATEST SINGLE MOVIES" 
-                    movies={singleMovies.slice(0, 8)} 
+                    movies={singleMovies} 
                     viewAllLink="/browse?type=single" 
+                    layout="large-grid"
+                />
+
+                <MovieSection 
+                    title="PHIM HOẠT HÌNH" 
+                    subtitle="ANIMATION & ANIME" 
+                    movies={animationMovies} 
+                    viewAllLink="/browse?genre=hoat-hinh&type=series" 
+                    layout="carousel"
+                />
+
+                <MovieSection 
+                    title="PHIM CHIẾU RẠP" 
+                    subtitle="CINEMA MOVIES" 
+                    movies={cinemaMovies} 
+                    viewAllLink="/browse?genre=phim-chieu-rap&type=single" 
                     layout="large-grid"
                 />
             </div>
