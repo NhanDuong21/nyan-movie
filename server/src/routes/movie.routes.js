@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById 
+    getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById, incrementView
 } = require('../controllers/movie.controller');
 const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
@@ -16,5 +16,7 @@ router.route('/:id')
     .get(getMovieById)
     .put(verifyToken, verifyAdmin, updateMovie)
     .delete(verifyToken, verifyAdmin, deleteMovie);
+
+router.post('/:movieId/episodes/:episodeId/view', incrementView);
 
 module.exports = router;

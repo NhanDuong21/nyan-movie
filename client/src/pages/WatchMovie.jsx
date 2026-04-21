@@ -21,6 +21,7 @@ const WatchMovie = () => {
     const [movie, setMovie] = useState(null);
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [hasCountedView, setHasCountedView] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,6 +33,7 @@ const WatchMovie = () => {
                 const episode = res.data.data.episodes?.find(ep => ep._id === episodeId);
                 const activeEp = episode || (res.data.data.episodes?.length > 0 ? res.data.data.episodes[0] : null);
                 setCurrentEpisode(activeEp);
+                setHasCountedView(false); // Reset view count state when episode changes
 
                 // Track Watch History if logged in
                 if (user && res.data.data._id && activeEp?._id) {
@@ -49,6 +51,34 @@ const WatchMovie = () => {
         fetchData();
         window.scrollTo(0, 0);
     }, [movieSlug, episodeId, user]);
+
+    const handleTimeUpdate = async (e) => {
+        const video = e.target;
+        if (!movie || !currentEpisode || hasCountedView) return;
+
+        // Rule: Increment view ONLY IF user plays for >= 15 seconds
+        if (video.currentTime >= 15) {
+            const viewKey = `nyan_view_${movie._id}_${currentEpisode._id}`;
+            const lastView = localStorage.getItem(viewKey);
+            const now = Date.now();
+            const COOLDOWN = 30 * 60 * 1000; // 30 minutes
+
+            // Anti-spam Rule: 1 view per session per 30 minutes
+            if (!lastView || (now - parseInt(lastView)) >= COOLDOWN) {
+                try {
+                    await axiosClient.post(`/movies/${movie._id}/episodes/${currentEpisode._id}/view`);
+                    localStorage.setItem(viewKey, now.toString());
+                    console.log('View counted successfully');
+                } catch (err) {
+                    console.error('Failed to increment view', err);
+                }
+            } else {
+                console.log('View tracking skipped: Cooldown active');
+            }
+
+            setHasCountedView(true);
+        }
+    };
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
@@ -94,14 +124,15 @@ const WatchMovie = () => {
                     {/* Video Embed */}
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode.videoUrl ? (
-                            <iframe
+                            <video
                                 src={currentEpisode.videoUrl}
-                                title={currentEpisode.name}
-                                className="absolute inset-0 w-full h-full"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
+                                controls
+                                onTimeUpdate={handleTimeUpdate}
+                                className="absolute inset-0 w-full h-full object-contain"
+                                poster={movie.backdrop}
+                            >
+                                Your browser does not support the video tag.
+                            </video>
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
                                 <VideoOff size={48} className="opacity-20" />

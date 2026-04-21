@@ -173,3 +173,21 @@ exports.deleteMovie = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Increment views for movie and episode
+// @route   POST /api/movies/:movieId/episodes/:episodeId/view
+// @access  Public
+exports.incrementView = async (req, res, next) => {
+    try {
+        const { movieId, episodeId } = req.params;
+
+        await Promise.all([
+            Movie.findByIdAndUpdate(movieId, { $inc: { views: 1 } }),
+            Episode.findByIdAndUpdate(episodeId, { $inc: { views: 1 } })
+        ]);
+
+        res.status(200).json({ success: true, message: 'View incremented' });
+    } catch (error) {
+        next(error);
+    }
+};
