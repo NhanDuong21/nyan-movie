@@ -12,6 +12,7 @@ import {
     AlertCircle,
     Edit
 } from 'lucide-react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageEpisodes = () => {
     const { movieId } = useParams();
@@ -26,6 +27,16 @@ const ManageEpisodes = () => {
         name: '',
         episodeNumber: '',
         videoUrl: ''
+    });
+
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger',
+        onConfirm: () => {},
+        cancelText: 'Hủy',
+        confirmText: 'Xác nhận'
     });
 
     const fetchData = async () => {
@@ -69,7 +80,15 @@ const ManageEpisodes = () => {
             setFormData({ name: '', episodeNumber: '', videoUrl: '' });
             fetchData();
         } catch (err) {
-            alert(`Lỗi khi ${editingEpisode ? 'cập nhật' : 'thêm'} tập phim`);
+            setConfirmConfig({
+                isOpen: true,
+                title: 'Lỗi',
+                message: `Lỗi khi ${editingEpisode ? 'cập nhật' : 'thêm'} tập phim. Vui lòng kiểm tra lại kết nối hoặc dữ liệu.`,
+                type: 'danger',
+                onConfirm: () => {},
+                cancelText: '',
+                confirmText: 'Đã hiểu'
+            });
         } finally {
             setIsSaving(false);
         }
@@ -95,14 +114,31 @@ const ManageEpisodes = () => {
         });
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Xóa tập phim này?')) return;
-        try {
-            await axiosClient.delete(`/episodes/${id}`);
-            fetchData();
-        } catch (err) {
-            alert('Lỗi khi xóa tập phim');
-        }
+    const handleDelete = (id) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Xóa tập phim',
+            message: 'Bạn có chắc chắn muốn xóa tập phim này? Hành động này không thể hoàn tác.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await axiosClient.delete(`/episodes/${id}`);
+                    fetchData();
+                } catch (err) {
+                    setConfirmConfig({
+                        isOpen: true,
+                        title: 'Lỗi',
+                        message: 'Không thể xóa tập phim. Vui lòng thử lại sau.',
+                        type: 'danger',
+                        onConfirm: () => {},
+                        cancelText: '',
+                        confirmText: 'Đã hiểu'
+                    });
+                }
+            },
+            cancelText: 'Hủy',
+            confirmText: 'Xóa ngay'
+        });
     };
 
     if (loading) return (
@@ -265,6 +301,16 @@ const ManageEpisodes = () => {
                     </table>
                 </div>
             </div>
+            <ConfirmModal 
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+                cancelText={confirmConfig.cancelText}
+                confirmText={confirmConfig.confirmText}
+            />
         </div>
     );
 };

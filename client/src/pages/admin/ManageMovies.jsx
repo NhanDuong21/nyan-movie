@@ -15,6 +15,7 @@ import {
     PlayCircle 
 } from 'lucide-react';
 import MovieForm from '../../components/admin/MovieForm';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageMovies = () => {
     const [movies, setMovies] = useState([]);
@@ -22,6 +23,8 @@ const ManageMovies = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingMovie, setEditingMovie] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [movieToDelete, setMovieToDelete] = useState(null);
 
     const fetchMovies = async () => {
         setLoading(true);
@@ -39,13 +42,21 @@ const ManageMovies = () => {
         fetchMovies();
     }, []);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Bạn có chắc muốn xóa (ẩn) phim này?')) return;
+    const handleDelete = (id) => {
+        setMovieToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!movieToDelete) return;
         try {
-            await axiosClient.delete(`/movies/${id}`);
+            await axiosClient.delete(`/movies/${movieToDelete}`);
             fetchMovies();
         } catch (err) {
-            alert('Lỗi khi xóa phim');
+            console.error('Lỗi khi xóa phim', err);
+        } finally {
+            setMovieToDelete(null);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -216,6 +227,15 @@ const ManageMovies = () => {
                     )}
                 </div>
             </div>
+            <ConfirmModal 
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Xóa Phim"
+                message="Bạn có chắc chắn muốn xóa (ẩn) phim này khỏi hệ thống? Thao tác này có thể thay đổi cách người dùng nhìn thấy nội dung."
+                type="danger"
+                confirmText="Xóa (Ẩn) Ngay"
+            />
         </div>
     );
 };

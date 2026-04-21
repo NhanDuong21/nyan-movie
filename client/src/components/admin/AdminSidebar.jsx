@@ -11,10 +11,13 @@ import {
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuth } from '../../context/AuthContext';
+import { useState } from 'react';
+import ConfirmModal from '../common/ConfirmModal';
 
 const AdminSidebar = () => {
     const { logout } = useAuth();
     const location = useLocation();
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     const menuItems = [
         { title: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
@@ -71,13 +74,23 @@ const AdminSidebar = () => {
                     Quay lại Web
                 </Link>
                 <button
-                    onClick={logout}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
                 >
                     <LogOut size={20} />
                     Thoát
                 </button>
             </div>
+
+            <ConfirmModal 
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={logout}
+                title="Đăng xuất"
+                message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị?"
+                type="warning"
+                confirmText="Đăng xuất ngay"
+            />
         </aside>
     );
 };

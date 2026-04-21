@@ -19,6 +19,7 @@ import {
     Unlock,
     Ban
 } from 'lucide-react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageUsers = () => {
     const [users, setUsers] = useState([]);
@@ -38,6 +39,15 @@ const ManageUsers = () => {
         role: 'user'
     });
     const [modalError, setModalError] = useState('');
+
+    // Confirm Modal State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger',
+        onConfirm: () => {}
+    });
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -107,36 +117,48 @@ const ManageUsers = () => {
         }
     };
 
-    const handleDelete = async (userId) => {
-        if (!window.confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa người dùng này? Thao tác này không thể hoàn tác.')) return;
-
-        setIsUpdating(true);
-        try {
-            await axiosClient.delete(`/admin/users/${userId}`);
-            fetchUsers();
-        } catch (err) {
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa người dùng');
-        } finally {
-            setIsUpdating(false);
-        }
+    const handleDelete = (userId) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Xóa người dùng',
+            message: 'CẢNH BÁO: Bạn có chắc chắn muốn xóa người dùng này? Thao tác này không thể hoàn tác và toàn bộ dữ liệu liên quan sẽ bị loại bỏ.',
+            type: 'danger',
+            onConfirm: async () => {
+                setIsUpdating(true);
+                try {
+                    await axiosClient.delete(`/admin/users/${userId}`);
+                    fetchUsers();
+                } catch (err) {
+                    alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa người dùng');
+                } finally {
+                    setIsUpdating(false);
+                }
+            }
+        });
     };
 
-    const handleToggleBan = async (user) => {
+    const handleToggleBan = (user) => {
         const action = user.isActive ? 'khóa' : 'mở khóa';
-        if (!window.confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
-
-        setIsUpdating(true);
-        try {
-            await axiosClient.patch(`/admin/users/${user._id}/ban`);
-            // Update local state for immediate feedback
-            setUsers(prev => prev.map(u => 
-                u._id === user._id ? { ...u, isActive: !u.isActive } : u
-            ));
-        } catch (err) {
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi thay đổi trạng thái');
-        } finally {
-            setIsUpdating(false);
-        }
+        setConfirmConfig({
+            isOpen: true,
+            title: user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản',
+            message: `Bạn có chắc muốn ${action} tài khoản này? Người dùng sẽ ${user.isActive ? 'không thể' : 'có thể'} đăng nhập vào hệ thống sau khi thực hiện.`,
+            type: user.isActive ? 'danger' : 'info',
+            onConfirm: async () => {
+                setIsUpdating(true);
+                try {
+                    await axiosClient.patch(`/admin/users/${user._id}/ban`);
+                    // Update local state for immediate feedback
+                    setUsers(prev => prev.map(u => 
+                        u._id === user._id ? { ...u, isActive: !u.isActive } : u
+                    ));
+                } catch (err) {
+                    alert(err.response?.data?.message || 'Có lỗi xảy ra khi thay đổi trạng thái');
+                } finally {
+                    setIsUpdating(false);
+                }
+            }
+        });
     };
 
     const filteredUsers = users.filter(user => 
@@ -404,6 +426,15 @@ const ManageUsers = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal 
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

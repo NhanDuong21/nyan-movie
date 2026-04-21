@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { Plus, Trash2, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const CategorySection = ({ type, title }) => {
     const [items, setItems] = useState([]);
@@ -8,6 +9,8 @@ const CategorySection = ({ type, title }) => {
     const [newVal, setNewVal] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     const endpoint = `/categories/${type}`;
 
@@ -43,13 +46,21 @@ const CategorySection = ({ type, title }) => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Bạn có chắc muốn xóa?')) return;
+    const handleDelete = (id) => {
+        setItemToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
         try {
-            await axiosClient.delete(`${endpoint}/${id}`);
+            await axiosClient.delete(`${endpoint}/${itemToDelete}`);
             fetchData();
         } catch (err) {
             setError('Không thể xóa item này');
+        } finally {
+            setItemToDelete(null);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -107,6 +118,16 @@ const CategorySection = ({ type, title }) => {
                     </table>
                 )}
             </div>
+
+            <ConfirmModal 
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title={`Xóa ${title}`}
+                message={`Bạn có chắc chắn muốn xóa ${title.toLowerCase()} này khỏi hệ thống?`}
+                type="danger"
+                confirmText="Xóa ngay"
+            />
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { Upload, X, Check, Loader2, Image as ImageIcon, Film } from 'lucide-react';
+import ConfirmModal from '../common/ConfirmModal';
 
 const MovieForm = ({ initialData, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -29,6 +30,15 @@ const MovieForm = ({ initialData, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState({ poster: false, backdrop: false });
     const [error, setError] = useState('');
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger',
+        onConfirm: () => {},
+        cancelText: '',
+        confirmText: 'Đã hiểu'
+    });
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -96,7 +106,15 @@ const MovieForm = ({ initialData, onSuccess }) => {
             });
             setFormData(prev => ({ ...prev, [field]: res.data.url }));
         } catch (err) {
-            alert('Lỗi khi upload ảnh');
+            setConfirmConfig({
+                isOpen: true,
+                title: 'Lỗi tải lên',
+                message: 'Không thể tải lên hình ảnh. Vui lòng kiểm tra định dạng file hoặc kết nối mạng.',
+                type: 'danger',
+                onConfirm: () => {},
+                cancelText: '',
+                confirmText: 'Đã hiểu'
+            });
         } finally {
             setUploading(prev => ({ ...prev, [field]: false }));
         }
@@ -393,6 +411,16 @@ const MovieForm = ({ initialData, onSuccess }) => {
                     {initialData ? 'CẬP NHẬT PHIM' : 'TẠO PHIM MỚI'}
                 </button>
             </div>
+            <ConfirmModal 
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+                cancelText={confirmConfig.cancelText}
+                confirmText={confirmConfig.confirmText}
+            />
         </form>
     );
 };

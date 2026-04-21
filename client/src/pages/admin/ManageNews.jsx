@@ -16,6 +16,7 @@ import {
     Image,
     CheckCircle
 } from 'lucide-react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageNews = () => {
     const [news, setNews] = useState([]);
@@ -28,6 +29,8 @@ const ManageNews = () => {
         content: ''
     });
     const [uploading, setUploading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [newsToDelete, setNewsToDelete] = useState(null);
 
     useEffect(() => {
         fetchNews();
@@ -95,14 +98,21 @@ const ManageNews = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
-            try {
-                await axiosClient.delete(`/news/${id}`);
-                fetchNews();
-            } catch (err) {
-                console.error('Failed to delete news', err);
-            }
+    const handleDelete = (id) => {
+        setNewsToDelete(id);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!newsToDelete) return;
+        try {
+            await axiosClient.delete(`/news/${newsToDelete}`);
+            fetchNews();
+        } catch (err) {
+            console.error('Failed to delete news', err);
+        } finally {
+            setNewsToDelete(null);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -277,6 +287,16 @@ const ManageNews = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal 
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Xóa Bài Viết"
+                message="Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác và bài viết sẽ biến mất khỏi trang tin tức."
+                type="danger"
+                confirmText="Xóa bài viết"
+            />
         </div>
     );
 };

@@ -9,6 +9,7 @@ import {
     Loader2,
     AlertCircle
 } from 'lucide-react';
+import ConfirmModal from '../common/ConfirmModal';
 
 const CommentSection = ({ movieId }) => {
     const { user } = useAuth();
@@ -17,6 +18,16 @@ const CommentSection = ({ movieId }) => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
+
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger',
+        onConfirm: () => {},
+        cancelText: 'Hủy',
+        confirmText: 'Xác nhận'
+    });
 
     useEffect(() => {
         fetchComments();
@@ -50,22 +61,46 @@ const CommentSection = ({ movieId }) => {
             setContent('');
         } catch (err) {
             console.error('Failed to post comment', err);
-            alert('Lỗi: ' + (err.response?.data?.message || 'Không thể gửi bình luận'));
+            setConfirmConfig({
+                isOpen: true,
+                title: 'Lỗi gửi bình luận',
+                message: err.response?.data?.message || 'Không thể gửi bình luận vào lúc này. Vui lòng thử lại sau.',
+                type: 'danger',
+                onConfirm: () => {},
+                cancelText: '',
+                confirmText: 'Đã hiểu'
+            });
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleDelete = async (commentId) => {
-        if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
-
-        try {
-            await axiosClient.delete(`/comments/${commentId}`);
-            setComments(comments.filter(c => c._id !== commentId));
-        } catch (err) {
-            console.error('Failed to delete comment', err);
-            alert('Lỗi: Không thể xóa bình luận');
-        }
+    const handleDelete = (commentId) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Xóa bình luận',
+            message: 'Bạn có chắc chắn muốn xóa bình luận này? Thao tác này không thể hoàn tác.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await axiosClient.delete(`/comments/${commentId}`);
+                    setComments(comments.filter(c => c._id !== commentId));
+                } catch (err) {
+                    console.error('Failed to delete comment', err);
+                    setConfirmConfig({
+                        isOpen: true,
+                        title: 'Lỗi',
+                        message: 'Không thể xóa bình luận này. Vui lòng thử lại sau.',
+                        type: 'danger',
+                        onConfirm: () => {},
+                        cancelText: '',
+                        confirmText: 'Đã hiểu'
+                    });
+                }
+            },
+            cancelText: 'Hủy',
+            confirmText: 'Xóa ngay'
+        });
     };
 
     const formatDate = (dateString) => {
@@ -196,6 +231,17 @@ const CommentSection = ({ movieId }) => {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal 
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+                cancelText={confirmConfig.cancelText}
+                confirmText={confirmConfig.confirmText}
+            />
         </section>
     );
 };
