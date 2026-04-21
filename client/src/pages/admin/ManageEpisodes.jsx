@@ -9,7 +9,8 @@ import {
     Loader2, 
     Check, 
     X,
-    AlertCircle
+    AlertCircle,
+    Edit
 } from 'lucide-react';
 
 const ManageEpisodes = () => {
@@ -19,6 +20,7 @@ const ManageEpisodes = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [editingEpisode, setEditingEpisode] = useState(null);
     
     const [formData, setFormData] = useState({
         name: '',
@@ -57,15 +59,40 @@ const ManageEpisodes = () => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            await axiosClient.post(`/episodes/${movieId}`, formData);
+            if (editingEpisode) {
+                await axiosClient.put(`/episodes/${editingEpisode._id}`, formData);
+            } else {
+                await axiosClient.post(`/episodes/${movieId}`, formData);
+            }
             setShowForm(false);
+            setEditingEpisode(null);
             setFormData({ name: '', episodeNumber: '', videoUrl: '' });
             fetchData();
         } catch (err) {
-            alert('Lỗi khi thêm tập phim');
+            alert(`Lỗi khi ${editingEpisode ? 'cập nhật' : 'thêm'} tập phim`);
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleEdit = (ep) => {
+        setEditingEpisode(ep);
+        setFormData({
+            name: ep.name,
+            episodeNumber: ep.episodeNumber,
+            videoUrl: ep.videoUrl
+        });
+        setShowForm(true);
+    };
+
+    const handleCloseForm = () => {
+        setShowForm(false);
+        setEditingEpisode(null);
+        setFormData({
+            name: `Tập ${episodes.length + 1}`,
+            episodeNumber: episodes.length + 1,
+            videoUrl: ''
+        });
     };
 
     const handleDelete = async (id) => {
@@ -106,7 +133,15 @@ const ManageEpisodes = () => {
                         </div>
                     ) : !showForm && (
                         <button 
-                            onClick={() => setShowForm(true)}
+                            onClick={() => {
+                                setEditingEpisode(null);
+                                setFormData({
+                                    name: `Tập ${episodes.length + 1}`,
+                                    episodeNumber: episodes.length + 1,
+                                    videoUrl: ''
+                                });
+                                setShowForm(true);
+                            }}
                             className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
                         >
                             <Plus size={20} />
@@ -119,8 +154,10 @@ const ManageEpisodes = () => {
             {showForm && (
                 <div className="bg-dark-card p-6 rounded-3xl border border-primary/20 shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-bold text-lg text-white">Thêm tập mới</h3>
-                        <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white"><X size={20}/></button>
+                        <h3 className="font-bold text-lg text-white">
+                            {editingEpisode ? `Sửa Tập Phim: ${editingEpisode.name}` : 'Thêm tập mới'}
+                        </h3>
+                        <button onClick={handleCloseForm} className="text-gray-500 hover:text-white"><X size={20}/></button>
                     </div>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                         <div className="space-y-2">
@@ -195,12 +232,22 @@ const ManageEpisodes = () => {
                                             {ep.videoUrl}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button 
-                                                onClick={() => handleDelete(ep._id)}
-                                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2 text-xs">
+                                                <button 
+                                                    onClick={() => handleEdit(ep)}
+                                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                                    title="Sửa tập phim"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(ep._id)}
+                                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all"
+                                                    title="Xóa tập phim"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
