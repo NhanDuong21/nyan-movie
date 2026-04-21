@@ -8,10 +8,14 @@ const mongoose = require('mongoose');
 // @access  Private/Admin
 exports.getDashboardStats = async (req, res) => {
     try {
+        const queryFilter = { status: { $ne: 'hidden' } };
+
         const [
             totalUsers,
             totalSingle,
             totalSeries,
+            totalHoathinh,
+            totalChieurap,
             totalFavorites,
             latestMovies,
             topViewedSingle,
@@ -19,17 +23,19 @@ exports.getDashboardStats = async (req, res) => {
             topFavorited
         ] = await Promise.all([
             User.countDocuments(),
-            Movie.countDocuments({ type: 'single' }),
-            Movie.countDocuments({ type: 'series' }),
+            Movie.countDocuments({ type: 'single', ...queryFilter }),
+            Movie.countDocuments({ type: 'series', ...queryFilter }),
+            Movie.countDocuments({ type: 'hoathinh', ...queryFilter }),
+            Movie.countDocuments({ type: 'chieurap', ...queryFilter }),
             Interaction.countDocuments({ type: 'favorite' }),
-            Movie.find().sort({ createdAt: -1 }).limit(5).select('title views type createdAt'),
-            Movie.find({ type: 'single' }).sort({ views: -1 }).limit(5).select('title views'),
-            Movie.find({ type: 'series' }).sort({ views: -1 }).limit(5).select('title views'),
+            Movie.find(queryFilter).sort({ createdAt: -1 }).limit(5).select('title views type createdAt'),
+            Movie.find({ type: 'single', ...queryFilter }).sort({ views: -1 }).limit(5).select('title views'),
+            Movie.find({ type: 'series', ...queryFilter }).sort({ views: -1 }).limit(5).select('title views'),
             Interaction.aggregate([
                 { $match: { type: 'favorite' } },
                 { $group: { _id: '$movie', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
-                { $limit: 5 },
+                { $limit: 10 }, // Get more to account for potential hidden filters
                 {
                     $lookup: {
                         from: 'movies',
@@ -39,6 +45,8 @@ exports.getDashboardStats = async (req, res) => {
                     }
                 },
                 { $unwind: '$movieDetails' },
+                { $match: { 'movieDetails.status': { $ne: 'hidden' } } },
+                { $limit: 5 },
                 {
                     $project: {
                         _id: 1,
@@ -56,6 +64,8 @@ exports.getDashboardStats = async (req, res) => {
                     totalUsers,
                     totalSingle,
                     totalSeries,
+                    totalHoathinh,
+                    totalChieurap,
                     totalFavorites
                 },
                 latestMovies,

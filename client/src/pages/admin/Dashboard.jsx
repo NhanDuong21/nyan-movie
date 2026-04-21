@@ -11,7 +11,9 @@ import {
     AlertCircle,
     Tv,
     TrendingDown,
-    Activity
+    Activity,
+    Clapperboard,
+    PlaySquare
 } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
@@ -117,34 +119,48 @@ const Dashboard = () => {
             </header>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-white text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 text-white text-xs">
                 <StatCard 
                     title="Người dùng" 
                     value={stats.counts.totalUsers} 
                     icon={Users} 
                     color="bg-blue-500"
-                    subtitle="Total Registered"
+                    subtitle="Registered"
                 />
                 <StatCard 
                     title="Phim Lẻ" 
                     value={stats.counts.totalSingle} 
                     icon={Film} 
-                    color="bg-primary"
-                    subtitle="Type: Single"
+                    color="bg-red-500"
+                    subtitle="Standalone"
                 />
                 <StatCard 
                     title="Phim Bộ" 
                     value={stats.counts.totalSeries} 
                     icon={Tv} 
                     color="bg-purple-500"
-                    subtitle="Type: Series"
+                    subtitle="TV Series"
+                />
+                <StatCard 
+                    title="Hoạt Hình" 
+                    value={stats.counts.totalHoathinh} 
+                    icon={PlaySquare} 
+                    color="bg-orange-500"
+                    subtitle="Animation"
+                />
+                <StatCard 
+                    title="Chiếu Rạp" 
+                    value={stats.counts.totalChieurap} 
+                    icon={Clapperboard} 
+                    color="bg-emerald-500"
+                    subtitle="Cinema"
                 />
                 <StatCard 
                     title="Yêu Thích" 
                     value={stats.counts.totalFavorites} 
                     icon={Heart} 
                     color="bg-pink-500"
-                    subtitle="Total Interactions"
+                    subtitle="Interactions"
                 />
             </div>
 
