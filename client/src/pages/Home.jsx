@@ -19,8 +19,8 @@ const Home = () => {
         setError(null);
         try {
             const [latestRes, seriesRes, singleRes] = await Promise.all([
-                axiosClient.get('/movies?limit=15'),
-                axiosClient.get('/movies?type=series&limit=12'),
+                axiosClient.get('/movies?limit=20'),
+                axiosClient.get('/movies?type=series&limit=20'),
                 axiosClient.get('/movies?type=single&limit=12')
             ]);
             
@@ -101,19 +101,23 @@ const Home = () => {
                 return (
                     <div className="relative group/carousel">
                         {/* Navigation Arrows */}
-                        <button 
-                            onClick={() => scroll('left')}
-                            className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
-                        >
-                            <ChevronLeft size={24} />
-                        </button>
+                        {movies.length > 5 && (
+                            <>
+                                <button 
+                                    onClick={() => scroll('left')}
+                                    className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
 
-                        <button 
-                            onClick={() => scroll('right')}
-                            className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
-                        >
-                            <ChevronRight size={24} />
-                        </button>
+                                <button 
+                                    onClick={() => scroll('right')}
+                                    className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                                >
+                                    <ChevronRight size={24} />
+                                </button>
+                            </>
+                        )}
 
                         {/* Scroll Container */}
                         <div 
@@ -236,9 +240,9 @@ const Home = () => {
                 <MovieSection 
                     title="PHIM BỘ" 
                     subtitle="LATEST SERIES" 
-                    movies={seriesMovies.slice(0, 5)} 
+                    movies={seriesMovies} 
                     viewAllLink="/browse?type=series" 
-                    layout="small-grid"
+                    layout="carousel"
                 />
 
                 <MovieSection 
