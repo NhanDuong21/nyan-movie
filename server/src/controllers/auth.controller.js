@@ -60,7 +60,7 @@ const login = async (req, res, next) => {
         }
 
         if (!user.isActive) {
-            return res.status(401).json({ success: false, message: 'Your account is inactive' });
+            return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị khóa do vi phạm.' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

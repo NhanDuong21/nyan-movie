@@ -14,7 +14,10 @@ import {
     Plus,
     X,
     UserCircle,
-    ShieldAlert
+    ShieldAlert,
+    Lock,
+    Unlock,
+    Ban
 } from 'lucide-react';
 
 const ManageUsers = () => {
@@ -118,6 +121,24 @@ const ManageUsers = () => {
         }
     };
 
+    const handleToggleBan = async (user) => {
+        const action = user.isActive ? 'khóa' : 'mở khóa';
+        if (!window.confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
+
+        setIsUpdating(true);
+        try {
+            await axiosClient.patch(`/admin/users/${user._id}/ban`);
+            // Update local state for immediate feedback
+            setUsers(prev => prev.map(u => 
+                u._id === user._id ? { ...u, isActive: !u.isActive } : u
+            ));
+        } catch (err) {
+            alert(err.response?.data?.message || 'Có lỗi xảy ra khi thay đổi trạng thái');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     const filteredUsers = users.filter(user => 
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -165,7 +186,8 @@ const ManageUsers = () => {
                             <tr>
                                 <th className="px-8 py-6">Người dùng</th>
                                 <th className="px-8 py-6 text-center">Vai trò</th>
-                                <th className="px-8 py-6 text-center">Gia nhập</th>
+                                <th className="px-8 py-6 text-center">Trạng thái</th>
+                                <th className="px-8 py-6 text-center whitespace-nowrap">Gia nhập</th>
                                 <th className="px-8 py-6 text-right">Hành động</th>
                             </tr>
                         </thead>
@@ -174,7 +196,7 @@ const ManageUsers = () => {
                                 <tr key={user._id} className="hover:bg-white/[0.01] transition-colors group">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-dark group-hover:border-primary transition-all shadow-lg flex items-center justify-center">
+                                            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-dark group-hover:border-primary transition-all shadow-lg flex items-center justify-center shrink-0">
                                                 {user.avatar ? (
                                                     <img 
                                                         src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`} 
@@ -185,9 +207,9 @@ const ManageUsers = () => {
                                                     <UserCircle className="text-gray-600" size={28} />
                                                 )}
                                             </div>
-                                            <div>
-                                                <div className="font-bold text-white group-hover:text-primary transition-colors italic uppercase tracking-tight truncate max-w-[200px]">{user.username}</div>
-                                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                            <div className="min-w-0">
+                                                <div className="font-bold text-white group-hover:text-primary transition-colors italic uppercase tracking-tight truncate max-w-[150px]">{user.username}</div>
+                                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate max-w-[180px]">
                                                     <Mail size={12} className="shrink-0" /> {user.email}
                                                 </div>
                                             </div>
@@ -206,6 +228,21 @@ const ManageUsers = () => {
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
+                                        <div className="flex justify-center">
+                                            {user.isActive ? (
+                                                <div className="flex items-center gap-2 text-green-500 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                                    Hoạt động
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                                    <X size={12} />
+                                                    Bị khóa
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-5">
                                         <div className="flex flex-col items-center gap-1">
                                             <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase tracking-tight">
                                                 {new Date(user.createdAt).toLocaleDateString('vi-VN')}
@@ -217,6 +254,18 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                disabled={isUpdating}
+                                                onClick={() => handleToggleBan(user)}
+                                                className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
+                                                    user.isActive
+                                                    ? 'border-orange-500/20 text-orange-500 hover:bg-orange-500/10'
+                                                    : 'border-green-500/20 text-green-500 hover:bg-green-500/10'
+                                                }`}
+                                                title={user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                                            >
+                                                {user.isActive ? <Lock size={18} /> : <Unlock size={18} />}
+                                            </button>
                                             <button 
                                                 onClick={() => handleOpenModal(user)}
                                                 className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
@@ -290,49 +339,43 @@ const ManageUsers = () => {
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Tên hiển thị</label>
-                                        <div className="relative group">
-                                            <input
-                                                required
-                                                type="text"
-                                                className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
-                                                value={formData.username}
-                                                onChange={(e) => setFormData({...formData, username: e.target.value})}
-                                            />
-                                        </div>
+                                        <input
+                                            required
+                                            type="text"
+                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                            value={formData.username}
+                                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Email</label>
-                                        <div className="relative group">
-                                            <input
-                                                required
-                                                type="email"
-                                                className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                            />
-                                        </div>
+                                        <input
+                                            required
+                                            type="email"
+                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        />
                                     </div>
                                     
                                     {!editingUser && (
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu</label>
-                                            <div className="relative group">
-                                                <input
-                                                    required
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
-                                                    value={formData.password}
-                                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                                />
-                                            </div>
+                                            <input
+                                                required
+                                                type="password"
+                                                placeholder="••••••••"
+                                                className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                            />
                                         </div>
                                     )}
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Vai trò</label>
                                         <select
-                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none"
                                             value={formData.role}
                                             onChange={(e) => setFormData({...formData, role: e.target.value})}
                                         >

@@ -208,6 +208,31 @@ exports.updateUserRole = async (req, res) => {
     }
 };
 
+// @desc    Toggle user active status (Ban/Unban)
+// @route   PATCH /api/admin/users/:id/ban
+// @access  Private/Admin
+exports.toggleBanUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Prevent self-ban
+        if (user._id.toString() === req.user.id) {
+            return res.status(400).json({ success: false, message: 'Cannot ban yourself' });
+        }
+
+        user.isActive = !user.isActive;
+        await user.save();
+
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
 // @desc    Delete user
 // @route   DELETE /api/admin/users/:id
 // @access  Private/Admin
