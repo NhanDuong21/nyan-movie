@@ -69,6 +69,34 @@ const login = async (req, res, next) => {
         }
 
         const token = generateToken(user._id);
+        
+        // Login History Tracking
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const userAgent = req.headers['user-agent'];
+        
+        // Geolocation Lookup
+        let location = 'Unknown Location';
+        if (ip === '::1' || ip === '127.0.0.1') {
+            location = 'Localhost';
+        } else {
+            try {
+                // Using ip-api.com (free, no key required)
+                // We use a short timeout to ensure the login process isn't delayed
+                const response = await fetch(`http://ip-api.com/json/${ip}`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    location = `${data.city}, ${data.country}`;
+                }
+            } catch (error) {
+                console.error('Geolocation lookup failed:', error);
+            }
+        }
+        
+        user.loginHistory.push({ ip, userAgent, location, time: new Date() });
+        if (user.loginHistory.length > 5) {
+            user.loginHistory.shift();
+        }
+        await user.save();
 
         res.json({
             success: true,
@@ -78,7 +106,8 @@ const login = async (req, res, next) => {
                 username: user.username,
                 email: user.email,
                 role: user.role,
-                avatar: user.avatar
+                avatar: user.avatar,
+                loginHistory: user.loginHistory
             }
         });
     } catch (error) {
