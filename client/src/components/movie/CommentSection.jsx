@@ -79,6 +79,12 @@ const CommentSection = ({ movieId }) => {
         });
     };
 
+    const getAvatarUrl = (avatar) => {
+        if (!avatar) return null;
+        if (avatar.startsWith('http')) return avatar;
+        return `http://localhost:5000${avatar}`;
+    };
+
     return (
         <section className="mt-12 pt-12 border-t border-white/5 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <header className="flex items-center gap-4">
@@ -97,7 +103,7 @@ const CommentSection = ({ movieId }) => {
                     <div className="flex gap-4">
                         <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center">
                             {user.avatar ? (
-                                <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                                <img src={getAvatarUrl(user.avatar)} alt={user.username} className="w-full h-full object-cover" />
                             ) : (
                                 <UserCircle size={24} className="text-gray-500" />
                             )}
@@ -152,7 +158,7 @@ const CommentSection = ({ movieId }) => {
                         <div key={comment._id} className="flex gap-4 group animate-in fade-in slide-in-from-left-4 duration-500">
                             <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center shadow-lg">
                                 {comment.user?.avatar ? (
-                                    <img src={comment.user.avatar} alt={comment.user.username} className="w-full h-full object-cover" />
+                                    <img src={getAvatarUrl(comment.user.avatar)} alt={comment.user.username} className="w-full h-full object-cover" />
                                 ) : (
                                     <UserCircle size={28} className="text-gray-500" />
                                 )}
