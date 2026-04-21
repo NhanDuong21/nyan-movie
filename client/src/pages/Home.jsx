@@ -73,14 +73,40 @@ const Home = () => {
 
     const MovieSection = ({ title, subtitle, movies, viewAllLink, layout = "default" }) => {
         const carouselRef = useRef(null);
+        const [isPaused, setIsPaused] = useState(false);
 
         const scroll = (direction) => {
             if (carouselRef.current) {
-                const { clientWidth } = carouselRef.current;
-                const scrollAmount = direction === 'left' ? -clientWidth * 0.8 : clientWidth * 0.8;
-                carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                const { scrollLeft, clientWidth, scrollWidth } = carouselRef.current;
+                
+                if (direction === 'right') {
+                    // Check if at the end (with small buffer)
+                    if (scrollLeft + clientWidth >= scrollWidth - 10) {
+                        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        carouselRef.current.scrollBy({ left: clientWidth * 0.8, behavior: 'smooth' });
+                    }
+                } else if (direction === 'left') {
+                    // Check if at the beginning
+                    if (scrollLeft <= 5) {
+                        carouselRef.current.scrollTo({ left: scrollWidth, behavior: 'smooth' });
+                    } else {
+                        carouselRef.current.scrollBy({ left: -clientWidth * 0.8, behavior: 'smooth' });
+                    }
+                }
             }
         };
+
+        // Auto-play logic
+        useEffect(() => {
+            if (layout !== "carousel" || movies.length <= 5 || isPaused) return;
+
+            const interval = setInterval(() => {
+                scroll('right');
+            }, 10000); // 10 seconds
+
+            return () => clearInterval(interval);
+        }, [layout, movies.length, isPaused]);
 
         const renderContent = () => {
             if (movies.length === 0) {
@@ -99,7 +125,11 @@ const Home = () => {
 
             if (layout === "carousel") {
                 return (
-                    <div className="relative group/carousel">
+                    <div 
+                        className="relative group/carousel"
+                        onMouseEnter={() => setIsPaused(true)}
+                        onMouseLeave={() => setIsPaused(false)}
+                    >
                         {/* Navigation Arrows */}
                         {movies.length > 5 && (
                             <>
