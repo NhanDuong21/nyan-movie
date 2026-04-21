@@ -25,7 +25,7 @@ const AdminSidebar = () => {
     ];
 
     return (
-        <aside className="w-64 bg-dark-card border-r border-white/5 flex flex-col h-screen sticky top-0">
+        <aside className="fixed inset-y-0 left-0 w-64 bg-dark-card border-r border-white/5 flex flex-col hidden lg:flex z-50">
             <div className="p-6 border-b border-white/5">
                 <Link to="/" className="flex items-center gap-2 group">
                     <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-primary/10">

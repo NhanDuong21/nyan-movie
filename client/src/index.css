@@ -2,8 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0f0f0f !important;
+}
+
 body {
-  @apply bg-gray-900 text-white min-h-screen;
+  @apply text-white;
+  overflow-x: hidden;
+  background-color: #0f0f0f !important;
 }
 
 /* Custom patterns for movie site aesthetics */
@@ -16,6 +26,7 @@ body {
 /* Desktop UI Scaling */
 @media (min-width: 1024px) {
   html {
-    zoom: 0.9;
+    /* Using scale instead of zoom as it is more standard, but zoom is often what users mean for "smaller" */
+    zoom: 0.9; 
   }
 }
