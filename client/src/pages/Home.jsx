@@ -1,7 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import axiosClient from '../api/axiosClient';
 import MovieCard from '../components/MovieCard';
-import { Loader2, Play, Info, ChevronRight, Star, Clock, AlertCircle, Activity } from 'lucide-react';
+import { 
+    Loader2, Play, Info, ChevronRight, ChevronLeft, 
+    Star, Clock, AlertCircle, Activity 
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -16,7 +19,7 @@ const Home = () => {
         setError(null);
         try {
             const [latestRes, seriesRes, singleRes] = await Promise.all([
-                axiosClient.get('/movies?limit=12'),
+                axiosClient.get('/movies?limit=15'),
                 axiosClient.get('/movies?type=series&limit=12'),
                 axiosClient.get('/movies?type=single&limit=12')
             ]);
@@ -68,40 +71,117 @@ const Home = () => {
         </div>
     );
 
-    const MovieSection = ({ title, subtitle, movies, viewAllLink }) => (
-        <section>
-            <div className="flex items-center justify-between mb-10">
-                <header className="flex items-center gap-4">
-                    <div className="w-1.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(255,50,50,0.5)]"></div>
-                    <div>
-                        <h2 className="text-3xl font-black text-white uppercase italic tracking-tight leading-none">{title}</h2>
-                        <p className="text-gray-500 text-[10px] mt-1 font-black tracking-widest uppercase opacity-60">{subtitle}</p>
-                    </div>
-                </header>
-                <Link to={viewAllLink} className="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] group">
-                    Xem tất cả <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-            </div>
+    const MovieSection = ({ title, subtitle, movies, viewAllLink, layout = "default" }) => {
+        const carouselRef = useRef(null);
 
-            {movies.length > 0 ? (
+        const scroll = (direction) => {
+            if (carouselRef.current) {
+                const { clientWidth } = carouselRef.current;
+                const scrollAmount = direction === 'left' ? -clientWidth * 0.8 : clientWidth * 0.8;
+                carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        };
+
+        const renderContent = () => {
+            if (movies.length === 0) {
+                return (
+                    <div className="py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5 flex flex-col items-center justify-center gap-6 text-center px-6">
+                        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-700">
+                            <Play size={32} opacity={0.2} />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="text-lg font-bold text-gray-400 uppercase tracking-tight italic">Danh sách trống</h3>
+                            <p className="text-gray-600 max-w-sm text-xs font-medium">Hiện tại mục này chưa có bộ phim nào được cập nhật.</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (layout === "carousel") {
+                return (
+                    <div className="relative group/carousel">
+                        {/* Navigation Arrows */}
+                        <button 
+                            onClick={() => scroll('left')}
+                            className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+
+                        <button 
+                            onClick={() => scroll('right')}
+                            className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                        >
+                            <ChevronRight size={24} />
+                        </button>
+
+                        {/* Scroll Container */}
+                        <div 
+                            ref={carouselRef}
+                            className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                        >
+                            {movies.map((movie) => (
+                                <div 
+                                    key={movie._id} 
+                                    className="snap-start flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] md:w-[calc(25%-12px)] lg:w-[calc(20%-13px)]"
+                                >
+                                    <MovieCard movie={movie} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            if (layout === "small-grid") {
+                return (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
+                        {movies.map((movie) => (
+                            <MovieCard key={movie._id} movie={movie} />
+                        ))}
+                    </div>
+                );
+            }
+
+            if (layout === "large-grid") {
+                return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
+                        {movies.map((movie) => (
+                            <MovieCard key={movie._id} movie={movie} />
+                        ))}
+                    </div>
+                );
+            }
+
+            // Default grid
+            return (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-12">
                     {movies.map((movie) => (
                         <MovieCard key={movie._id} movie={movie} />
                     ))}
                 </div>
-            ) : (
-                <div className="py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5 flex flex-col items-center justify-center gap-6 text-center px-6">
-                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-700">
-                        <Play size={32} opacity={0.2} />
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-lg font-bold text-gray-400 uppercase tracking-tight italic">Danh sách trống</h3>
-                        <p className="text-gray-600 max-w-sm text-xs font-medium">Hiện tại mục này chưa có bộ phim nào được cập nhật.</p>
-                    </div>
+            );
+        };
+
+        return (
+            <section>
+                <div className="flex items-center justify-between mb-10">
+                    <header className="flex items-center gap-4">
+                        <div className="w-1.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(255,50,50,0.5)]"></div>
+                        <div>
+                            <h2 className="text-3xl font-black text-white uppercase italic tracking-tight leading-none">{title}</h2>
+                            <p className="text-gray-500 text-[10px] mt-1 font-black tracking-widest uppercase opacity-60">{subtitle}</p>
+                        </div>
+                    </header>
+                    <Link to={viewAllLink} className="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] group">
+                        Xem tất cả <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                 </div>
-            )}
-        </section>
-    );
+
+                {renderContent()}
+            </section>
+        );
+    };
 
     return (
         <div className="space-y-16 pb-20">
@@ -150,6 +230,7 @@ const Home = () => {
                     subtitle="LATEST RELEASES" 
                     movies={latestMovies} 
                     viewAllLink="/movies" 
+                    layout="carousel"
                 />
 
                 <MovieSection 
@@ -157,6 +238,7 @@ const Home = () => {
                     subtitle="LATEST SERIES" 
                     movies={seriesMovies} 
                     viewAllLink="/browse?type=series" 
+                    layout="small-grid"
                 />
 
                 <MovieSection 
@@ -164,6 +246,7 @@ const Home = () => {
                     subtitle="LATEST SINGLE MOVIES" 
                     movies={singleMovies} 
                     viewAllLink="/browse?type=single" 
+                    layout="large-grid"
                 />
             </div>
         </div>
