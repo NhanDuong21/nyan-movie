@@ -135,7 +135,7 @@ const Home = () => {
 
             if (layout === "small-grid") {
                 return (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {movies.map((movie) => (
                             <MovieCard key={movie._id} movie={movie} />
                         ))}
@@ -145,7 +145,7 @@ const Home = () => {
 
             if (layout === "large-grid") {
                 return (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
                         {movies.map((movie) => (
                             <MovieCard key={movie._id} movie={movie} />
                         ))}
@@ -236,7 +236,7 @@ const Home = () => {
                 <MovieSection 
                     title="PHIM BỘ" 
                     subtitle="LATEST SERIES" 
-                    movies={seriesMovies} 
+                    movies={seriesMovies.slice(0, 5)} 
                     viewAllLink="/browse?type=series" 
                     layout="small-grid"
                 />
@@ -244,7 +244,7 @@ const Home = () => {
                 <MovieSection 
                     title="PHIM LẺ" 
                     subtitle="LATEST SINGLE MOVIES" 
-                    movies={singleMovies} 
+                    movies={singleMovies.slice(0, 8)} 
                     viewAllLink="/browse?type=single" 
                     layout="large-grid"
                 />
