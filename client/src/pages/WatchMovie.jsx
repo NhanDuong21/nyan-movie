@@ -147,7 +147,7 @@ const WatchMovie = () => {
                             <div className="space-y-2">
                                 <h1 className="text-3xl font-black uppercase italic tracking-tighter">{movie.title} - {currentEpisode.name}</h1>
                                 <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                    <span className="flex items-center gap-1.5"><Star size={14} fill="currentColor" className="text-yellow-500" /> 8.5</span>
+                                    <span className="flex items-center gap-1.5"><Star size={14} fill="currentColor" className="text-yellow-500" /> {(movie.ratingAverage || 0).toFixed(1)}</span>
                                     <span className="flex items-center gap-1.5"><Calendar size={14} /> {movie.year?.year}</span>
                                     <span className="flex items-center gap-1.5"><Globe size={14} /> {movie.country?.name}</span>
                                 </div>

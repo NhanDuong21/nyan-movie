@@ -231,7 +231,7 @@ exports.getRecommendations = async (req, res, next) => {
             .populate('genres', '_id name')
             .populate('country', '_id name')
             .populate('year', 'year')
-            .select('title slug poster genres country type tags views rating createdAt year')
+            .select('title slug poster genres country type tags views ratingAverage ratingCount createdAt year')
             .lean();
 
         // Score each candidate
@@ -256,7 +256,7 @@ exports.getRecommendations = async (req, res, next) => {
             if ((candidate.views || 0) > HIGH_VIEWS_THRESHOLD) score += 1;
 
             // +1: High rating
-            if ((candidate.rating || 0) >= 8.0) score += 1;
+            if ((candidate.ratingAverage || 0) >= 8.0) score += 1;
 
             // +1: New release (within the last 30 days)
             if (new Date(candidate.createdAt) >= thirtyDaysAgo) score += 1;
