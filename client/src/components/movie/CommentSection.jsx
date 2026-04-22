@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axiosClient from '../../api/axiosClient';
+import socket from '../../utils/socket';
 import { 
     MessageSquare, 
     Send, 
@@ -21,6 +22,8 @@ const CommentSection = ({ movieId }) => {
     const [error, setError] = useState(null);
     const [replyingTo, setReplyingTo] = useState(null);
     const [replyContent, setReplyContent] = useState('');
+    const [typingUsers, setTypingUsers] = useState([]);
+    const typingTimeoutRef = useRef(null);
 
     const [confirmConfig, setConfirmConfig] = useState({
         isOpen: false,
@@ -35,6 +38,69 @@ const CommentSection = ({ movieId }) => {
     useEffect(() => {
         fetchComments();
     }, [movieId]);
+
+    // Socket.io: Connect, join room, and listen for real-time events
+    useEffect(() => {
+        if (!movieId) return;
+
+        // Connect socket if not connected
+        if (!socket.connected) socket.connect();
+
+        socket.emit('join_movie', movieId);
+
+        // Listen for new comments from other users
+        const handleNewComment = (newComment) => {
+            setComments(prev => {
+                // Avoid duplicates (our own comment is already added optimistically)
+                if (prev.some(c => c._id === newComment._id)) return prev;
+                return [newComment, ...prev];
+            });
+        };
+
+        // Listen for deleted comments
+        const handleCommentDeleted = ({ commentId, parentId }) => {
+            setComments(prev => {
+                // If a parent was deleted, also remove its replies
+                if (!parentId) {
+                    return prev.filter(c => c._id !== commentId && c.parentId !== commentId);
+                }
+                return prev.filter(c => c._id !== commentId);
+            });
+        };
+
+        // Typing indicators
+        const handleUserTyping = ({ username }) => {
+            setTypingUsers(prev => prev.includes(username) ? prev : [...prev, username]);
+        };
+
+        const handleUserStopTyping = ({ username }) => {
+            setTypingUsers(prev => prev.filter(u => u !== username));
+        };
+
+        socket.on('new_comment', handleNewComment);
+        socket.on('comment_deleted', handleCommentDeleted);
+        socket.on('user_typing', handleUserTyping);
+        socket.on('user_stop_typing', handleUserStopTyping);
+
+        return () => {
+            socket.emit('leave_movie', movieId);
+            socket.off('new_comment', handleNewComment);
+            socket.off('comment_deleted', handleCommentDeleted);
+            socket.off('user_typing', handleUserTyping);
+            socket.off('user_stop_typing', handleUserStopTyping);
+        };
+    }, [movieId]);
+
+    // Typing event handler
+    const handleTyping = useCallback(() => {
+        if (!user) return;
+        socket.emit('typing', { movieId, username: user.username });
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit('stop_typing', { movieId, username: user.username });
+        }, 2000);
+    }, [movieId, user]);
 
     const fetchComments = async () => {
         try {
@@ -56,6 +122,9 @@ const CommentSection = ({ movieId }) => {
         const textToSubmit = parentId ? replyContent : content;
         if (!textToSubmit.trim()) return;
 
+        // Stop typing indicator
+        if (user) socket.emit('stop_typing', { movieId, username: user.username });
+
         try {
             setSubmitting(true);
             const res = await axiosClient.post('/comments', {
@@ -64,8 +133,11 @@ const CommentSection = ({ movieId }) => {
                 parentId
             });
             
-            // Add new comment to local state
-            setComments([res.data.data, ...comments]);
+            // Add new comment to local state (Socket will handle sync for others)
+            setComments(prev => {
+                if (prev.some(c => c._id === res.data.data._id)) return prev;
+                return [res.data.data, ...prev];
+            });
             
             if (parentId) {
                 setReplyContent('');
@@ -98,13 +170,14 @@ const CommentSection = ({ movieId }) => {
             onConfirm: async () => {
                 try {
                     await axiosClient.delete(`/comments/${commentId}`);
-                    setComments(comments.filter(c => c._id !== commentId));
+                    // Socket will sync deletions to other clients
+                    setComments(prev => prev.filter(c => c._id !== commentId && c.parentId !== commentId));
                 } catch (err) {
                     console.error('Failed to delete comment', err);
                     setConfirmConfig({
                         isOpen: true,
                         title: 'Lỗi',
-                        message: 'Không thể xóa bình luận này. Vui lòng thử lại sau.',
+                        message: err.response?.data?.message || 'Không thể xóa bình luận này. Vui lòng thử lại sau.',
                         type: 'danger',
                         onConfirm: () => {},
                         cancelText: '',
@@ -161,6 +234,7 @@ const CommentSection = ({ movieId }) => {
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
+                                onInput={handleTyping}
                                 placeholder="Viết bình luận của bạn..."
                                 className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-primary/50 transition-all min-h-[100px] resize-none"
                             />
@@ -187,6 +261,20 @@ const CommentSection = ({ movieId }) => {
                         <p className="text-xs text-gray-500 font-medium">Vui lòng đăng nhập để tham gia thảo luận cùng cộng đồng.</p>
                     </div>
                     <a href="/login" className="mt-2 text-primary font-black uppercase tracking-widest text-[10px] border-b border-primary/20 pb-1 hover:border-primary transition-all">Đăng nhập ngay</a>
+                </div>
+            )}
+
+            {/* Typing Indicator */}
+            {typingUsers.length > 0 && (
+                <div className="flex items-center gap-2 px-2 animate-in fade-in duration-300">
+                    <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        {typingUsers.join(', ')} đang nhập...
+                    </span>
                 </div>
             )}
 
