@@ -1,9 +1,6 @@
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
-const { OAuth2Client } = require('google-auth-library');
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -247,13 +244,17 @@ const googleLogin = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Google token is required' });
         }
 
-        // Verify Google token
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
+        // Fetch user profile from Google UserInfo API using access_token
+        const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${token}` }
         });
 
-        const payload = ticket.getPayload();
+        const payload = await googleRes.json();
+
+        if (!googleRes.ok) {
+            return res.status(400).json({ success: false, message: 'Invalid Google Token' });
+        }
+
         const { email, name, picture, sub, email_verified } = payload;
 
         if (!email_verified) {
