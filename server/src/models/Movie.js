@@ -77,7 +77,6 @@ movieSchema.index(
     { title: 'text', description: 'text' }, 
     { language_override: 'dummy_language_override' }
 );
-movieSchema.index({ slug: 1 });
 
 movieSchema.pre('save', async function() {
     if (this.isModified('title')) {
