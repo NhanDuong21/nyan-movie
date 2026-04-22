@@ -16,6 +16,11 @@ const CommentSchema = new mongoose.Schema({
         required: [true, 'Please add some content'],
         trim: true,
         maxlength: [1000, 'Comment cannot be more than 1000 characters']
+    },
+    parentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment',
+        default: null
     }
 }, {
     timestamps: true

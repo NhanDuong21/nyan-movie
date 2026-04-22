@@ -27,12 +27,21 @@ exports.getMovieComments = async (req, res, next) => {
 // @access  Private
 exports.addComment = async (req, res, next) => {
     try {
-        const { movieId, content } = req.body;
+        const { movieId, content, parentId } = req.body;
+
+        // If parentId exists, verify it exists and belongs to the same movie
+        if (parentId) {
+            const parent = await Comment.findById(parentId);
+            if (!parent || parent.movie.toString() !== movieId) {
+                return res.status(400).json({ success: false, message: 'Invalid parent comment' });
+            }
+        }
 
         const comment = await Comment.create({
             content,
             movie: movieId,
-            user: req.user.id
+            user: req.user.id,
+            parentId: parentId || null
         });
 
         // Populate user info before sending back
@@ -64,6 +73,11 @@ exports.deleteComment = async (req, res, next) => {
         // Check ownership or admin
         if (comment.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+        }
+
+        // If deleting a parent comment, also delete all replies
+        if (!comment.parentId) {
+            await Comment.deleteMany({ parentId: comment._id });
         }
 
         await comment.deleteOne();
