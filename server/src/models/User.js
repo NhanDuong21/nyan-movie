@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: true
         },
+        is_root: {
+            type: Boolean,
+            default: false
+        },
         loginHistory: [
             {
                 ip: String,

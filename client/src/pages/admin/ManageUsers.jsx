@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
+import { useAuth } from '../../context/AuthContext';
 import { 
     Trash2, 
     ShieldCheck, 
@@ -22,6 +23,7 @@ import {
 import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageUsers = () => {
+    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -239,14 +241,21 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className="flex justify-center">
-                                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                                                user.role === 'admin' 
-                                                ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(229,9,20,0.1)]' 
-                                                : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                            }`}>
-                                                {user.role === 'admin' ? <ShieldCheck size={14} /> : <User size={14} />}
-                                                {user.role}
-                                            </div>
+                                            {user.email === 'admin@gmail.com' || user.is_root ? (
+                                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 shadow-[0_0_15px_rgba(202,138,4,0.1)]">
+                                                    <ShieldCheck size={14} />
+                                                    ROOT
+                                                </div>
+                                            ) : (
+                                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                                                    user.role === 'admin' 
+                                                    ? 'bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_rgba(229,9,20,0.1)]' 
+                                                    : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                                }`}>
+                                                    {user.role === 'admin' ? <ShieldCheck size={14} /> : <User size={14} />}
+                                                    {user.role}
+                                                </div>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">
@@ -276,33 +285,46 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <button 
-                                                disabled={isUpdating}
-                                                onClick={() => handleToggleBan(user)}
-                                                className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
-                                                    user.isActive
-                                                    ? 'border-orange-500/20 text-orange-500 hover:bg-orange-500/10'
-                                                    : 'border-green-500/20 text-green-500 hover:bg-green-500/10'
-                                                }`}
-                                                title={user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
-                                            >
-                                                {user.isActive ? <Lock size={18} /> : <Unlock size={18} />}
-                                            </button>
-                                            <button 
-                                                onClick={() => handleOpenModal(user)}
-                                                className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
-                                                title="Sửa thông tin"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button 
-                                                disabled={isUpdating}
-                                                onClick={() => handleDelete(user._id)}
-                                                className="w-10 h-10 flex items-center justify-center rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 transition-all active:scale-90"
-                                                title="Xóa người dùng"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
+                                            {user.email === 'admin@gmail.com' || user.is_root ? (
+                                                <div className="w-10 h-10 flex items-center justify-center text-yellow-500/40" title="Tài khoản hệ thống">
+                                                    <ShieldCheck size={20} />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button 
+                                                        disabled={isUpdating || user._id === currentUser?._id}
+                                                        onClick={() => handleToggleBan(user)}
+                                                        className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
+                                                            user._id === currentUser?._id ? 'opacity-20 cursor-not-allowed border-white/5' :
+                                                            user.isActive
+                                                            ? 'border-orange-500/20 text-orange-500 hover:bg-orange-500/10'
+                                                            : 'border-green-500/20 text-green-500 hover:bg-green-500/10'
+                                                        }`}
+                                                        title={user._id === currentUser?._id ? 'Không thể tự khóa' : (user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản')}
+                                                    >
+                                                        {user.isActive ? <Lock size={18} /> : <Unlock size={18} />}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleOpenModal(user)}
+                                                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
+                                                        title="Sửa thông tin"
+                                                    >
+                                                        <Pencil size={18} />
+                                                    </button>
+                                                    <button 
+                                                        disabled={isUpdating || user._id === currentUser?._id}
+                                                        onClick={() => handleDelete(user._id)}
+                                                        className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
+                                                            user._id === currentUser?._id
+                                                            ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-20'
+                                                            : 'border-red-500/20 text-red-500 hover:bg-red-500/10 active:scale-90'
+                                                        }`}
+                                                        title={user._id === currentUser?._id ? 'Không thể tự xóa' : 'Xóa người dùng'}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

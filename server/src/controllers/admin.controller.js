@@ -169,6 +169,15 @@ exports.updateUser = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email or Username already taken' });
         }
 
+        const targetUser = await User.findById(req.params.id);
+        if (!targetUser) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (targetUser.email === 'admin@gmail.com' || targetUser.is_root) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
+        }
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { username, email, role },
@@ -218,6 +227,11 @@ exports.toggleBanUser = async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
+        // Protection for Root Account
+        if (user.email === 'admin@gmail.com' || user.is_root) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
+        }
+
         // Prevent self-ban
         if (user._id.toString() === req.user.id) {
             return res.status(400).json({ success: false, message: 'Cannot ban yourself' });
@@ -241,6 +255,11 @@ exports.deleteUser = async (req, res) => {
         const userToDelete = await User.findById(req.params.id);
         if (!userToDelete) {
             return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Protection for Root Account
+        if (userToDelete.email === 'admin@gmail.com' || userToDelete.is_root) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
         // Prevent self-deletion or deleting the last admin
