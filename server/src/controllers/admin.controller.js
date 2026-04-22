@@ -86,20 +86,41 @@ exports.getDashboardStats = async (req, res) => {
 // @access  Private/Admin
 exports.getAllUsers = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
+        const { page = 1, limit = 10, search, status } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Build Filter
+        let filters = {};
+
+        // Search Filter (username or email)
+        if (search) {
+            filters.$or = [
+                { username: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Status Filter
+        if (status === 'active') {
+            filters.isActive = true;
+        } else if (status === 'banned') {
+            filters.isActive = false;
+        }
 
         const [users, total] = await Promise.all([
-            User.find().select('-password').sort({ createdAt: -1 }).skip(skip).limit(limit),
-            User.countDocuments()
+            User.find(filters).select('-password').sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+            User.countDocuments(filters)
         ]);
 
         res.status(200).json({
             success: true,
-            count: users.length,
-            total,
-            pages: Math.ceil(total / limit),
+            pagination: {
+                total,
+                page: pageNum,
+                pages: Math.ceil(total / limitNum)
+            },
             data: users
         });
     } catch (err) {

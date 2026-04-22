@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/AuthContext';
 import { 
+    Users,
     Trash2, 
     ShieldCheck, 
     User, 
@@ -20,7 +21,10 @@ import {
     Lock,
     Unlock,
     Ban,
-    ChevronDown
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Settings2
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -31,7 +35,10 @@ const ManageUsers = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -56,9 +63,17 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await axiosClient.get(`/admin/users?page=${page}&limit=10`);
+            const res = await axiosClient.get(`/admin/users`, {
+                params: {
+                    page,
+                    limit,
+                    search: searchTerm,
+                    status: statusFilter
+                }
+            });
             setUsers(res.data.data);
-            setTotal(res.data.total);
+            setTotal(res.data.pagination.total);
+            setTotalPages(res.data.pagination.pages);
         } catch (err) {
             console.error('Failed to fetch users', err);
         } finally {
@@ -66,9 +81,25 @@ const ManageUsers = () => {
         }
     };
 
+    // Fetch when page, limit, or filters change
     useEffect(() => {
         fetchUsers();
-    }, [page]);
+    }, [page, limit, statusFilter]);
+
+    // Search with debounce/triggered by effect but reset page
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (page !== 1) setPage(1);
+            else fetchUsers();
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    // Reset page to 1 when filters change (limit, status)
+    useEffect(() => {
+        setPage(1);
+    }, [limit, statusFilter]);
 
     // Block background scroll when modal is open
     useEffect(() => {
@@ -177,10 +208,7 @@ const ManageUsers = () => {
         });
     };
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        
+    const displayUsers = users.filter(user => {
         // Hide Root account for non-root admins for cleaner UX and security
         const isCurrentlyRoot = currentUser?.email === 'sgoku4880@gmail.com' || currentUser?.is_root;
         const isTargetRoot = user.email === 'sgoku4880@gmail.com' || user.is_root;
@@ -189,7 +217,7 @@ const ManageUsers = () => {
             return false;
         }
         
-        return matchesSearch;
+        return true;
     });
 
     if (loading && page === 1) return (
@@ -201,31 +229,67 @@ const ManageUsers = () => {
 
     return (
         <div className="space-y-8 pb-10">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">Quản lý <span className="text-primary italic">User</span></h1>
+                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+                        <Users className="text-primary" size={36} />
+                        Quản lý <span className="text-primary italic">User</span>
+                    </h1>
                     <p className="text-gray-500 mt-1 uppercase font-bold tracking-widest text-[10px]">Create, Update, and Moderate accounts</p>
                 </div>
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <div className="relative w-full md:w-80">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Tìm kiếm..."
-                            className="w-full bg-dark-card border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-primary transition-all"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <button 
-                        onClick={() => handleOpenModal()}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary/20 active:scale-95"
-                    >
-                        <Plus size={18} />
-                        Thêm Người Dùng
-                    </button>
-                </div>
+                <button 
+                    onClick={() => handleOpenModal()}
+                    className="w-full lg:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary/20 active:scale-95"
+                >
+                    <Plus size={18} />
+                    Thêm Người Dùng
+                </button>
             </header>
+
+            {/* CONTROL BAR */}
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+                <div className="relative flex-1 w-full">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder="Tìm kiếm theo tên hoặc email..."
+                        className="w-full bg-[#111] border border-gray-800 rounded-2xl pl-12 pr-4 py-4 text-sm text-gray-300 focus:outline-none focus:border-primary transition-all"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="relative group/filter w-full md:w-44">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/filter:text-primary transition-colors">
+                            <Settings2 size={16} />
+                        </div>
+                        <select 
+                            className="w-full bg-[#111] border border-gray-800 rounded-2xl pl-11 pr-10 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="active">Đang hoạt động</option>
+                            <option value="banned">Đã bị khóa</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                    </div>
+
+                    <div className="relative group/limit w-full md:w-32">
+                        <select 
+                            className="w-full bg-[#111] border border-gray-800 rounded-2xl px-5 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
+                            value={limit}
+                            onChange={(e) => setLimit(parseInt(e.target.value))}
+                        >
+                            <option value={5}>5 / trang</option>
+                            <option value={10}>10 / trang</option>
+                            <option value={20}>20 / trang</option>
+                            <option value={50}>50 / trang</option>
+                        </select>
+                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                    </div>
+                </div>
+            </div>
 
             <div className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
@@ -240,7 +304,7 @@ const ManageUsers = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {filteredUsers.map(user => (
+                            {displayUsers.map(user => (
                                 <tr key={user._id} className="hover:bg-white/[0.01] transition-colors group">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
@@ -360,27 +424,51 @@ const ManageUsers = () => {
                         </tbody>
                     </table>
                 </div>
-                {total > 10 && (
-                    <div className="p-6 border-t border-white/5 flex items-center justify-center gap-8">
+                {/* PAGINATION FOOTER */}
+                <div className="p-6 bg-white/[0.01] border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                        Hiển thị <span className="text-white">{(page - 1) * limit + 1} - {Math.min(page * limit, total)}</span> trong tổng số <span className="text-primary">{total}</span> người dùng
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
                         <button 
-                            disabled={page === 1}
-                            onClick={() => setPage(p => p - 1)}
-                            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                            disabled={page === 1 || loading}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
                         >
-                            Previous
+                            <ChevronLeft size={18} />
                         </button>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-primary italic uppercase tracking-widest bg-primary/5 px-3 py-1 rounded-lg border border-primary/10">Page {page}</span>
+
+                        <div className="flex items-center gap-1.5 px-2">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter(p => p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1))
+                                .map((p, i, arr) => (
+                                    <div key={p} className="flex items-center gap-1.5">
+                                        {i > 0 && arr[i-1] !== p - 1 && <span className="text-gray-600 font-bold">...</span>}
+                                        <button
+                                            onClick={() => setPage(p)}
+                                            className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
+                                                page === p 
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
+                                                : 'bg-white/5 text-gray-500 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    </div>
+                                ))
+                            }
                         </div>
+
                         <button 
-                            disabled={page * 10 >= total}
-                            onClick={() => setPage(p => p + 1)}
-                            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                            disabled={page === totalPages || loading}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
                         >
-                            Next
+                            <ChevronRight size={18} />
                         </button>
                     </div>
-                )}
+                </div>
             </div>
 
             {/* CREATE/EDIT MODAL */}

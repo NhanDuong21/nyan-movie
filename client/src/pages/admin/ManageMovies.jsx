@@ -12,7 +12,10 @@ import {
     CheckCircle, 
     XCircle, 
     Loader2,
-    PlayCircle 
+    PlayCircle,
+    ChevronLeft,
+    ChevronRight,
+    ChevronDown 
 } from 'lucide-react';
 import MovieForm from '../../components/admin/MovieForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -21,6 +24,10 @@ const ManageMovies = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const [showForm, setShowForm] = useState(false);
     const [editingMovie, setEditingMovie] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -29,8 +36,17 @@ const ManageMovies = () => {
     const fetchMovies = async () => {
         setLoading(true);
         try {
-            const res = await axiosClient.get('/movies?limit=50&sort=-createdAt');
+            const res = await axiosClient.get('/movies', {
+                params: {
+                    page,
+                    limit,
+                    search: searchQuery,
+                    sort: '-createdAt'
+                }
+            });
             setMovies(res.data.data);
+            setTotal(res.data.pagination.total);
+            setTotalPages(res.data.pagination.pages);
         } catch (err) {
             console.error('Failed to fetch movies', err);
         } finally {
@@ -40,7 +56,17 @@ const ManageMovies = () => {
 
     useEffect(() => {
         fetchMovies();
-    }, []);
+    }, [page, limit]);
+
+    // Search with debounce
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (page !== 1) setPage(1);
+            else fetchMovies();
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery]);
 
     const handleDelete = (id) => {
         setMovieToDelete(id);
@@ -65,9 +91,8 @@ const ManageMovies = () => {
         setShowForm(true);
     };
 
-    const filteredMovies = movies.filter(m => 
-        m.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Client-side mapping remains same but data is now fetched paginated
+    // If we need extra filtering, server should handle it.
 
     if (showForm) {
         return (
@@ -109,16 +134,29 @@ const ManageMovies = () => {
             </header>
 
             <div className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden">
-                <div className="p-6 border-b border-white/5 bg-white/2 flex items-center gap-4">
+                <div className="p-6 border-b border-white/5 bg-white/2 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                         <input
                             type="text"
                             placeholder="Tìm tên phim..."
-                            className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-all"
+                            className="w-full bg-[#111] border border-gray-800 rounded-xl pl-12 pr-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-primary transition-all"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                    </div>
+                    <div className="relative group/limit w-full md:w-32">
+                        <select 
+                            className="w-full bg-[#111] border border-gray-800 rounded-xl px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
+                            value={limit}
+                            onChange={(e) => setLimit(parseInt(e.target.value))}
+                        >
+                            <option value={5}>5 / trang</option>
+                            <option value={10}>10 / trang</option>
+                            <option value={20}>20 / trang</option>
+                            <option value={50}>50 / trang</option>
+                        </select>
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                     </div>
                 </div>
 
@@ -140,8 +178,8 @@ const ManageMovies = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredMovies.length > 0 ? (
-                                    filteredMovies.map((movie) => (
+                                {movies.length > 0 ? (
+                                    movies.map((movie) => (
                                         <tr key={movie._id} className="hover:bg-white/2 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
@@ -222,9 +260,54 @@ const ManageMovies = () => {
                                         </td>
                                     </tr>
                                 )}
-                            </tbody>
-                        </table>
-                    )}
+                    </tbody>
+                </table>
+                )}
+            </div>
+            {/* PAGINATION FOOTER */}
+                <div className="p-6 bg-white/[0.01] border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                        Hiển thị <span className="text-white">{(page - 1) * limit + 1} - {Math.min(page * limit, total)}</span> trong tổng số <span className="text-primary">{total}</span> phim
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <button 
+                            disabled={page === 1 || loading}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+
+                        <div className="flex items-center gap-1.5 px-2">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter(p => p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1))
+                                .map((p, i, arr) => (
+                                    <div key={p} className="flex items-center gap-1.5">
+                                        {i > 0 && arr[i-1] !== p - 1 && <span className="text-gray-600 font-bold">...</span>}
+                                        <button
+                                            onClick={() => setPage(p)}
+                                            className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
+                                                page === p 
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
+                                                : 'bg-white/5 text-gray-500 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    </div>
+                                ))
+                            }
+                        </div>
+
+                        <button 
+                            disabled={page === totalPages || loading}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
                 </div>
             </div>
             <ConfirmModal 
