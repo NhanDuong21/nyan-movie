@@ -178,6 +178,20 @@ exports.updateUser = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
+        // --- PRIVILEGE ESCALATION PROTECTION ---
+        if (role && role !== targetUser.role) {
+            // Check if requester is Root
+            const isRequesterRoot = req.user.email === 'sgoku4880@gmail.com' || req.user.is_root;
+            if (!isRequesterRoot) {
+                return res.status(403).json({ success: false, message: 'Lỗi: Chỉ tài khoản Root mới có quyền thay đổi chức vụ.' });
+            }
+
+            // Prevent self-demotion/self-modification of role
+            if (req.params.id === req.user.id.toString()) {
+                return res.status(403).json({ success: false, message: 'Lỗi: Không thể tự thay đổi chức vụ của chính mình.' });
+            }
+        }
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { username, email, role },

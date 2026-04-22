@@ -179,7 +179,7 @@ const forgotPassword = async (req, res, next) => {
                         </div>
                         <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                        <small style="color: #888;">© 2026 Nyan Movie Team. All rights reserved.</small>
+                        <small style="color: #888;">© 2026 Nyan Movie. All rights reserved.</small>
                     </div>
                 `
             });

@@ -18,7 +18,8 @@ import {
     ShieldAlert,
     Lock,
     Unlock,
-    Ban
+    Ban,
+    ChevronDown
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -428,14 +429,31 @@ const ManageUsers = () => {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Vai trò</label>
-                                        <select
-                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none"
-                                            value={formData.role}
-                                            onChange={(e) => setFormData({...formData, role: e.target.value})}
-                                        >
-                                            <option value="user">USER (Người dùng)</option>
-                                            <option value="admin">ADMIN (Quản trị viên)</option>
-                                        </select>
+                                        <div className="relative group/role">
+                                            <select
+                                                disabled={
+                                                    (currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || 
+                                                    (editingUser?._id === currentUser?._id)
+                                                }
+                                                className={`w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                value={formData.role}
+                                                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                                            >
+                                                <option value="user">USER (Người dùng)</option>
+                                                <option value="admin">ADMIN (Quản trị viên)</option>
+                                            </select>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600">
+                                                <ChevronDown size={18} />
+                                            </div>
+                                        </div>
+                                        {/* Helper text for locked role */}
+                                        {((currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || (editingUser?._id === currentUser?._id)) && (
+                                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest pl-1 flex items-center gap-1">
+                                                {editingUser?._id === currentUser?._id 
+                                                    ? "Không thể tự thay đổi chức vụ của mình" 
+                                                    : "Chỉ Root mới có quyền thay đổi chức vụ"}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
