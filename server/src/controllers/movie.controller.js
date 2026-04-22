@@ -191,3 +191,84 @@ exports.incrementView = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get content-based recommendations for a movie
+// @route   GET /api/movies/:id/recommendations
+// @access  Public
+exports.getRecommendations = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // Fetch the source movie with its key attributes
+        const source = await Movie.findById(id)
+            .populate('genres', '_id')
+            .populate('country', '_id')
+            .lean();
+
+        if (!source) {
+            return res.status(404).json({ success: false, message: 'Movie not found' });
+        }
+
+        const sourceGenreIds = (source.genres || []).map(g => g._id.toString());
+        const sourceCountryId = source.country?._id?.toString();
+        const sourceType = source.type;
+        const sourceTags = source.tags || [];
+
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const HIGH_VIEWS_THRESHOLD = 500;
+
+        // Fetch candidate movies (pre-filter to same-genre OR same-country for efficiency)
+        const candidates = await Movie.find({
+            _id: { $ne: id },
+            status: { $ne: 'hidden' },
+            $or: [
+                { genres: { $in: source.genres.map(g => g._id) } },
+                { country: source.country?._id }
+            ]
+        })
+            .populate('genres', '_id name')
+            .populate('country', '_id name')
+            .populate('year', 'year')
+            .select('title slug poster genres country type tags views rating createdAt year')
+            .lean();
+
+        // Score each candidate
+        const scored = candidates.map(candidate => {
+            let score = 0;
+
+            // +5: At least one overlapping genre
+            const candidateGenreIds = (candidate.genres || []).map(g => g._id.toString());
+            if (candidateGenreIds.some(id => sourceGenreIds.includes(id))) score += 5;
+
+            // +4: At least one overlapping tag (safe — tags may be undefined)
+            const candidateTags = candidate.tags || [];
+            if (sourceTags.length > 0 && candidateTags.some(t => sourceTags.includes(t))) score += 4;
+
+            // +3: Same country
+            if (candidate.country?._id?.toString() === sourceCountryId) score += 3;
+
+            // +3: Same type
+            if (candidate.type === sourceType) score += 3;
+
+            // +1: High views
+            if ((candidate.views || 0) > HIGH_VIEWS_THRESHOLD) score += 1;
+
+            // +1: High rating
+            if ((candidate.rating || 0) >= 8.0) score += 1;
+
+            // +1: New release (within the last 30 days)
+            if (new Date(candidate.createdAt) >= thirtyDaysAgo) score += 1;
+
+            return { ...candidate, score };
+        });
+
+        // Sort descending by score, take top 6
+        const recommendations = scored
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6);
+
+        res.status(200).json({ success: true, data: recommendations });
+    } catch (error) {
+        next(error);
+    }
+};

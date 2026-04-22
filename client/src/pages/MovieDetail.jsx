@@ -26,6 +26,8 @@ const MovieDetail = () => {
     const [selectedEpisode, setSelectedEpisode] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [favLoading, setFavLoading] = useState(false);
+    const [recommendations, setRecommendations] = useState([]);
+    const [recsLoading, setRecsLoading] = useState(false);
 
     useEffect(() => {
         const fetchMovie = async () => {
@@ -52,6 +54,23 @@ const MovieDetail = () => {
         fetchMovie();
         window.scrollTo(0, 0);
     }, [slug, user]);
+
+    // Fetch recommendations whenever the movie ID is available
+    useEffect(() => {
+        if (!movie?._id) return;
+        const fetchRecs = async () => {
+            setRecsLoading(true);
+            try {
+                const res = await axiosClient.get(`/movies/${movie._id}/recommendations`);
+                setRecommendations(res.data.data || []);
+            } catch (err) {
+                console.error('Failed to fetch recommendations', err);
+            } finally {
+                setRecsLoading(false);
+            }
+        };
+        fetchRecs();
+    }, [movie?._id]);
 
     const handleToggleFavorite = async () => {
         if (!user) {
@@ -255,30 +274,60 @@ const MovieDetail = () => {
                     <CommentSection movieId={movie._id} />
                 </div>
 
-                {/* Right Side: Recommendations (Mock for now) */}
+                {/* Right Side: Recommendations */}
                 <div className="space-y-8">
                     <header className="flex items-center gap-3">
                         <div className="w-1 h-6 bg-primary rounded-full"></div>
                         <h2 className="text-xl font-black uppercase italic tracking-widest">Đề xuất cho bạn</h2>
                     </header>
                     <div className="space-y-4">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="flex gap-4 p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all group cursor-pointer">
-                                <div className="w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-white/5">
-                                    <img src={`https://images.unsplash.com/photo-1542204172-3c1f81d89814?q=80&w=400&fit=crop`} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="flex flex-col justify-center gap-2">
-                                    <h4 className="font-bold uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors text-sm">Gợi ý phim {i}</h4>
-                                    <div className="flex items-center gap-3 text-[10px] font-bold text-gray-500 uppercase">
-                                        <span className="flex items-center gap-1"><Star size={10} fill="currentColor" className="text-yellow-500" /> 8.0</span>
-                                        <span>2024</span>
-                                    </div>
-                                    <button className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
-                                        Xem ngay <ChevronRight size={12} />
-                                    </button>
-                                </div>
+                        {recsLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader2 className="animate-spin text-primary" size={28} />
                             </div>
-                        ))}
+                        ) : recommendations.length > 0 ? (
+                            recommendations.map(rec => {
+                                const posterUrl = rec.poster?.startsWith('http')
+                                    ? rec.poster
+                                    : `http://localhost:5000${rec.poster}`;
+                                return (
+                                    <Link
+                                        key={rec._id}
+                                        to={`/movie/${rec.slug}`}
+                                        className="flex gap-4 p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                                    >
+                                        <div className="w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-white/5">
+                                            <img
+                                                src={posterUrl}
+                                                alt={rec.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/80x112?text=N/A'; }}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col justify-center gap-2 min-w-0">
+                                            <h4 className="font-bold uppercase tracking-tight line-clamp-2 group-hover:text-primary transition-colors text-sm leading-tight">{rec.title}</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {(rec.genres || []).slice(0, 2).map(g => (
+                                                    <span key={g._id} className="text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
+                                                ))}
+                                            </div>
+                                            <div className="flex items-center gap-3 text-[10px] font-bold text-gray-500 uppercase">
+                                                <span className="flex items-center gap-1">
+                                                    <Star size={10} fill="currentColor" className="text-yellow-500" />
+                                                    {rec.rating ? rec.rating.toFixed(1) : 'N/A'}
+                                                </span>
+                                                {rec.year?.year && <span>{rec.year.year}</span>}
+                                            </div>
+                                            <span className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-1">
+                                                Xem ngay <ChevronRight size={12} />
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })
+                        ) : (
+                            <p className="text-xs text-gray-600 font-bold uppercase tracking-widest text-center py-8">Không có gợi ý phù hợp.</p>
+                        )}
                     </div>
                 </div>
             </main>
