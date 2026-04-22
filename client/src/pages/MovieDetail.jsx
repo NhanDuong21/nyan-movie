@@ -15,6 +15,7 @@ import {
     Tv
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
+import RatingWidget from '../components/movie/RatingWidget';
 
 const MovieDetail = () => {
     const { slug } = useParams();
@@ -143,10 +144,14 @@ const MovieDetail = () => {
                             <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">{movie.title}</h1>
                             
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm font-bold text-gray-400">
-                                <div className="flex items-center gap-2"><Star size={16} className="text-yellow-500" fill="currentColor" /> 8.5</div>
-                                <div className="flex items-center gap-2"><Calendar size={16} /> {movie.year?.year}</div>
-                                <div className="flex items-center gap-2"><Clock size={16} /> {movie.duration} min</div>
-                                <div className="flex items-center gap-2"><Globe size={16} /> {movie.country?.name}</div>
+                                <RatingWidget 
+                                    movieId={movie._id} 
+                                    initialAverage={movie.ratingAverage || 0} 
+                                    initialCount={movie.ratingCount || 0} 
+                                />
+                                <div className="flex items-center gap-2 pt-1"><Calendar size={16} /> {movie.year?.year}</div>
+                                <div className="flex items-center gap-2 pt-1"><Clock size={16} /> {movie.duration} min</div>
+                                <div className="flex items-center gap-2 pt-1"><Globe size={16} /> {movie.country?.name}</div>
                             </div>
 
                             <div className="flex items-center justify-center md:justify-start gap-4 pt-4">
@@ -314,7 +319,7 @@ const MovieDetail = () => {
                                             <div className="flex items-center gap-3 text-[10px] font-bold text-gray-500 uppercase">
                                                 <span className="flex items-center gap-1">
                                                     <Star size={10} fill="currentColor" className="text-yellow-500" />
-                                                    {rec.rating ? rec.rating.toFixed(1) : 'N/A'}
+                                                    {rec.ratingAverage ? rec.ratingAverage.toFixed(1) : '0.0'}
                                                 </span>
                                                 {rec.year?.year && <span>{rec.year.year}</span>}
                                             </div>

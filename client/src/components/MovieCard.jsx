@@ -109,7 +109,7 @@ const MovieCard = ({ movie }) => {
                             : (movie.type === 'series' ? 'Phim Bộ' : 'Phim Lẻ')}
                     </span>
                     <span className="flex items-center gap-1 text-yellow-500 bg-yellow-500/5 px-2 py-0.5 rounded-lg border border-yellow-500/10 shrink-0">
-                        <Star size={10} fill="currentColor" /> 8.5
+                        <Star size={10} fill="currentColor" /> {movie.ratingAverage ? movie.ratingAverage.toFixed(1) : '0.0'}
                     </span>
                 </div>
             </div>

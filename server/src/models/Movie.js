@@ -63,6 +63,15 @@ const movieSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Year'
     },
+    ratingAverage: {
+        type: Number,
+        default: 0,
+        set: val => Math.round(val * 10) / 10
+    },
+    ratingCount: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
         enum: ['ongoing', 'completed', 'hidden'],

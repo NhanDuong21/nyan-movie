@@ -3,6 +3,8 @@ const Episode = require('../models/Episode');
 const Genre = require('../models/Genre');
 const Country = require('../models/Country');
 const Year = require('../models/Year');
+const Rating = require('../models/Rating');
+const mongoose = require('mongoose');
 
 exports.getMovies = async (req, res, next) => {
     try {
@@ -268,6 +270,65 @@ exports.getRecommendations = async (req, res, next) => {
             .slice(0, 6);
 
         res.status(200).json({ success: true, data: recommendations });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Rate a movie (1-10)
+// @route   POST /api/movies/:id/rate
+// @access  Private
+exports.rateMovie = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { score } = req.body;
+
+        // Validation
+        if (!score || score < 1 || score > 10) {
+            return res.status(400).json({ success: false, message: 'Vui lòng chọn điểm từ 1 đến 10.' });
+        }
+
+        // Rule Check: Admin/Root cannot rate
+        if (req.user.role === 'admin' || req.user.is_root || req.user.email === 'sgoku4880@gmail.com') {
+            return res.status(403).json({ success: false, message: 'Quản trị viên không thể đánh giá phim.' });
+        }
+
+        // Create or update existing rating
+        await Rating.findOneAndUpdate(
+            { user: req.user.id, movie: id },
+            { score },
+            { upsert: true, new: true }
+        );
+
+        // Recalculate average and count using aggregation
+        const stats = await Rating.aggregate([
+            { $match: { movie: new mongoose.Types.ObjectId(id) } },
+            {
+                $group: {
+                    _id: '$movie',
+                    ratingCount: { $sum: 1 },
+                    ratingAverage: { $avg: '$score' }
+                }
+            }
+        ]);
+
+        const ratingCount = stats[0]?.ratingCount || 0;
+        const ratingAverage = stats[0]?.ratingAverage || 0;
+
+        // Update Movie document
+        const updatedMovie = await Movie.findByIdAndUpdate(
+            id,
+            { ratingAverage, ratingCount },
+            { new: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            data: {
+                ratingAverage: updatedMovie.ratingAverage,
+                ratingCount: updatedMovie.ratingCount
+            }
+        });
     } catch (error) {
         next(error);
     }
