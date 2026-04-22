@@ -218,15 +218,29 @@ const Profile = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1 flex items-center gap-2">
-                                            <Mail size={10} /> Email (Cố định)
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1 flex items-center justify-between">
+                                            <span className="flex items-center gap-2"><Mail size={10} /> Email (Cố định)</span>
+                                            {user.authProvider === 'google' && (
+                                                <span className="text-[9px] text-primary flex items-center gap-1">
+                                                    <Globe size={10} /> ĐÃ LIÊN KẾT GOOGLE
+                                                </span>
+                                            )}
                                         </label>
-                                        <input
-                                            disabled
-                                            type="email"
-                                            className="w-full bg-dark/40 border border-white/5 rounded-xl px-4 py-3.5 text-sm text-gray-500 cursor-not-allowed italic"
-                                            value={user.email}
-                                        />
+                                        <div className="relative group">
+                                            <input
+                                                disabled
+                                                type="email"
+                                                className="w-full bg-dark/40 border border-white/5 rounded-xl px-4 py-3.5 text-sm text-gray-500 cursor-not-allowed italic"
+                                                value={user.email}
+                                            />
+                                            {user.authProvider === 'google' && (
+                                                <img 
+                                                    src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" 
+                                                    alt="Google" 
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50 grayscale"
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -283,104 +297,133 @@ const Profile = () => {
                                 </div>
                             </div>
 
-                            <form onSubmit={handleChangePassword} className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu hiện tại</label>
-                                        <div className="relative group">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
-                                            <input
-                                                required
-                                                type={showPasswords.old ? "text" : "password"}
-                                                placeholder="••••••••"
-                                                className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
-                                                value={oldPassword}
-                                                onChange={(e) => setOldPassword(e.target.value)}
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={() => togglePass('old')}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
-                                            >
-                                                {showPasswords.old ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
+                            {user.authProvider === 'google' ? (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                                    <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center">
+                                        <img 
+                                            src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" 
+                                            alt="Google" 
+                                            className="w-10 h-10"
+                                        />
                                     </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu mới</label>
+                                    <div className="space-y-2 max-w-[280px]">
+                                        <h3 className="text-lg font-black text-white uppercase italic">Đăng nhập bằng Google</h3>
+                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                                            Bạn đang sử dụng tài khoản Google để đăng nhập. Mật khẩu và bảo mật được quản lý trực tiếp bởi Google.
+                                        </p>
+                                    </div>
+                                    <a 
+                                        href="https://myaccount.google.com/security" 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+                                    >
+                                        Quản lý tài khoản Google <Globe size={14} />
+                                    </a>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleChangePassword} className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Mật khẩu hiện tại</label>
+                                            <div className="relative group">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
+                                                <input
+                                                    required
+                                                    type={showPasswords.old ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
+                                                    value={oldPassword}
+                                                    onChange={(e) => setOldPassword(e.target.value)}
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => togglePass('old')}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                                                >
+                                                    {showPasswords.old ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between pl-1">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Mật khẩu mới</label>
+                                                {passwordStrength && (
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${passwordStrength.color.replace('bg-', 'text-')}`}>
+                                                        {passwordStrength.label}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="relative group">
+                                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
+                                                <input
+                                                    required
+                                                    type={showPasswords.new ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => togglePass('new')}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                                                >
+                                                    {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
                                             {passwordStrength && (
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${passwordStrength.color.replace('bg-', 'text-')}`}>
-                                                    Độ mạnh: {passwordStrength.label}
-                                                </span>
+                                                <div className="h-1 w-full bg-white/5 rounded-full mt-2 overflow-hidden">
+                                                    <div 
+                                                        className={`h-full ${passwordStrength.color} transition-all duration-500`}
+                                                        style={{ width: passwordStrength.width }}
+                                                    ></div>
+                                                </div>
                                             )}
                                         </div>
-                                        <div className="relative group">
-                                            <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
-                                            <input
-                                                required
-                                                type={showPasswords.new ? "text" : "password"}
-                                                placeholder="••••••••"
-                                                className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={() => togglePass('new')}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
-                                            >
-                                                {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
-                                        {/* Strength Meter Bar */}
-                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-1">
-                                            <div 
-                                                className={`h-full transition-all duration-500 ${passwordStrength?.color || ''}`}
-                                                style={{ width: passwordStrength?.width || '0%' }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Xác nhận mật khẩu mới</label>
-                                        <div className="relative group">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
-                                            <input
-                                                required
-                                                type={showPasswords.confirm ? "text" : "password"}
-                                                placeholder="••••••••"
-                                                className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={() => togglePass('confirm')}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
-                                            >
-                                                {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {passMessage.text && (
-                                    <div className={`p-4 rounded-xl flex items-center gap-3 text-xs font-bold uppercase tracking-wide animate-in zoom-in duration-300 ${
-                                        passMessage.type === 'success' ? 'bg-green-500/10 text-green-500 border border-green-500/10' : 'bg-red-500/10 text-red-500 border border-red-500/10'
-                                    }`}>
-                                        {passMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                                        {passMessage.text}
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Xác nhận mật khẩu</label>
+                                            <div className="relative group">
+                                                <CheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-primary transition-colors" size={16} />
+                                                <input
+                                                    required
+                                                    type={showPasswords.confirm ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    className="w-full bg-dark border border-white/10 rounded-xl pl-12 pr-12 py-4 text-sm text-white focus:border-primary transition-all"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => togglePass('confirm')}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                                                >
+                                                    {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
 
-                                <button
-                                    type="submit"
-                                    disabled={isChangingPass}
-                                    className="w-full bg-primary hover:bg-primary-hover text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
-                                >
-                                    {isChangingPass ? <Loader2 className="animate-spin" size={20} /> : "Cập nhật mật khẩu"}
-                                </button>
-                            </form>
+                                    {passMessage.text && (
+                                        <div className={`p-4 rounded-xl flex items-center gap-3 text-xs font-bold uppercase tracking-wide animate-in slide-in-from-top-2 duration-300 ${
+                                            passMessage.type === 'success' ? 'bg-green-500/10 text-green-500 border border-green-500/10' : 'bg-red-500/10 text-red-500 border border-red-500/10'
+                                        }`}>
+                                            {passMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                                            {passMessage.text}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={isChangingPass}
+                                        className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
+                                    >
+                                        {isChangingPass ? <Loader2 className="animate-spin" size={18} /> : "Thay đổi mật khẩu"}
+                                    </button>
+                                </form>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,12 +1,28 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, loading, error } = useAuth();
+    const { login, googleLogin, loading, error } = useAuth();
     const navigate = useNavigate();
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        const result = await googleLogin(credentialResponse.credential);
+        if (result.success) {
+            if (result.user && result.user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
+        }
+    };
+
+    const handleGoogleError = () => {
+        console.error('Google Login Failed');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -72,6 +88,27 @@ const Login = () => {
                         {loading ? 'Logging in...' : 'Sign In'}
                     </button>
                 </form>
+
+                <div className="relative my-8">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/10"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-dark-card px-4 text-gray-500 font-bold tracking-widest">Hoặc tiếp tục với</span>
+                    </div>
+                </div>
+
+                <div className="flex justify-center">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        theme="filled_black"
+                        shape="pill"
+                        size="large"
+                        width="100%"
+                        locale="vi_VN"
+                    />
+                </div>
 
                 <p className="mt-8 text-center text-gray-400 text-sm">
                     Don't have an account?{' '}

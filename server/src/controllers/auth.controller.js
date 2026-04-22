@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -233,10 +236,109 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
+// @desc    Google login
+// @route   POST /api/auth/google
+// @access  Public
+const googleLogin = async (req, res, next) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({ success: false, message: 'Google token is required' });
+        }
+
+        // Verify Google token
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub, email_verified } = payload;
+
+        if (!email_verified) {
+            return res.status(400).json({ success: false, message: 'Google account is not verified' });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // Case: User exists, link googleId if missing
+            if (!user.googleId) {
+                user.googleId = sub;
+                // If it was a local user, don't change authProvider, 
+                // but we might want to allow both. 
+                // For now, let's just ensure googleId is set.
+                await user.save();
+            }
+        } else {
+            // Case: New user
+            user = new User({
+                email,
+                username: name,
+                googleId: sub,
+                authProvider: 'google',
+                avatar: picture, // Only set on creation
+                isActive: true
+            });
+            await user.save();
+        }
+
+        if (!user.isActive) {
+            return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị khóa.' });
+        }
+
+        const jwtToken = generateToken(user._id);
+
+        // Login History Tracking (Copied logic)
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const userAgent = req.headers['user-agent'];
+        
+        let location = 'Unknown Location';
+        if (ip === '::1' || ip === '127.0.0.1') {
+            location = 'Localhost';
+        } else {
+            try {
+                const response = await fetch(`http://ip-api.com/json/${ip}`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    location = `${data.city}, ${data.country}`;
+                }
+            } catch (error) {
+                console.error('Geolocation lookup failed:', error);
+            }
+        }
+        
+        user.loginHistory.push({ ip, userAgent, location, time: new Date() });
+        if (user.loginHistory.length > 5) {
+            user.loginHistory.shift();
+        }
+        await user.save();
+
+        res.json({
+            success: true,
+            token: jwtToken,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar,
+                loginHistory: user.loginHistory
+            }
+        });
+
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        res.status(400).json({ success: false, message: 'Google authentication failed' });
+    }
+};
+
 module.exports = {
     register,
     login,
     getMe,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    googleLogin
 };
