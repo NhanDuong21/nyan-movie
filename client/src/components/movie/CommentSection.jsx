@@ -207,6 +207,18 @@ const CommentSection = ({ movieId }) => {
         return `http://localhost:5000${avatar}`;
     };
 
+    // Permission check: mirrors backend hierarchical rules
+    const canDelete = (commentOwnerId) => {
+        if (!user) return false;
+        // Owner can always delete their own
+        if (user._id === commentOwnerId) return true;
+        // Root can delete anything
+        if (user.is_root || user.email === 'sgoku4880@gmail.com') return true;
+        // Admin can delete (backend handles admin-vs-admin block)
+        if (user.role === 'admin') return true;
+        return false;
+    };
+
     return (
         <section className="mt-12 pt-12 border-t border-white/5 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <header className="flex items-center gap-4">
@@ -266,14 +278,14 @@ const CommentSection = ({ movieId }) => {
 
             {/* Typing Indicator */}
             {typingUsers.length > 0 && (
-                <div className="flex items-center gap-2 px-2 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5 px-2 py-1 animate-in fade-in duration-300">
                     <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                     </div>
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                        {typingUsers.join(', ')} đang nhập...
+                    <span className="text-[10px] italic text-gray-500 tracking-wide">
+                        <span className="font-semibold text-gray-400 not-italic">{typingUsers.join(', ')}</span> đang nhập bình luận...
                     </span>
                 </div>
             )}
@@ -326,7 +338,7 @@ const CommentSection = ({ movieId }) => {
                                                     </button>
                                                 )}
                                             </div>
-                                            {(user && (user._id === comment.user?._id || user.role === 'admin')) && (
+                                            {canDelete(comment.user?._id) && (
                                                 <button 
                                                     onClick={() => handleDelete(comment._id)}
                                                     className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
@@ -353,8 +365,9 @@ const CommentSection = ({ movieId }) => {
                                                 autoFocus
                                                 value={replyContent}
                                                 onChange={(e) => setReplyContent(e.target.value)}
+                                                onInput={handleTyping}
                                                 placeholder={`Phản hồi ${comment.user?.username}...`}
-                                                className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-700 focus:ring-0 min-h-[60px] resize-none"
+                                                className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 min-h-[60px] resize-none"
                                             />
                                             <div className="flex justify-end items-center gap-3 mt-2 pt-2 border-t border-white/5">
                                                 <button 
@@ -395,7 +408,7 @@ const CommentSection = ({ movieId }) => {
                                                             <h5 className="font-black uppercase text-[11px] italic tracking-tight text-gray-300">{reply.user?.username || 'Người dùng ẩn danh'}</h5>
                                                             <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{formatDate(reply.createdAt)}</span>
                                                         </div>
-                                                        {(user && (user._id === reply.user?._id || user.role === 'admin')) && (
+                                                        {canDelete(reply.user?._id) && (
                                                             <button 
                                                                 onClick={() => handleDelete(reply._id)}
                                                                 className="opacity-0 group-hover:opacity-100 p-1 text-gray-700 hover:text-red-500 transition-all"
@@ -404,6 +417,12 @@ const CommentSection = ({ movieId }) => {
                                                                 <Trash2 size={14} />
                                                             </button>
                                                         )}
+                                                    </div>
+                                                    {/* Reply-to label */}
+                                                    <div className="flex items-center gap-1.5 text-[10px]">
+                                                        <CornerDownRight size={12} className="text-primary/50" />
+                                                        <span className="italic text-gray-600">Đang trả lời</span>
+                                                        <span className="font-bold text-primary/70">@{comment.user?.username || 'Ẩn danh'}</span>
                                                     </div>
                                                     <div className="bg-white/[0.015] p-3 rounded-xl border border-white/5">
                                                         <p className="text-xs text-gray-400 leading-relaxed font-medium">
