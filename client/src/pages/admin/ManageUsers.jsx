@@ -163,10 +163,20 @@ const ManageUsers = () => {
         });
     };
 
-    const filteredUsers = users.filter(user => 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Hide Root account for non-root admins for cleaner UX and security
+        const isCurrentlyRoot = currentUser?.email === 'sgoku4880@gmail.com' || currentUser?.is_root;
+        const isTargetRoot = user.email === 'sgoku4880@gmail.com' || user.is_root;
+        
+        if (!isCurrentlyRoot && isTargetRoot) {
+            return false;
+        }
+        
+        return matchesSearch;
+    });
 
     if (loading && page === 1) return (
         <div className="flex flex-col items-center justify-center py-40 gap-4">
