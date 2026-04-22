@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -68,6 +69,18 @@ const ManageUsers = () => {
     useEffect(() => {
         fetchUsers();
     }, [page]);
+
+    // Block background scroll when modal is open
+    useEffect(() => {
+        if (showModal || confirmConfig.isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [showModal, confirmConfig.isOpen]);
 
     const handleOpenModal = (user = null) => {
         setEditingUser(user);
@@ -371,37 +384,43 @@ const ManageUsers = () => {
             </div>
 
             {/* CREATE/EDIT MODAL */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleCloseModal}></div>
-                    <div className="bg-dark-card border border-white/10 w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in duration-300">
-                        <div className="h-2 w-full bg-primary"></div>
-                        <div className="p-8 md:p-10">
-                            <header className="flex items-center justify-between mb-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/10 shadow-lg shadow-primary/5">
-                                        {editingUser ? <Pencil size={24} /> : <UserPlus size={24} />}
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">
-                                            {editingUser ? 'Sửa' : 'Thêm'} <span className="text-primary italic">User</span>
-                                        </h2>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Tài khoản cộng đồng Nyan</p>
-                                    </div>
+            {showModal && createPortal(
+                <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300" onClick={handleCloseModal}>
+                    <div 
+                        className="relative w-full max-w-lg bg-[#111] border border-gray-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header - Static */}
+                        <header className="flex items-center justify-between p-6 border-b border-white/5 relative">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/10">
+                                    {editingUser ? <Pencil size={24} /> : <UserPlus size={24} />}
                                 </div>
-                                <button onClick={handleCloseModal} className="text-gray-500 hover:text-white transition-colors">
-                                    <X size={24} />
-                                </button>
-                            </header>
+                                <div>
+                                    <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">
+                                        {editingUser ? 'Sửa' : 'Thêm'} <span className="text-primary italic">User</span>
+                                    </h2>
+                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none">Quản lý tài khoản hệ thống</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleCloseModal} 
+                                className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </header>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Modal Body - Scrollable */}
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                            <form id="userForm" onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Tên hiển thị</label>
                                         <input
                                             required
                                             type="text"
-                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all underline-none outline-none"
                                             value={formData.username}
                                             onChange={(e) => setFormData({...formData, username: e.target.value})}
                                         />
@@ -411,7 +430,7 @@ const ManageUsers = () => {
                                         <input
                                             required
                                             type="email"
-                                            className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all underline-none outline-none"
                                             value={formData.email}
                                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                                         />
@@ -424,7 +443,7 @@ const ManageUsers = () => {
                                                 required
                                                 type="password"
                                                 placeholder="••••••••"
-                                                className="w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all"
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all underline-none outline-none"
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                                             />
@@ -439,7 +458,7 @@ const ManageUsers = () => {
                                                     (currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || 
                                                     (editingUser?._id === currentUser?._id)
                                                 }
-                                                className={`w-full bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                className={`w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed underline-none outline-none`}
                                                 value={formData.role}
                                                 onChange={(e) => setFormData({...formData, role: e.target.value})}
                                             >
@@ -467,18 +486,32 @@ const ManageUsers = () => {
                                         {modalError}
                                     </div>
                                 )}
-
-                                <button
-                                    type="submit"
-                                    disabled={isUpdating}
-                                    className="w-full bg-primary hover:bg-primary-hover text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
-                                >
-                                    {isUpdating ? <Loader2 className="animate-spin" size={20} /> : (editingUser ? 'Cập nhật tài khoản' : 'Tạo tài khoản mới')}
-                                </button>
                             </form>
                         </div>
+
+                        {/* Modal Footer - Static */}
+                        <div className="p-6 border-t border-white/5 flex-shrink-0">
+                            <button
+                                form="userForm"
+                                disabled={isUpdating}
+                                type="submit"
+                                className="w-full bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.2em] py-5 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+                            >
+                                {isUpdating ? (
+                                    <Loader2 className="animate-spin" size={20} />
+                                ) : (
+                                    <>
+                                        <span>{editingUser ? 'Cập nhật tài khoản' : 'Tạo tài khoản mới'}</span>
+                                        <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                                            <Plus size={12} />
+                                        </div>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             <ConfirmModal 
