@@ -174,7 +174,7 @@ exports.updateUser = async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        if (targetUser.email === 'admin@gmail.com' || targetUser.is_root) {
+        if (targetUser.email === 'sgoku4880@gmail.com' || targetUser.is_root) {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
@@ -228,7 +228,7 @@ exports.toggleBanUser = async (req, res) => {
         }
 
         // Protection for Root Account
-        if (user.email === 'admin@gmail.com' || user.is_root) {
+        if (user.email === 'sgoku4880@gmail.com' || user.is_root) {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
@@ -258,7 +258,7 @@ exports.deleteUser = async (req, res) => {
         }
 
         // Protection for Root Account
-        if (userToDelete.email === 'admin@gmail.com' || userToDelete.is_root) {
+        if (userToDelete.email === 'sgoku4880@gmail.com' || userToDelete.is_root) {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 

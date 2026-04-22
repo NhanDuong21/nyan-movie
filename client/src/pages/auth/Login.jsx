@@ -47,8 +47,13 @@ const Login = () => {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium text-gray-300">Password</label>
+                            <Link to="/forgot-password" size="sm" className="text-xs text-primary hover:underline">
+                                Quên mật khẩu?
+                            </Link>
+                        </div>
                         <input
                             type="password"
                             required

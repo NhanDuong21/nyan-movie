@@ -241,7 +241,7 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className="flex justify-center">
-                                            {user.email === 'admin@gmail.com' || user.is_root ? (
+                                            {user.email === 'sgoku4880@gmail.com' || user.is_root ? (
                                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 shadow-[0_0_15px_rgba(202,138,4,0.1)]">
                                                     <ShieldCheck size={14} />
                                                     ROOT
@@ -285,7 +285,7 @@ const ManageUsers = () => {
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            {user.email === 'admin@gmail.com' || user.is_root ? (
+                                            {user.email === 'sgoku4880@gmail.com' || user.is_root ? (
                                                 <div className="w-10 h-10 flex items-center justify-center text-yellow-500/40" title="Tài khoản hệ thống">
                                                     <ShieldCheck size={20} />
                                                 </div>

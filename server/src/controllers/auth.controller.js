@@ -130,8 +130,113 @@ const getMe = async (req, res, next) => {
     }
 };
 
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng với email này' });
+        }
+
+        // Get reset token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+
+        // Hash token and set to resetPasswordToken field
+        user.resetPasswordToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+
+        // Set expire
+        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+
+        await user.save({ validateBeforeSave: false });
+
+        // Create reset URL
+        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+        const message = `Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu khôi phục mật khẩu. Vui lòng nhấp vào link bên dưới để thực hiện:\n\n ${resetUrl}`;
+
+        try {
+            await sendEmail({
+                to: user.email,
+                subject: 'Nyan Movie - Khôi phục mật khẩu',
+                text: message,
+                html: `
+                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+                        <h2 style="color: #e50914;">Nyan Movie - Khôi phục mật khẩu</h2>
+                        <p>Chào <strong>${user.username}</strong>,</p>
+                        <p>Bạn nhận được email này vì bạn đã yêu cầu khôi phục mật khẩu cho tài khoản Nyan Movie.</p>
+                        <p>Vui lòng nhấp vào nút bên dưới để đặt lại mật khẩu mới (Link có hiệu lực trong 15 phút):</p>
+                        <div style="margin: 30px 0;">
+                            <a href="${resetUrl}" style="background-color: #e50914; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">ĐẶT LẠI MẬT KHẨU</a>
+                        </div>
+                        <p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                        <small style="color: #888;">© 2026 Nyan Movie Team. All rights reserved.</small>
+                    </div>
+                `
+            });
+
+            res.status(200).json({ success: true, message: 'Email đã được gửi' });
+        } catch (err) {
+            console.error(err);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+
+            await user.save({ validateBeforeSave: false });
+
+            return res.status(500).json({ success: false, message: 'Không thể gửi email' });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Reset password
+// @route   PUT /api/auth/reset-password/:token
+// @access  Public
+const resetPassword = async (req, res, next) => {
+    try {
+        // Get hashed token
+        const resetPasswordToken = crypto
+            .createHash('sha256')
+            .update(req.params.token)
+            .digest('hex');
+
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn' });
+        }
+
+        // Set update password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Mật khẩu đã được cập nhật thành công' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
-    getMe
+    getMe,
+    forgotPassword,
+    resetPassword
 };
