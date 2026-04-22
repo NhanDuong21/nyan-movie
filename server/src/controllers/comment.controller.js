@@ -28,7 +28,7 @@ exports.getMovieComments = async (req, res, next) => {
 // @access  Private
 exports.addComment = async (req, res, next) => {
     try {
-        const { movieId, content, parentId } = req.body;
+        const { movieId, content, parentId, replyToUser } = req.body;
 
         // If parentId exists, verify it exists and belongs to the same movie
         if (parentId) {
@@ -42,7 +42,8 @@ exports.addComment = async (req, res, next) => {
             content,
             movie: movieId,
             user: req.user.id,
-            parentId: parentId || null
+            parentId: parentId || null,
+            replyToUser: replyToUser || null
         });
 
         // Populate user info before sending back

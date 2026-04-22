@@ -22,6 +22,7 @@ const CommentSection = ({ movieId }) => {
     const [error, setError] = useState(null);
     const [replyingTo, setReplyingTo] = useState(null);
     const [replyContent, setReplyContent] = useState('');
+    const [replyTargetUser, setReplyTargetUser] = useState(null);
     const [typingUsers, setTypingUsers] = useState([]);
     const typingTimeoutRef = useRef(null);
 
@@ -130,7 +131,8 @@ const CommentSection = ({ movieId }) => {
             const res = await axiosClient.post('/comments', {
                 movieId,
                 content: textToSubmit.trim(),
-                parentId
+                parentId,
+                replyToUser: parentId ? replyTargetUser : null
             });
             
             // Add new comment to local state (Socket will handle sync for others)
@@ -142,6 +144,7 @@ const CommentSection = ({ movieId }) => {
             if (parentId) {
                 setReplyContent('');
                 setReplyingTo(null);
+                setReplyTargetUser(null);
             } else {
                 setContent('');
             }
@@ -327,7 +330,11 @@ const CommentSection = ({ movieId }) => {
                                                 
                                                 {user && (
                                                     <button 
-                                                        onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)}
+                                                        onClick={() => {
+                                                            setReplyingTo(replyingTo === comment._id ? null : comment._id);
+                                                            setReplyTargetUser(comment.user?.username);
+                                                            setReplyContent('');
+                                                        }}
                                                         className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md transition-all ${
                                                             replyingTo === comment._id 
                                                             ? 'bg-primary text-white shadow-lg shadow-primary/20' 
@@ -361,17 +368,24 @@ const CommentSection = ({ movieId }) => {
                                 {replyingTo === comment._id && (
                                     <div className="ml-16 animate-in slide-in-from-top-2 duration-300">
                                         <div className="bg-[#111] p-4 rounded-2xl border border-primary/20 ring-1 ring-primary/5">
+                                            {replyTargetUser && (
+                                                <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-white/5">
+                                                    <CornerDownRight size={11} className="text-primary/50" />
+                                                    <span className="text-[10px] italic text-gray-600">Đang trả lời</span>
+                                                    <span className="text-[10px] font-bold text-primary/70">@{replyTargetUser}</span>
+                                                </div>
+                                            )}
                                             <textarea
                                                 autoFocus
                                                 value={replyContent}
                                                 onChange={(e) => setReplyContent(e.target.value)}
                                                 onInput={handleTyping}
-                                                placeholder={`Phản hồi ${comment.user?.username}...`}
+                                                placeholder="Viết phản hồi..."
                                                 className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 min-h-[60px] resize-none"
                                             />
                                             <div className="flex justify-end items-center gap-3 mt-2 pt-2 border-t border-white/5">
                                                 <button 
-                                                    onClick={() => { setReplyingTo(null); setReplyContent(''); }}
+                                                    onClick={() => { setReplyingTo(null); setReplyContent(''); setReplyTargetUser(null); }}
                                                     className="text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white transition-colors"
                                                 >
                                                     Hủy
@@ -404,9 +418,25 @@ const CommentSection = ({ movieId }) => {
                                                 </div>
                                                 <div className="flex-1 space-y-1.5">
                                                     <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 flex-wrap">
                                                             <h5 className="font-black uppercase text-[11px] italic tracking-tight text-gray-300">{reply.user?.username || 'Người dùng ẩn danh'}</h5>
                                                             <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{formatDate(reply.createdAt)}</span>
+                                                            {user && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setReplyingTo(comment._id);
+                                                                        setReplyTargetUser(reply.user?.username);
+                                                                        setReplyContent('');
+                                                                    }}
+                                                                    className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded transition-all ${
+                                                                        replyingTo === comment._id
+                                                                        ? 'text-primary/60'
+                                                                        : 'text-gray-600 hover:text-primary'
+                                                                    }`}
+                                                                >
+                                                                    Phản hồi
+                                                                </button>
+                                                            )}
                                                         </div>
                                                         {canDelete(reply.user?._id) && (
                                                             <button 
@@ -418,11 +448,11 @@ const CommentSection = ({ movieId }) => {
                                                             </button>
                                                         )}
                                                     </div>
-                                                    {/* Reply-to label */}
+                                                    {/* Reply-to label from saved data */}
                                                     <div className="flex items-center gap-1.5 text-[10px]">
                                                         <CornerDownRight size={12} className="text-primary/50" />
                                                         <span className="italic text-gray-600">Đang trả lời</span>
-                                                        <span className="font-bold text-primary/70">@{comment.user?.username || 'Ẩn danh'}</span>
+                                                        <span className="font-bold text-primary/70">@{reply.replyToUser || comment.user?.username || 'Ẩn danh'}</span>
                                                     </div>
                                                     <div className="bg-white/[0.015] p-3 rounded-xl border border-white/5">
                                                         <p className="text-xs text-gray-400 leading-relaxed font-medium">
