@@ -178,6 +178,12 @@ exports.updateUser = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
+        // --- PEER-TO-PEER ADMIN PROTECTION ---
+        const isRequesterRoot = req.user.email === 'sgoku4880@gmail.com' || req.user.is_root;
+        if (targetUser.role === 'admin' && !isRequesterRoot) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Quản trị viên không thể thao tác lên một quản trị viên khác. Vui lòng liên hệ Owner/Root.' });
+        }
+
         // --- PRIVILEGE ESCALATION PROTECTION ---
         if (role && role !== targetUser.role) {
             // Check if requester is Root
@@ -246,6 +252,12 @@ exports.toggleBanUser = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
         }
 
+        // --- PEER-TO-PEER ADMIN PROTECTION ---
+        const isRequesterRoot = req.user.email === 'sgoku4880@gmail.com' || req.user.is_root;
+        if (user.role === 'admin' && !isRequesterRoot) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Quản trị viên không thể thao tác lên một quản trị viên khác. Vui lòng liên hệ Owner/Root.' });
+        }
+
         // Prevent self-ban
         if (user._id.toString() === req.user.id) {
             return res.status(400).json({ success: false, message: 'Cannot ban yourself' });
@@ -274,6 +286,12 @@ exports.deleteUser = async (req, res) => {
         // Protection for Root Account
         if (userToDelete.email === 'sgoku4880@gmail.com' || userToDelete.is_root) {
             return res.status(403).json({ success: false, message: 'Lỗi: Không thể thao tác lên tài khoản Owner/Root.' });
+        }
+
+        // --- PEER-TO-PEER ADMIN PROTECTION ---
+        const isRequesterRoot = req.user.email === 'sgoku4880@gmail.com' || req.user.is_root;
+        if (userToDelete.role === 'admin' && !isRequesterRoot) {
+            return res.status(403).json({ success: false, message: 'Lỗi: Quản trị viên không thể thao tác lên một quản trị viên khác. Vui lòng liên hệ Owner/Root.' });
         }
 
         // Prevent self-deletion or deleting the last admin

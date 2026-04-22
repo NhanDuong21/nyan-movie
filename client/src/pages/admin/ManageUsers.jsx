@@ -300,6 +300,10 @@ const ManageUsers = () => {
                                                 <div className="w-10 h-10 flex items-center justify-center text-yellow-500/40" title="Tài khoản hệ thống">
                                                     <ShieldCheck size={20} />
                                                 </div>
+                                            ) : (user.role === 'admin' && (currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root)) ? (
+                                                <div className="w-10 h-10 flex items-center justify-center text-gray-500/20" title="Chỉ Root mới có quyền thao tác lên Admin">
+                                                    <Lock size={18} />
+                                                </div>
                                             ) : (
                                                 <>
                                                     <button 
