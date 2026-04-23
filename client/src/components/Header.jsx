@@ -45,6 +45,9 @@ const Header = () => {
              searchTimeoutRef.current = setTimeout(() => {
                 navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
             }, 800);
+        } else if (!searchQuery.trim() && location.pathname === '/browse') {
+            // If search query is empty and we are on browse page, go back to home
+            navigate('/');
         }
 
         return () => {
