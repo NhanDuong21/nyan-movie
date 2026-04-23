@@ -3,14 +3,14 @@ const router = express.Router();
 const { 
     getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById, incrementView, getRecommendations, rateMovie
 } = require('../controllers/movie.controller');
-const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
+const { verifyToken, verifyAdmin, optionalAuth } = require('../middlewares/auth.middleware');
 
 router.route('/')
-    .get(getMovies)
+    .get(optionalAuth, getMovies)
     .post(verifyToken, verifyAdmin, createMovie);
 
 router.route('/slug/:slug')
-    .get(getMovieBySlug);
+    .get(optionalAuth, getMovieBySlug);
 
 router.route('/:id')
     .get(getMovieById)

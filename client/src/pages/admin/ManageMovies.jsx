@@ -15,7 +15,8 @@ import {
     PlayCircle,
     ChevronLeft,
     ChevronRight,
-    ChevronDown 
+    ChevronDown,
+    EyeOff
 } from 'lucide-react';
 import MovieForm from '../../components/admin/MovieForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -112,6 +113,19 @@ const ManageMovies = () => {
         }
     };
 
+    const renderStatusBadge = (status) => {
+        switch(status) {
+            case 'ongoing':
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-green-900/50 text-green-400 border border-green-800 flex items-center gap-1 w-max"><CheckCircle size={12} /> Đang chiếu</span>;
+            case 'completed':
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-900/50 text-blue-400 border border-blue-800 flex items-center gap-1 w-max"><CheckCircle size={12} /> Hoàn thành</span>;
+            case 'hidden':
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-800 text-gray-400 border border-gray-600 flex items-center gap-1 w-max"><EyeOff size={12} /> Đã ẩn</span>;
+            default:
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-800 text-gray-400 w-max">{status}</span>;
+        }
+    };
+
     // Client-side mapping remains same but data is now fetched paginated
     // If we need extra filtering, server should handle it.
 
@@ -191,9 +205,9 @@ const ManageMovies = () => {
                                 onChange={(e) => setFilterStatus(e.target.value)}
                             >
                                 <option value="all">TẤT CẢ TRẠNG THÁI</option>
-                                <option value="ongoing">ĐANG CHIẾU / ACTIVE</option>
+                                <option value="ongoing">ĐANG CHIẾU</option>
                                 <option value="completed">HOÀN THÀNH</option>
-                                <option value="hidden">ẨN / HIDDEN</option>
+                                <option value="hidden">ĐÃ ẨN</option>
                             </select>
                             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                         </div>
@@ -267,15 +281,7 @@ const ManageMovies = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                {movie.status === 'hidden' ? (
-                                                    <span className="inline-flex items-center gap-1.5 text-red-500 bg-red-500/10 px-3 py-1 rounded-full text-xs font-medium border border-red-500/10">
-                                                        <XCircle size={14}/> Hidden
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5 text-green-500 bg-green-500/10 px-3 py-1 rounded-full text-xs font-medium border border-green-500/10">
-                                                        <CheckCircle size={14}/> Active
-                                                    </span>
-                                                )}
+                                                {renderStatusBadge(movie.status)}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
