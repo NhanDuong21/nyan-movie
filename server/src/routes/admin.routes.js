@@ -9,12 +9,14 @@ const {
     toggleBanUser,
     deleteUser 
 } = require('../controllers/admin.controller');
+const { getAdminMovies } = require('../controllers/movie.controller');
 const { verifyToken, verifyAdmin } = require('../middlewares/auth.middleware');
 
 // Protect all routes
 router.use(verifyToken);
 router.use(verifyAdmin);
 
+router.get('/movies', getAdminMovies);
 router.get('/stats', getDashboardStats);
 router.get('/users', getAllUsers);
 router.post('/users', createUser);

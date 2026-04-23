@@ -47,11 +47,11 @@ exports.getMovies = async (req, res, next) => {
             else filters._id = null;
         }
 
-        // Status/Visibility
-        if (!req.user || req.user.role !== 'admin') {
-            filters.status = { $ne: 'hidden' };
-        } else if (status && status !== 'all') {
+        if (status && status !== 'all' && status !== 'hidden') {
             filters.status = status;
+        } else {
+            // Strictly enforce $ne: 'hidden' for public endpoint, no admin bypass
+            filters.status = { $ne: 'hidden' };
         }
 
         // Create query
@@ -119,8 +119,8 @@ exports.getMovieBySlug = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Movie not found' });
         }
 
-        // If hidden and not admin, block
-        if (movie.status === 'hidden' && (!req.user || req.user.role !== 'admin')) {
+        // If hidden, strictly block for everyone on public detail page
+        if (movie.status === 'hidden') {
             return res.status(404).json({ success: false, message: 'Movie not found' });
         }
 
@@ -133,6 +133,85 @@ exports.getMovieBySlug = async (req, res, next) => {
                 ...movie._doc,
                 episodes
             }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getAdminMovies = async (req, res, next) => {
+    try {
+        const { search, type, genre, country, year, status, select, sort, page, limit } = req.query;
+        let filters = {};
+
+        if (type && type !== 'all') {
+            filters.type = type;
+        }
+
+        // Search Logic (Regex on title)
+        if (search) {
+            filters.title = { $regex: search, $options: 'i' };
+        }
+
+        if (genre) {
+            const genreDoc = await Genre.findOne({ slug: genre });
+            if (genreDoc) filters.genres = genreDoc._id;
+            else filters._id = null;
+        }
+
+        if (country) {
+            const countryDoc = await Country.findOne({ slug: country });
+            if (countryDoc) filters.country = countryDoc._id;
+            else filters._id = null;
+        }
+
+        if (year) {
+            const yearDoc = await Year.findOne({ year: parseInt(year) });
+            if (yearDoc) filters.year = yearDoc._id;
+            else filters._id = null;
+        }
+
+        // Status filter mapping (Admin specific, allows 'hidden' etc.)
+        if (status && status !== 'all') {
+            filters.status = status;
+        }
+
+        // Create query
+        let query = Movie.find(filters).populate('genres country year');
+
+        // Select Fields
+        if (select) {
+            const fields = select.split(',').join(' ');
+            query = query.select(fields);
+        }
+
+        // Sort
+        if (sort) {
+            const sortBy = sort.split(',').join(' ');
+            query = query.sort(sortBy);
+        } else {
+            query = query.sort('-createdAt');
+        }
+
+        // Pagination
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 10;
+        const startIndex = (pageNum - 1) * limitNum;
+        const total = await Movie.countDocuments(filters);
+
+        query = query.skip(startIndex).limit(limitNum);
+
+        const movies = await query;
+
+        res.status(200).json({
+            success: true,
+            count: movies.length,
+            pagination: {
+                total,
+                page: pageNum,
+                pages: Math.ceil(total / limitNum)
+            },
+            data: movies
         });
     } catch (error) {
         next(error);

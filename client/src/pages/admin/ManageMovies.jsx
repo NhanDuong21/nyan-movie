@@ -39,7 +39,7 @@ const ManageMovies = () => {
     const fetchMovies = async () => {
         setLoading(true);
         try {
-            const res = await axiosClient.get('/movies', {
+            const res = await axiosClient.get('/admin/movies', {
                 params: {
                     page,
                     limit,
