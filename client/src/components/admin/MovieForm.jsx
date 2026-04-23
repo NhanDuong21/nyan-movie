@@ -40,6 +40,22 @@ const MovieForm = ({ initialData, onSuccess }) => {
         confirmText: 'Đã hiểu'
     });
 
+    const getPreviewUrl = (imageState) => {
+        if (!imageState) return null;
+        // 1. If it's a newly selected File object
+        if (imageState instanceof File || imageState instanceof Blob) {
+            return URL.createObjectURL(imageState);
+        }
+        // 2. If it's a string (existing image from DB)
+        if (typeof imageState === 'string') {
+            // Full Cloudinary or external URL
+            if (imageState.startsWith('http')) return imageState;
+            // Legacy local path
+            return `http://localhost:5000${imageState.startsWith('/') ? '' : '/'}${imageState}`;
+        }
+        return null;
+    };
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -276,7 +292,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                             <div className="relative group aspect-[2/3] bg-dark border-2 border-dashed border-white/10 rounded-2xl overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
                                 {formData.poster ? (
                                     <>
-                                        <img src={`http://localhost:5000${formData.poster}`} className="w-full h-full object-cover" />
+                                        <img src={getPreviewUrl(formData.poster)} alt="Poster Preview" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                                             <button 
                                                 type="button"
@@ -315,7 +331,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                             <div className="relative group aspect-square bg-dark border-2 border-dashed border-white/10 rounded-2xl overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
                                 {formData.backdrop ? (
                                     <>
-                                        <img src={`http://localhost:5000${formData.backdrop}`} className="w-full h-full object-cover" />
+                                        <img src={getPreviewUrl(formData.backdrop)} alt="Backdrop Preview" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                                             <button 
                                                 type="button"
