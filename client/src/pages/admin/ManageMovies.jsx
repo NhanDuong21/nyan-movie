@@ -32,6 +32,8 @@ const ManageMovies = () => {
     const [editingMovie, setEditingMovie] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [movieToDelete, setMovieToDelete] = useState(null);
+    const [filterType, setFilterType] = useState('all');
+    const [filterStatus, setFilterStatus] = useState('all');
 
     const fetchMovies = async () => {
         setLoading(true);
@@ -41,6 +43,8 @@ const ManageMovies = () => {
                     page,
                     limit,
                     search: searchQuery,
+                    type: filterType,
+                    status: filterStatus,
                     sort: '-createdAt'
                 }
             });
@@ -56,7 +60,12 @@ const ManageMovies = () => {
 
     useEffect(() => {
         fetchMovies();
-    }, [page, limit]);
+    }, [page, limit, filterType, filterStatus]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [filterType, filterStatus]);
 
     // Search with debounce
     useEffect(() => {
@@ -156,6 +165,38 @@ const ManageMovies = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4">
+                        {/* Filter Type */}
+                        <div className="relative group/filter">
+                            <select 
+                                className="bg-[#111] border border-gray-800 rounded-xl px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer min-w-[160px] pr-10"
+                                value={filterType}
+                                onChange={(e) => setFilterType(e.target.value)}
+                            >
+                                <option value="all">TẤT CẢ LOẠI PHIM</option>
+                                <option value="single">PHIM LẺ</option>
+                                <option value="series">PHIM BỘ</option>
+                                <option value="chieurap">PHIM CHIẾU RẠP</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                        </div>
+
+                        {/* Filter Status */}
+                        <div className="relative group/filter">
+                            <select 
+                                className="bg-[#111] border border-gray-800 rounded-xl px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer min-w-[160px] pr-10"
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                            >
+                                <option value="all">TẤT CẢ TRẠNG THÁI</option>
+                                <option value="ongoing">ĐANG CHIẾU / ACTIVE</option>
+                                <option value="completed">HOÀN THÀNH</option>
+                                <option value="hidden">ẨN / HIDDEN</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                        </div>
                     </div>
                     <div className="relative group/limit w-full md:w-32">
                         <select 

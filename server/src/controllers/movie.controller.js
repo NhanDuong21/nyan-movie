@@ -11,7 +11,7 @@ exports.getMovies = async (req, res, next) => {
         const { search, type, genre, country, year, status, recent, select, sort, page, limit } = req.query;
         let filters = {};
 
-        if (type) {
+        if (type && type !== 'all') {
             filters.type = type;
         }
 
@@ -50,7 +50,7 @@ exports.getMovies = async (req, res, next) => {
         // Status/Visibility
         if (!req.user || req.user.role !== 'admin') {
             filters.status = { $ne: 'hidden' };
-        } else if (status) {
+        } else if (status && status !== 'all') {
             filters.status = status;
         }
 
