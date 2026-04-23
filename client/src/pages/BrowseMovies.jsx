@@ -13,6 +13,8 @@ const BrowseMovies = () => {
     const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
     const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('Khám phá Phim');
+    const [genres, setGenres] = useState([]);
+    const [countries, setCountries] = useState([]);
 
     const search = searchParams.get('search');
     const genre = searchParams.get('genre');
@@ -21,6 +23,22 @@ const BrowseMovies = () => {
     const type = searchParams.get('type');
     const recent = searchParams.get('recent');
     const page = parseInt(searchParams.get('page')) || 1;
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const [genreRes, countryRes] = await Promise.all([
+                    axiosClient.get('/categories/genres'),
+                    axiosClient.get('/categories/countries')
+                ]);
+                setGenres(genreRes.data.data);
+                setCountries(countryRes.data.data);
+            } catch (err) {
+                console.error('Failed to fetch categories in Browse', err);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         const fetchMovies = async () => {
@@ -47,8 +65,16 @@ const BrowseMovies = () => {
                 else if (type === 'series') setTitle('Tất Cả Phim Bộ');
                 else if (type === 'single') setTitle('Tất Cả Phim Lẻ');
                 else if (search) setTitle(`Kết quả tìm kiếm cho: "${search}"`);
-                else if (genre) setTitle(`Phim theo Thể loại: ${genre.charAt(0).toUpperCase() + genre.slice(1).replace(/-/g, ' ')}`);
-                else if (country) setTitle(`Phim theo Quốc gia: ${country.charAt(0).toUpperCase() + country.slice(1).replace(/-/g, ' ')}`);
+                else if (genre) {
+                    const found = genres.find(g => g.slug === genre);
+                    const genreName = found ? found.name : genre.charAt(0).toUpperCase() + genre.slice(1).replace(/-/g, ' ');
+                    setTitle(`Phim theo Thể loại: ${genreName}`);
+                }
+                else if (country) {
+                    const found = countries.find(c => c.slug === country);
+                    const countryName = found ? found.name : country.charAt(0).toUpperCase() + country.slice(1).replace(/-/g, ' ');
+                    setTitle(`Phim theo Quốc gia: ${countryName}`);
+                }
                 else if (year) setTitle(`Phim năm ${year}`);
                 else setTitle('Tất cả phim');
 
@@ -60,7 +86,7 @@ const BrowseMovies = () => {
         };
         fetchMovies();
         window.scrollTo(0, 0);
-    }, [search, genre, country, year, type, recent, page]);
+    }, [search, genre, country, year, type, recent, page, genres, countries]);
 
     const handlePageChange = (newPage) => {
         const currentParams = Object.fromEntries([...searchParams]);
