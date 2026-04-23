@@ -38,7 +38,14 @@ exports.getFavorites = async (req, res, next) => {
         const favorites = await Interaction.find({
             user: req.user.id,
             type: 'favorite'
-        }).populate('movie');
+        }).populate({
+            path: 'movie',
+            populate: [
+                { path: 'genres', select: 'name slug' },
+                { path: 'country', select: 'name slug' },
+                { path: 'year', select: 'year' }
+            ]
+        });
 
         res.status(200).json({
             success: true,
@@ -88,7 +95,14 @@ exports.getHistory = async (req, res, next) => {
             user: req.user.id,
             type: 'history'
         })
-        .populate('movie')
+        .populate({
+            path: 'movie',
+            populate: [
+                { path: 'genres', select: 'name slug' },
+                { path: 'country', select: 'name slug' },
+                { path: 'year', select: 'year' }
+            ]
+        })
         .populate('episode')
         .sort({ updatedAt: -1 })
         .skip(skip)
