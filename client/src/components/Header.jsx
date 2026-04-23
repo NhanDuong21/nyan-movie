@@ -20,9 +20,9 @@ const Header = () => {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const searchFromUrl = queryParams.get('search');
-        if (searchFromUrl) {
+        if (location.pathname === '/browse' && searchFromUrl) {
             setSearchQuery(searchFromUrl);
-        } else if (location.pathname !== '/browse') {
+        } else {
             setSearchQuery('');
         }
     }, [location.search, location.pathname]);
@@ -43,7 +43,9 @@ const Header = () => {
 
         // Rule 1: length === 0 -> Instantly return to Home (if on search page)
         if (!trimmed) {
-            if (location.pathname === '/browse') {
+            const currentParams = new URLSearchParams(location.search);
+            // CRITICAL FIX: Only kick the user back to Home if they are currently on the Search Results page AND have a search param
+            if (location.pathname === '/browse' && currentParams.has('search')) {
                 navigate('/');
             }
             return;
@@ -61,7 +63,7 @@ const Header = () => {
 
         searchTimeoutRef.current = setTimeout(() => {
             const currentParams = new URLSearchParams(location.search);
-            if (currentParams.get('search') !== trimmed) {
+            if (location.pathname !== '/browse' || currentParams.get('search') !== trimmed) {
                 // If already on browse, replace to keep history clean, else push
                 const options = location.pathname === '/browse' ? { replace: true } : {};
                 navigate(`/browse?search=${encodeURIComponent(trimmed)}`, options);
