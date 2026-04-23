@@ -68,8 +68,8 @@ exports.getMovies = async (req, res, next) => {
             const sortBy = sort.split(',').join(' ');
             query = query.sort(sortBy);
         } else {
-            // Default to updatedAt so newly updated series jump to top
-            query = query.sort('-updatedAt');
+            // Default to createdAt so "Latest Releases" aren't affected by view count updates
+            query = query.sort('-createdAt');
         }
 
         // Pagination
