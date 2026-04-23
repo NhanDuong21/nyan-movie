@@ -91,6 +91,18 @@ const ManageMovies = () => {
         setShowForm(true);
     };
 
+    const renderTypeBadge = (type) => {
+        switch(type) {
+            case 'series':
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-900/50 text-blue-400 border border-blue-800">PHIM BỘ</span>;
+            case 'chieurap':
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-purple-900/50 text-purple-400 border border-purple-800">PHIM CHIẾU RẠP</span>;
+            case 'single':
+            default:
+                return <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-900/50 text-orange-400 border border-orange-800">PHIM LẺ</span>;
+        }
+    };
+
     // Client-side mapping remains same but data is now fetched paginated
     // If we need extra filtering, server should handle it.
 
@@ -203,13 +215,7 @@ const ManageMovies = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                                                    movie.type === 'series' 
-                                                    ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' 
-                                                    : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
-                                                }`}>
-                                                    {movie.type === 'series' ? 'Phim Bộ' : 'Phim Lẻ'}
-                                                </span>
+                                                {renderTypeBadge(movie.type)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-400">
                                                 <div className="flex flex-col gap-1">
