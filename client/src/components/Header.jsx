@@ -14,6 +14,7 @@ const Header = () => {
     const [genres, setGenres] = useState([]);
     const [countries, setCountries] = useState([]);
     const searchTimeoutRef = useRef(null);
+    const isFirstRender = useRef(true);
 
     // Sync search input with URL if present
     useEffect(() => {
@@ -26,34 +27,51 @@ const Header = () => {
         }
     }, [location.search, location.pathname]);
 
-    // Debounced real-time search
+    // Debounced real-time search with dynamic delays
     useEffect(() => {
+        // Skip effect on mount to prevent accidental redirect to home
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
 
-        if (searchQuery.trim() && location.pathname === '/browse') {
-            searchTimeoutRef.current = setTimeout(() => {
-                const currentParams = new URLSearchParams(location.search);
-                if (currentParams.get('search') !== searchQuery.trim()) {
-                    navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`, { replace: true });
-                }
-            }, 500);
-        } else if (searchQuery.trim() && location.pathname !== '/browse') {
-             // If not on browse page, wait for user to type more or enter
-             // But user wants real-time, so we should jump to browse
-             searchTimeoutRef.current = setTimeout(() => {
-                navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
-            }, 800);
-        } else if (!searchQuery.trim() && location.pathname === '/browse') {
-            // If search query is empty and we are on browse page, go back to home
-            navigate('/');
+        const trimmed = searchQuery.trim();
+
+        // Rule 1: length === 0 -> Instantly return to Home (if on search page)
+        if (!trimmed) {
+            if (location.pathname === '/browse') {
+                navigate('/');
+            }
+            return;
         }
+
+        // Rule 2: length === 1 -> Do NOT trigger search
+        if (trimmed.length === 1) {
+            return;
+        }
+
+        // Determine delay
+        // Rule 3: 2 characters = 1000ms delay
+        // Rule 4: 3+ characters = 400ms delay
+        const delay = trimmed.length === 2 ? 1000 : 400;
+
+        searchTimeoutRef.current = setTimeout(() => {
+            const currentParams = new URLSearchParams(location.search);
+            if (currentParams.get('search') !== trimmed) {
+                // If already on browse, replace to keep history clean, else push
+                const options = location.pathname === '/browse' ? { replace: true } : {};
+                navigate(`/browse?search=${encodeURIComponent(trimmed)}`, options);
+            }
+        }, delay);
 
         return () => {
             if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
         };
-    }, [searchQuery, navigate]);
+    }, [searchQuery, navigate, location.pathname, location.search]);
 
     useEffect(() => {
         const fetchCategories = async () => {
