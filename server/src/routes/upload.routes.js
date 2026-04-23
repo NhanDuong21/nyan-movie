@@ -8,8 +8,8 @@ router.post('/', verifyToken, upload.single('image'), (req, res) => {
         return res.status(400).json({ success: false, message: 'Vui lòng chọn một file để upload' });
     }
 
-    // Return the public URL for the uploaded file
-    const fileUrl = `/uploads/${req.file.filename}`;
+    // Return the public URL for the uploaded file (via Cloudinary)
+    const fileUrl = req.file.path;
     res.status(200).json({
         success: true,
         url: fileUrl,
