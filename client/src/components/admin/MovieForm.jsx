@@ -186,7 +186,6 @@ const MovieForm = ({ initialData, onSuccess }) => {
                             >
                                 <option value="single">Phim Lẻ (Single)</option>
                                 <option value="series">Phim Bộ (Series)</option>
-                                <option value="hoathinh">Phim Hoạt Hình (Animation)</option>
                                 <option value="chieurap">Phim Chiếu Rạp (Cinema)</option>
                             </select>
                         </div>
