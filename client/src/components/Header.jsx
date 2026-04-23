@@ -1,7 +1,7 @@
 import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 import logo from '../assets/logo.png';
@@ -146,7 +146,7 @@ const Header = () => {
                     </li>
                     {user && (
                         <li>
-                            <NavLink to="/my-list" className={navLinkClass}>
+                            <NavLink to="/my-list?tab=saved" className={navLinkClass}>
                                 Phim Của Tôi
                             </NavLink>
                         </li>
@@ -198,6 +198,12 @@ const Header = () => {
                                         className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors flex items-center gap-3"
                                     >
                                         <User size={16} /> Trang cá nhân
+                                    </Link>
+                                    <Link 
+                                        to="/my-list?tab=history"
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors flex items-center gap-3"
+                                    >
+                                        <HistoryIcon size={16} /> Lịch sử xem
                                     </Link>
                                     {user.role === 'admin' && (
                                         <Link 

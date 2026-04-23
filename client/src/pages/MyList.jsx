@@ -1,20 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
 import MovieCard from '../components/MovieCard';
 import { 
     Heart, 
-    History, 
+    History as HistoryIcon, 
     Clock, 
     Loader2, 
     Film, 
     ChevronRight,
     Play
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const MyList = () => {
     const { user } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'history'; // Default to history
+    
     const [favorites, setFavorites] = useState([]);
     
     // History Pagination State
@@ -24,9 +27,12 @@ const MyList = () => {
     const [historyLoading, setHistoryLoading] = useState(false);
     
     const [initialLoading, setInitialLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('favorites'); // 'favorites' or 'history'
     
     const observerTarget = useRef(null);
+
+    const handleTabChange = (tabName) => {
+        setSearchParams({ tab: tabName });
+    };
 
     // Initial Fetch (Favorites only)
     useEffect(() => {
@@ -122,25 +128,25 @@ const MyList = () => {
 
                 <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
                     <button 
-                        onClick={() => setActiveTab('favorites')}
+                        onClick={() => handleTabChange('saved')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                            activeTab === 'favorites' 
+                            activeTab === 'saved' 
                             ? 'bg-primary text-white shadow-lg shadow-primary/20' 
                             : 'text-gray-400 hover:text-white'
                         }`}
                     >
-                        <Heart size={16} fill={activeTab === 'favorites' ? 'currentColor' : 'none'} />
+                        <Heart size={16} fill={activeTab === 'saved' ? 'currentColor' : 'none'} />
                         Phim đã lưu
                     </button>
                     <button 
-                        onClick={() => setActiveTab('history')}
+                        onClick={() => handleTabChange('history')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             activeTab === 'history' 
                             ? 'bg-primary text-white shadow-lg shadow-primary/20' 
                             : 'text-gray-400 hover:text-white'
                         }`}
                     >
-                        <History size={16} />
+                        <HistoryIcon size={16} />
                         Lịch sử xem
                     </button>
                 </div>
@@ -148,7 +154,7 @@ const MyList = () => {
 
             {/* Tab Content */}
             <main>
-                {activeTab === 'favorites' ? (
+                {activeTab === 'saved' ? (
                     <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {favorites.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
@@ -189,7 +195,7 @@ const MyList = () => {
                             </>
                         ) : (
                             <EmptyState 
-                                icon={<History size={48} />} 
+                                icon={<HistoryIcon size={48} />} 
                                 title="Chưa có lịch sử" 
                                 description="Bạn chưa xem bộ phim nào gần đây." 
                             />
