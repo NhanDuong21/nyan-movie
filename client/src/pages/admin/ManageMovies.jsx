@@ -197,19 +197,21 @@ const ManageMovies = () => {
                             </select>
                             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                         </div>
-                    </div>
-                    <div className="relative group/limit w-full md:w-32">
-                        <select 
-                            className="w-full bg-[#111] border border-gray-800 rounded-xl px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
-                            value={limit}
-                            onChange={(e) => setLimit(parseInt(e.target.value))}
-                        >
-                            <option value={5}>5 / trang</option>
-                            <option value={10}>10 / trang</option>
-                            <option value={20}>20 / trang</option>
-                            <option value={50}>50 / trang</option>
-                        </select>
-                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+
+                        {/* Items per page limit */}
+                        <div className="relative group/limit w-full md:w-32">
+                            <select 
+                                className="w-full bg-[#111] border border-gray-800 rounded-xl px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
+                                value={limit}
+                                onChange={(e) => setLimit(parseInt(e.target.value))}
+                            >
+                                <option value={5}>5 / trang</option>
+                                <option value={10}>10 / trang</option>
+                                <option value={20}>20 / trang</option>
+                                <option value={50}>50 / trang</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                        </div>
                     </div>
                 </div>
 
