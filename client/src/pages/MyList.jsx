@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
 import MovieCard from '../components/MovieCard';
@@ -16,33 +16,90 @@ import { Link } from 'react-router-dom';
 const MyList = () => {
     const { user } = useAuth();
     const [favorites, setFavorites] = useState([]);
+    
+    // History Pagination State
     const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [historyPage, setHistoryPage] = useState(1);
+    const [hasMoreHistory, setHasMoreHistory] = useState(true);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    
+    const [initialLoading, setInitialLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('favorites'); // 'favorites' or 'history'
+    
+    const observerTarget = useRef(null);
 
+    // Initial Fetch (Favorites only)
     useEffect(() => {
         if (user) {
-            fetchData();
+            fetchFavorites();
         }
     }, [user]);
 
-    const fetchData = async () => {
+    // Fetch History when page changes
+    useEffect(() => {
+        if (user && activeTab === 'history' && hasMoreHistory) {
+            fetchHistory();
+        }
+    }, [user, activeTab, historyPage]);
+
+    const fetchFavorites = async () => {
         try {
-            setLoading(true);
-            const [favRes, histRes] = await Promise.all([
-                axiosClient.get('/interactions/favorite'),
-                axiosClient.get('/interactions/history')
-            ]);
-            setFavorites(favRes.data.data);
-            setHistory(histRes.data.data);
+            setInitialLoading(true);
+            const res = await axiosClient.get('/interactions/favorite');
+            setFavorites(res.data.data);
         } catch (err) {
-            console.error('Failed to fetch user data', err);
+            console.error('Failed to fetch favorites', err);
         } finally {
-            setLoading(false);
+            setInitialLoading(false);
         }
     };
 
-    if (loading) return (
+    const fetchHistory = async () => {
+        if (historyLoading) return;
+        
+        try {
+            setHistoryLoading(true);
+            const res = await axiosClient.get(`/interactions/history?page=${historyPage}&limit=9`);
+            
+            const newData = res.data.data;
+            if (historyPage === 1) {
+                setHistory(newData);
+            } else {
+                setHistory(prev => [...prev, ...newData]);
+            }
+            
+            setHasMoreHistory(res.data.hasMore);
+        } catch (err) {
+            console.error('Failed to fetch history', err);
+        } finally {
+            setHistoryLoading(false);
+            setInitialLoading(false);
+        }
+    };
+
+    // Intersection Observer for Infinite Scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting && !historyLoading && hasMoreHistory && activeTab === 'history') {
+                    setHistoryPage(prev => prev + 1);
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [historyLoading, hasMoreHistory, activeTab]);
+
+    if (initialLoading && history.length === 0 && favorites.length === 0) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
             <Loader2 className="animate-spin text-primary" size={64} />
             <p className="text-gray-500 font-black tracking-[0.2em] uppercase text-xs">Đang tải danh sách...</p>
@@ -51,7 +108,7 @@ const MyList = () => {
 
     return (
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 space-y-12 animate-in fade-in duration-700">
-            {/* Page Header */}
+            {/* Page Header omitted for brevity, same as before */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-8">
                 <div className="flex items-center gap-6">
                     <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-2xl shadow-primary/10 border border-primary/20">
@@ -110,11 +167,26 @@ const MyList = () => {
                 ) : (
                     <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {history.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {history.map(item => (
-                                    <HistoryCard key={item._id} item={item} />
-                                ))}
-                            </div>
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {history.map(item => (
+                                        <HistoryCard key={item._id} item={item} />
+                                    ))}
+                                </div>
+                                
+                                {/* Observer for Infinite Scroll */}
+                                <div ref={observerTarget} className="h-20 w-full flex items-center justify-center">
+                                    {historyLoading && (
+                                        <div className="flex items-center gap-3 text-gray-500">
+                                            <Loader2 className="animate-spin" size={24} />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Đang tải thêm...</span>
+                                        </div>
+                                    )}
+                                    {!hasMoreHistory && history.length > 0 && (
+                                        <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mt-8">Đã tải hết lịch sử của bạn</p>
+                                    )}
+                                </div>
+                            </>
                         ) : (
                             <EmptyState 
                                 icon={<History size={48} />} 

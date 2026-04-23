@@ -75,16 +75,31 @@ exports.addToHistory = async (req, res, next) => {
 // @access  Private
 exports.getHistory = async (req, res, next) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 9;
+        const skip = (page - 1) * limit;
+
+        const totalItems = await Interaction.countDocuments({
+            user: req.user.id,
+            type: 'history'
+        });
+
         const history = await Interaction.find({
             user: req.user.id,
             type: 'history'
         })
         .populate('movie')
         .populate('episode')
-        .sort({ updatedAt: -1 });
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit);
 
         res.status(200).json({
             success: true,
+            page,
+            limit,
+            totalItems,
+            hasMore: totalItems > skip + history.length,
             count: history.length,
             data: history
         });
