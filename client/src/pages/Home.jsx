@@ -11,7 +11,6 @@ const Home = () => {
     const [latestMovies, setLatestMovies] = useState([]);
     const [seriesMovies, setSeriesMovies] = useState([]);
     const [singleMovies, setSingleMovies] = useState([]);
-    const [animationMovies, setAnimationMovies] = useState([]);
     const [cinemaMovies, setCinemaMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,18 +19,16 @@ const Home = () => {
         setLoading(true);
         setError(null);
         try {
-            const [latestRes, seriesRes, singleRes, animationRes, cinemaRes] = await Promise.all([
+            const [latestRes, seriesRes, singleRes, cinemaRes] = await Promise.all([
                 axiosClient.get('/movies?recent=14&limit=20'),
                 axiosClient.get('/movies?type=series&limit=20'),
                 axiosClient.get('/movies?type=single&limit=8'),
-                axiosClient.get('/movies?type=hoathinh&limit=20'),
                 axiosClient.get('/movies?type=chieurap&limit=8')
             ]);
             
             setLatestMovies(latestRes.data.data || []);
             setSeriesMovies(seriesRes.data.data || []);
             setSingleMovies(singleRes.data.data || []);
-            setAnimationMovies(animationRes.data.data || []);
             setCinemaMovies(cinemaRes.data.data || []);
         } catch (err) {
             console.error('Failed to fetch home data', err);
@@ -289,13 +286,6 @@ const Home = () => {
                     layout="large-grid"
                 />
 
-                <MovieSection 
-                    title="PHIM HOẠT HÌNH" 
-                    subtitle="ANIMATION & ANIME" 
-                    movies={animationMovies} 
-                    viewAllLink="/browse?type=hoathinh" 
-                    layout="carousel"
-                />
 
                 <MovieSection 
                     title="PHIM CHIẾU RẠP" 
