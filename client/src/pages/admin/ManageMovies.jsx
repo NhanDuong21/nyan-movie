@@ -35,48 +35,72 @@ const ManageMovies = () => {
     const [movieToDelete, setMovieToDelete] = useState(null);
     const [filterType, setFilterType] = useState('all');
     const [filterStatus, setFilterStatus] = useState('all');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
-    const fetchMovies = async () => {
-        setLoading(true);
-        try {
-            const res = await axiosClient.get('/admin/movies', {
-                params: {
+    // Master Fetcher
+    useEffect(() => {
+        const controller = new AbortController();
+        let isMounted = true;
+
+        const fetchMovies = async () => {
+            try {
+                setLoading(true);
+                const params = {
                     page,
                     limit,
-                    search: searchQuery,
-                    type: filterType,
-                    status: filterStatus,
+                    search: debouncedSearch || undefined,
+                    type: filterType === 'all' ? undefined : filterType,
+                    status: filterStatus === 'all' ? undefined : filterStatus,
                     sort: '-createdAt'
-                }
-            });
-            setMovies(res.data.data);
-            setTotal(res.data.pagination.total);
-            setTotalPages(res.data.pagination.pages);
-        } catch (err) {
-            console.error('Failed to fetch movies', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+                };
 
-    useEffect(() => {
+                const res = await axiosClient.get('/admin/movies', { 
+                    params,
+                    signal: controller.signal
+                });
+
+                if (isMounted) {
+                    setMovies(res.data.data);
+                    setTotal(res.data.pagination.total);
+                    setTotalPages(res.data.pagination.pages);
+                }
+            } catch (err) {
+                if (isMounted && err.name !== 'CanceledError' && err.name !== 'AbortError') {
+                    console.error('Failed to fetch movies', err);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
         fetchMovies();
-    }, [page, limit, filterType, filterStatus]);
+
+        return () => {
+            isMounted = false;
+            controller.abort();
+        };
+    }, [page, limit, filterType, filterStatus, debouncedSearch]);
+
+    // Search with debounce logic ONLY
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery.trim());
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setPage(1);
-    }, [filterType, filterStatus]);
+    }, [filterType, filterStatus, debouncedSearch, limit]);
 
-    // Search with debounce
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (page !== 1) setPage(1);
-            else fetchMovies();
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchQuery]);
+    // Helper for manual refresh (e.g., after edit/delete)
+    const refreshData = () => {
+        setPage(1); // Triggers re-fetch due to dependency
+    };
 
     const handleDelete = (id) => {
         setMovieToDelete(id);
@@ -87,7 +111,7 @@ const ManageMovies = () => {
         if (!movieToDelete) return;
         try {
             await axiosClient.delete(`/movies/${movieToDelete}`);
-            fetchMovies();
+            setPage(1); // Force re-fetch
         } catch (err) {
             console.error('Lỗi khi xóa phim', err);
         } finally {
@@ -143,7 +167,7 @@ const ManageMovies = () => {
                 </header>
                 <MovieForm 
                     initialData={editingMovie} 
-                    onSuccess={() => { setShowForm(false); setEditingMovie(null); fetchMovies(); }} 
+                    onSuccess={() => { setShowForm(false); setEditingMovie(null); refreshData(); }} 
                 />
             </div>
         );
