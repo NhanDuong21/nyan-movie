@@ -68,12 +68,12 @@ const WatchMovie = () => {
                 try {
                     await axiosClient.post(`/movies/${movie._id}/episodes/${currentEpisode._id}/view`);
                     localStorage.setItem(viewKey, now.toString());
-                    console.log('View counted successfully');
+                    localStorage.setItem(`view_${movieSlug}_${episodeId}`, Date.now().toString());
                 } catch (err) {
-                    console.error('Failed to increment view', err);
+                    
                 }
             } else {
-                console.log('View tracking skipped: Cooldown active');
+                
             }
 
             setHasCountedView(true);
