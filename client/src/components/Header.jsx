@@ -202,7 +202,7 @@ const Header = () => {
                                 <div className="w-10 h-10 rounded-full border-2 border-white/10 cursor-pointer hover:border-primary transition-all overflow-hidden bg-dark-lighter flex items-center justify-center">
                                     {user.avatar ? (
                                         <img 
-                                            src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`} 
+                                            src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${user.avatar}`} 
                                             alt="Profile" 
                                             className="w-full h-full object-cover" 
                                         />

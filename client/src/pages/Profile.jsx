@@ -180,7 +180,7 @@ const Profile = () => {
                                             <Loader2 size={24} className="animate-spin text-primary" />
                                         ) : avatar ? (
                                             <img 
-                                                src={avatar.startsWith('http') ? avatar : `http://localhost:5000${avatar}`} 
+                                                src={avatar.startsWith('http') ? avatar : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${avatar}`} 
                                                 alt="Avatar" 
                                                 className="w-full h-full object-cover" 
                                             />

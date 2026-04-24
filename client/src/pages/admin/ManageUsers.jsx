@@ -311,7 +311,7 @@ const ManageUsers = () => {
                                             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-dark group-hover:border-primary transition-all shadow-lg flex items-center justify-center shrink-0">
                                                 {user.avatar ? (
                                                     <img 
-                                                        src={user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`} 
+                                                        src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${user.avatar}`} 
                                                         className="w-full h-full object-cover" 
                                                         alt={user.username} 
                                                     />

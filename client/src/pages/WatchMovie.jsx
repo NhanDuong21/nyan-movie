@@ -129,7 +129,7 @@ const WatchMovie = () => {
                                 controls
                                 onTimeUpdate={handleTimeUpdate}
                                 className="absolute inset-0 w-full h-full object-contain"
-                                poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `http://localhost:5000${movie.backdrop}`}
+                                poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
                             >
                                 Your browser does not support the video tag.
                             </video>

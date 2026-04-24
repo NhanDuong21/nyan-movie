@@ -215,7 +215,7 @@ const HistoryCard = ({ item }) => {
         <div className="group relative flex gap-4 p-4 rounded-3xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-primary/30 transition-all duration-300">
             <div className="w-24 aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 shrink-0">
                 <img 
-                    src={movie.poster?.startsWith('http') ? movie.poster : `http://localhost:5000${movie.poster}`} 
+                    src={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
                     alt={movie.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />

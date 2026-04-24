@@ -48,7 +48,7 @@ const MovieCard = ({ movie }) => {
     if (!movie) return null;
 
     const posterUrl = movie.poster 
-        ? (movie.poster.startsWith('http') ? movie.poster : `http://localhost:5000${movie.poster}`)
+        ? (movie.poster.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`)
         : 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=400&fit=crop';
 
     return (

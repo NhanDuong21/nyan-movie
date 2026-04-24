@@ -279,7 +279,7 @@ const ManageMovies = () => {
                                                     <div className="w-12 h-16 rounded-lg overflow-hidden bg-white/5 border border-white/5 flex-shrink-0">
                                                         {movie.poster ? (
                                                             <img 
-                                                                src={movie.poster.startsWith('http') ? movie.poster : `http://localhost:5000${movie.poster}`} 
+                                                                src={movie.poster.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
                                                                 alt={movie.title} 
                                                                 className="w-full h-full object-cover"
                                                             />

@@ -58,7 +58,7 @@ const NewsDetail = () => {
             {/* Thumbnail */}
             <div className="relative aspect-video rounded-[40px] overflow-hidden shadow-2xl ring-1 ring-white/5">
                 <img 
-                    src={news.thumbnail.startsWith('http') ? news.thumbnail : `http://localhost:5000${news.thumbnail}`} 
+                    src={news.thumbnail.startsWith('http') ? news.thumbnail : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${news.thumbnail}`} 
                     alt={news.title} 
                     className="w-full h-full object-cover"
                 />

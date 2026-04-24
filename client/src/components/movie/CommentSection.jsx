@@ -207,7 +207,7 @@ const CommentSection = ({ movieId }) => {
     const getAvatarUrl = (avatar) => {
         if (!avatar) return null;
         if (avatar.startsWith('http')) return avatar;
-        return `http://localhost:5000${avatar}`;
+        return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${avatar}`;
     };
 
     // Permission check: mirrors backend hierarchical rules

@@ -51,7 +51,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
             // Full Cloudinary or external URL
             if (imageState.startsWith('http')) return imageState;
             // Legacy local path
-            return `http://localhost:5000${imageState.startsWith('/') ? '' : '/'}${imageState}`;
+            return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${imageState.startsWith('/') ? '' : '/'}${imageState}`;
         }
         return null;
     };
