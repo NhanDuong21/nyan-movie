@@ -15,28 +15,28 @@ exports.getDashboardStats = async (req, res) => {
             totalUsers,
             totalSingle,
             totalSeries,
-            totalHoathinh,
             totalChieurap,
             totalFavorites,
             latestMovies,
             topViewedSingle,
             topViewedSeries,
+            topViewedChieurap,
             topFavorited
         ] = await Promise.all([
             User.countDocuments(),
             Movie.countDocuments({ type: 'single', ...queryFilter }),
             Movie.countDocuments({ type: 'series', ...queryFilter }),
-            Movie.countDocuments({ type: 'hoathinh', ...queryFilter }),
             Movie.countDocuments({ type: 'chieurap', ...queryFilter }),
             Interaction.countDocuments({ type: 'favorite' }),
             Movie.find(queryFilter).sort({ createdAt: -1 }).limit(5).select('title views type createdAt'),
             Movie.find({ type: 'single', ...queryFilter }).sort({ views: -1 }).limit(5).select('title views'),
             Movie.find({ type: 'series', ...queryFilter }).sort({ views: -1 }).limit(5).select('title views'),
+            Movie.find({ type: 'chieurap', ...queryFilter }).sort({ views: -1 }).limit(5).select('title views'),
             Interaction.aggregate([
                 { $match: { type: 'favorite' } },
                 { $group: { _id: '$movie', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
-                { $limit: 10 }, // Get more to account for potential hidden filters
+                { $limit: 10 }, 
                 {
                     $lookup: {
                         from: 'movies',
@@ -65,13 +65,13 @@ exports.getDashboardStats = async (req, res) => {
                     totalUsers,
                     totalSingle,
                     totalSeries,
-                    totalHoathinh,
                     totalChieurap,
                     totalFavorites
                 },
                 latestMovies,
                 topViewedSingle,
                 topViewedSeries,
+                topViewedChieurap,
                 topFavorited
             }
         });

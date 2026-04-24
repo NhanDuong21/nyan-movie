@@ -47,7 +47,7 @@ const TopTable = ({ title, data, icon: Icon, metricLabel, metricKey }) => (
                                     {index + 1}
                                 </span>
                                 <span className="text-sm font-bold text-gray-300 group-hover:text-white truncate max-w-[150px]">
-                                    {item.title}
+                                    {item.title || 'Chưa cập nhật'}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ const Dashboard = () => {
             </header>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 text-white text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 text-white text-xs">
                 <StatCard 
                     title="Người dùng" 
                     value={stats.counts.totalUsers} 
@@ -142,13 +142,6 @@ const Dashboard = () => {
                     subtitle="TV Series"
                 />
                 <StatCard 
-                    title="Hoạt Hình" 
-                    value={stats.counts.totalHoathinh} 
-                    icon={PlaySquare} 
-                    color="bg-orange-500"
-                    subtitle="Animation"
-                />
-                <StatCard 
                     title="Chiếu Rạp" 
                     value={stats.counts.totalChieurap} 
                     icon={Clapperboard} 
@@ -165,39 +158,42 @@ const Dashboard = () => {
             </div>
 
             {/* Content Lists */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TopTable 
-                        title="Phim Mới Nhất" 
-                        data={stats.latestMovies} 
-                        icon={Clock} 
-                        metricLabel="NGÀY ĐĂNG" 
-                        metricKey="createdAt"
-                    />
-                    <TopTable 
-                        title="Yêu Thích Nhất" 
-                        data={stats.topFavorited} 
-                        icon={TrendingUp} 
-                        metricLabel="LƯỢT THÍCH" 
-                        metricKey="count"
-                    />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TopTable 
-                        title="Top Phim Lẻ" 
-                        data={stats.topViewedSingle} 
-                        icon={Eye} 
-                        metricLabel="LƯỢT XEM" 
-                        metricKey="views"
-                    />
-                    <TopTable 
-                        title="Top Phim Bộ" 
-                        data={stats.topViewedSeries} 
-                        icon={Activity} 
-                        metricLabel="LƯỢT XEM" 
-                        metricKey="views"
-                    />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+                <TopTable 
+                    title="Phim Mới Nhất" 
+                    data={stats.latestMovies} 
+                    icon={Clock} 
+                    metricLabel="NGÀY ĐĂNG" 
+                    metricKey="createdAt"
+                />
+                <TopTable 
+                    title="Yêu Thích Nhất" 
+                    data={stats.topFavorited} 
+                    icon={TrendingUp} 
+                    metricLabel="LƯỢT THÍCH" 
+                    metricKey="count"
+                />
+                <TopTable 
+                    title="Top Phim Lẻ" 
+                    data={stats.topViewedSingle} 
+                    icon={Eye} 
+                    metricLabel="LƯỢT XEM" 
+                    metricKey="views"
+                />
+                <TopTable 
+                    title="Top Phim Bộ" 
+                    data={stats.topViewedSeries} 
+                    icon={Activity} 
+                    metricLabel="LƯỢT XEM" 
+                    metricKey="views"
+                />
+                <TopTable 
+                    title="Top Phim Chiếu Rạp" 
+                    data={stats.topViewedChieurap} 
+                    icon={PlaySquare} 
+                    metricLabel="LƯỢT XEM" 
+                    metricKey="views"
+                />
             </div>
         </div>
     );
