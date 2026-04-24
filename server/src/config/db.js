@@ -5,10 +5,11 @@ const connectDB = async () => {
         const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
 
-        // Drop old text index to apply new language_override logic
         try {
-            await mongoose.connection.collection('movies').dropIndex('title_text_slug_1');
-            console.log('Old movie text index dropped successfully');
+            const indexes = await mongoose.connection.collection('movies').indexInformation();
+            if (Object.keys(indexes).includes('title_text')) {
+                await mongoose.connection.collection('movies').dropIndex('title_text');
+            }
         } catch (err) {
             // Index might not exist, ignore
         }
