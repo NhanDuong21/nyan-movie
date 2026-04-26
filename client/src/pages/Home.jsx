@@ -220,7 +220,11 @@ const Home = () => {
                             <p className="text-gray-300 text-[10px] mt-1 font-black tracking-widest uppercase opacity-90">{subtitle}</p>
                         </div>
                     </header>
-                    <Link to={viewAllLink} className="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] group">
+                    <Link 
+                        to={viewAllLink} 
+                        className="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] group"
+                        aria-label={`Xem tất cả phim trong mục ${title}`}
+                    >
                         Xem tất cả <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
@@ -235,7 +239,7 @@ const Home = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
-            <div className="relative w-full aspect-video md:h-[800px] overflow-hidden -mt-24">
+            <div className="relative w-full aspect-video md:h-[80vh] lg:h-screen overflow-hidden bg-gray-900 -mt-24">
                 {isMobile ? (
                     /* Mobile Fallback Image - Optimized for LCP */
                     <img 
@@ -253,6 +257,8 @@ const Home = () => {
                         loop 
                         muted 
                         playsInline
+                        aria-hidden="true"
+                        tabIndex="-1"
                     ></video>
                 )}
                 
