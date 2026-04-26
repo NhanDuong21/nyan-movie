@@ -1,7 +1,7 @@
 import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 import logo from '../assets/logo.png';
@@ -120,10 +120,10 @@ const Header = () => {
                     {/* Mobile: Hamburger Menu Button */}
                     <button 
                         onClick={() => setIsMenuOpen(true)}
-                        className="md:hidden text-gray-400 hover:text-white transition-colors"
+                        className="md:hidden text-gray-400 hover:text-white transition-colors w-11 h-11 flex items-center justify-center active:scale-90"
                         aria-label="Mở menu điều hướng"
                     >
-                        <Menu size={24} />
+                        <Menu size={26} />
                     </button>
 
                     {/* Logo (Centered on mobile via absolute/flex combo) */}
@@ -219,10 +219,10 @@ const Header = () => {
                         {/* Mobile Search Toggle */}
                         <button 
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
-                            className="lg:hidden text-gray-400 hover:text-white p-2 transition-colors relative z-10"
+                            className="lg:hidden text-gray-400 hover:text-white w-12 h-12 flex items-center justify-center transition-colors relative z-10 active:scale-90"
                             aria-label="Mở khung tìm kiếm"
                         >
-                            <Search size={22} />
+                            <Search size={24} />
                         </button>
 
                         {user ? (
@@ -304,10 +304,10 @@ const Header = () => {
                         />
                         <button 
                             type="submit" 
-                            className="absolute right-4 top-1/2 -translate-y-1/2 -mt-1 text-gray-400 hover:text-primary transition-colors"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 -mt-1 text-gray-400 hover:text-primary transition-colors p-2 active:scale-90"
                             aria-label="Xác nhận tìm kiếm"
                         >
-                            <Search size={18} />
+                            <Search size={20} />
                         </button>
                     </form>
                 </div>
@@ -331,10 +331,10 @@ const Header = () => {
                         </div>
                         <button 
                             onClick={() => setIsMenuOpen(false)} 
-                            className="text-gray-400 hover:text-white transition-colors p-1"
+                            className="text-gray-400 hover:text-white transition-colors w-11 h-11 flex items-center justify-center active:scale-95"
                             aria-label="Đóng menu"
                         >
-                            <Menu size={20} />
+                            <X size={24} />
                         </button>
                     </div>
 

@@ -13,8 +13,8 @@ export default {
           card: '#242424',
         },
         primary: {
-          DEFAULT: '#ff2c2c',
-          hover: '#cc0000',
+          DEFAULT: '#e50914',
+          hover: '#c40812',
         }
       }
     },

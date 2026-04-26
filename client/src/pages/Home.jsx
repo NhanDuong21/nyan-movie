@@ -146,7 +146,7 @@ const Home = () => {
                             <>
                                 <button 
                                     onClick={() => scroll('left')}
-                                    className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                                    className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white w-12 h-12 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
                                     aria-label="Xem các phim trước"
                                 >
                                     <ChevronLeft size={24} />
@@ -154,7 +154,7 @@ const Home = () => {
 
                                 <button 
                                     onClick={() => scroll('right')}
-                                    className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white p-2 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
+                                    className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-primary text-white w-12 h-12 rounded-full cursor-pointer hidden md:flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all shadow-xl shadow-black/50 border border-white/10 active:scale-90"
                                     aria-label="Xem thêm phim"
                                 >
                                     <ChevronRight size={24} />
@@ -217,7 +217,7 @@ const Home = () => {
                         <div className="w-1.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(255,50,50,0.5)]"></div>
                         <div>
                             <h2 className="text-3xl font-black text-white uppercase italic tracking-tight leading-none">{title}</h2>
-                            <p className="text-gray-400 text-[10px] mt-1 font-black tracking-widest uppercase opacity-70">{subtitle}</p>
+                            <p className="text-gray-300 text-[10px] mt-1 font-black tracking-widest uppercase opacity-90">{subtitle}</p>
                         </div>
                     </header>
                     <Link to={viewAllLink} className="text-gray-400 hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.2em] group">
@@ -233,25 +233,24 @@ const Home = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
-            <div className="relative w-full h-[500px] lg:h-[800px] overflow-hidden -mt-24">
+            <div className="relative w-full aspect-video md:h-[800px] overflow-hidden -mt-24">
                 {isMobile ? (
                     /* Mobile Fallback Image - Optimized for LCP */
                     <img 
                         src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")} 
                         alt="Cinema Banner" 
-                        className="absolute top-0 left-0 w-full h-full object-cover"
-                        fetchpriority="high"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        fetchPriority="high"
                     />
                 ) : (
                     /* Desktop Video - Only rendered on larger screens to save mobile bandwidth */
                     <video 
-                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                         src="/banner.mp4" 
                         autoPlay 
                         loop 
                         muted 
                         playsInline
-                        poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")}
                     ></video>
                 )}
                 
