@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Play, Star, Calendar, Heart, Film, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 const MovieCard = ({ movie }) => {
     const { user } = useAuth();
@@ -51,11 +52,13 @@ const MovieCard = ({ movie }) => {
         ? (movie.poster.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`)
         : 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=400&fit=crop';
 
+    const optimizedPosterUrl = optimizeCloudinaryUrl(posterUrl, 400);
+
     return (
         <Link to={`/movie/${movie.slug}`} className="group cursor-pointer block">
             <div className="relative aspect-[2/3] rounded-[32px] overflow-hidden mb-4 shadow-2xl shadow-black/50 border border-white/5 transition-all duration-500 group-hover:-translate-y-3 group-hover:border-primary/50 group-hover:shadow-[0_20px_50px_rgba(255,50,50,0.2)]">
                 <img
-                    src={posterUrl}
+                    src={optimizedPosterUrl}
                     alt={movie.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                     loading="lazy"

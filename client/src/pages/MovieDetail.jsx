@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
 import RatingWidget from '../components/movie/RatingWidget';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 const MovieDetail = () => {
     const { slug } = useParams();
@@ -110,7 +111,7 @@ const MovieDetail = () => {
             <section className="relative h-[65vh] md:h-[80vh] group">
                 <div className="absolute inset-0">
                     <img 
-                        src={(movie.backdrop || movie.poster)?.startsWith('http') ? (movie.backdrop || movie.poster) : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop || movie.poster}`} 
+                        src={optimizeCloudinaryUrl((movie.backdrop || movie.poster)?.startsWith('http') ? (movie.backdrop || movie.poster) : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop || movie.poster}`)} 
                         alt={movie.title}
                         className="w-full h-full object-cover"
                     />
@@ -123,7 +124,7 @@ const MovieDetail = () => {
                         {/* Poster Over Backdrop (Mobile: hidden or small) */}
                         <div className="hidden md:block w-64 aspect-[2/3] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl shadow-black/50 shrink-0 transform -translate-y-4">
                             <img 
-                                src={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
+                                src={optimizeCloudinaryUrl(movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`, 400)} 
                                 alt={movie.title}
                                 className="w-full h-full object-cover"
                             />
@@ -303,7 +304,7 @@ const MovieDetail = () => {
                                     >
                                         <div className="w-20 h-28 rounded-xl overflow-hidden shrink-0 border border-white/5">
                                             <img
-                                                src={posterUrl}
+                                                src={optimizeCloudinaryUrl(posterUrl, 200)}
                                                 alt={rec.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                 onError={(e) => { e.target.src = 'https://via.placeholder.com/80x112?text=N/A'; }}
