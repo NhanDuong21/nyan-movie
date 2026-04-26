@@ -235,7 +235,7 @@ const Home = () => {
                 {isMobile ? (
                     /* Mobile Fallback Image - Optimized for LCP */
                     <img 
-                        src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")} 
+                        src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")} 
                         alt="Cinema Banner" 
                         className="absolute top-0 left-0 w-full h-full object-cover"
                         fetchpriority="high"
@@ -249,7 +249,7 @@ const Home = () => {
                         loop 
                         muted 
                         playsInline
-                        poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")}
+                        poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")}
                     ></video>
                 )}
                 
