@@ -60,7 +60,7 @@ const MovieCard = ({ movie }) => {
                 <img
                     src={optimizedPosterUrl}
                     alt={movie.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                     loading="lazy"
                     onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=400&fit=crop'; }}
                 />
