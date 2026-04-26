@@ -291,7 +291,7 @@ const Header = () => {
                         <input
                             type="text"
                             placeholder="Tìm kiếm phim..."
-                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-sm focus:outline-none focus:border-primary transition-all shadow-xl"
+                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-[16px] md:text-sm focus:outline-none focus:border-primary transition-all shadow-xl"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             autoFocus={isSearchOpen}
