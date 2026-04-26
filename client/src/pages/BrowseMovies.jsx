@@ -96,7 +96,7 @@ const BrowseMovies = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
             <Loader2 className="animate-spin text-primary" size={64} />
-            <p className="text-gray-500 font-black tracking-[0.2em] uppercase text-xs">Đang tìm kiếm phim...</p>
+            <p className="text-gray-400 font-black tracking-[0.2em] uppercase text-xs">Đang tìm kiếm phim...</p>
         </div>
     );
 
@@ -110,7 +110,7 @@ const BrowseMovies = () => {
                     </div>
                     <div>
                         <h1 className="text-4xl font-black uppercase italic tracking-tighter line-clamp-1">{title}</h1>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
                             Trang {pagination.page} / {pagination.pages || 1} — Tìm thấy {pagination.total} phim
                         </p>
                     </div>
@@ -118,7 +118,7 @@ const BrowseMovies = () => {
             </header>
 
             {/* Results Grid */}
-            <main className="space-y-16">
+            <main className="space-y-16 min-h-[800px]">
                 {movies.length > 0 ? (
                     <>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -134,6 +134,7 @@ const BrowseMovies = () => {
                                     onClick={() => handlePageChange(pagination.page - 1)}
                                     disabled={pagination.page === 1}
                                     className="p-3 rounded-xl bg-white/5 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary hover:text-white transition-all active:scale-90"
+                                    aria-label="Trang trước"
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
@@ -147,10 +148,11 @@ const BrowseMovies = () => {
                                                 <button
                                                     key={p}
                                                     onClick={() => handlePageChange(p)}
+                                                    aria-label={`Trang ${p}`}
                                                     className={`w-10 h-10 rounded-xl font-bold transition-all text-sm ${
                                                         pagination.page === p 
                                                             ? 'bg-primary text-white shadow-lg shadow-primary/40' 
-                                                            : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                                                     }`}
                                                 >
                                                     {p}
@@ -168,6 +170,7 @@ const BrowseMovies = () => {
                                     onClick={() => handlePageChange(pagination.page + 1)}
                                     disabled={pagination.page === pagination.pages}
                                     className="p-3 rounded-xl bg-white/5 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary hover:text-white transition-all active:scale-90"
+                                    aria-label="Trang sau"
                                 >
                                     <ChevronRight size={20} />
                                 </button>

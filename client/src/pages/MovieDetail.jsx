@@ -210,7 +210,7 @@ const MovieDetail = () => {
                             <div className="w-1 h-6 bg-primary rounded-full"></div>
                             <h2 className="text-xl font-black uppercase italic tracking-widest">Nội dung phim</h2>
                         </header>
-                        <p className="text-gray-400 leading-relaxed text-lg font-medium">
+                        <p className="text-gray-300 leading-relaxed text-lg font-medium">
                             {movie.description}
                         </p>
 
@@ -220,20 +220,20 @@ const MovieDetail = () => {
                                 <>
                                     {movie.director && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Đạo diễn</span>
-                                            <span className="text-gray-300">{movie.director}</span>
+                                            <span className="text-gray-300 block pb-1 border-b border-white/5 mb-1">Đạo diễn</span>
+                                            <span className="text-white">{movie.director}</span>
                                         </div>
                                     )}
                                     {movie.actors && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Diễn viên</span>
-                                            <span className="text-gray-300">{movie.actors}</span>
+                                            <span className="text-gray-300 block pb-1 border-b border-white/5 mb-1">Diễn viên</span>
+                                            <span className="text-white">{movie.actors}</span>
                                         </div>
                                     )}
                                     {movie.language && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Ngôn ngữ</span>
-                                            <span className="text-gray-300">{movie.language}</span>
+                                            <span className="text-gray-300 block pb-1 border-b border-white/5 mb-1">Ngôn ngữ</span>
+                                            <span className="text-white">{movie.language}</span>
                                         </div>
                                     )}
                                 </>
@@ -285,7 +285,7 @@ const MovieDetail = () => {
                 </div>
 
                 {/* Right Side: Recommendations */}
-                <div className="space-y-8">
+                <div className="space-y-8 min-h-[400px]">
                     <header className="flex items-center gap-3">
                         <div className="w-1 h-6 bg-primary rounded-full"></div>
                         <h2 className="text-xl font-black uppercase italic tracking-widest">Đề xuất cho bạn</h2>

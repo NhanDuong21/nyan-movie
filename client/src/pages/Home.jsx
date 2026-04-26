@@ -60,7 +60,7 @@ const Home = () => {
                     <div className="w-10 h-10 bg-primary/10 rounded-full blur-xl"></div>
                 </div>
             </div>
-            <p className="text-gray-400 font-black tracking-[0.2em] uppercase text-[10px] animate-pulse">Đang tải trải nghiệm...</p>
+            <p className="text-gray-300 font-black tracking-[0.2em] uppercase text-[10px] animate-pulse">Đang tải trải nghiệm...</p>
         </div>
     );
 
@@ -225,7 +225,9 @@ const Home = () => {
                     </Link>
                 </div>
 
-                {renderContent()}
+                <div className="md:min-h-[440px]">
+                    {renderContent()}
+                </div>
             </section>
         );
     };
