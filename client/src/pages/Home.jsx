@@ -15,6 +15,13 @@ const Home = () => {
     const [cinemaMovies, setCinemaMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -225,23 +232,26 @@ const Home = () => {
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
             <div className="relative w-full h-[500px] lg:h-[800px] overflow-hidden -mt-24">
-                {/* Mobile Fallback Image */}
-                <img 
-                    src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")} 
-                    alt="Cinema Banner" 
-                    className="block md:hidden absolute top-0 left-0 w-full h-full object-cover"
-                />
-
-                {/* Desktop Video */}
-                <video 
-                    className="hidden md:block absolute top-0 left-0 w-full h-full object-cover"
-                    src="/banner.mp4" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                    poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")}
-                ></video>
+                {isMobile ? (
+                    /* Mobile Fallback Image - Optimized for LCP */
+                    <img 
+                        src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")} 
+                        alt="Cinema Banner" 
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        fetchpriority="high"
+                    />
+                ) : (
+                    /* Desktop Video - Only rendered on larger screens to save mobile bandwidth */
+                    <video 
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        src="/banner.mp4" 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")}
+                    ></video>
+                )}
                 
                 {/* Dark overlay for text readability */}
                 <div className="absolute inset-0 bg-black/40 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
