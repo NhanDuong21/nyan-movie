@@ -38,6 +38,7 @@ const AdminLayout = () => {
                 <button 
                     onClick={() => setIsSidebarOpen(true)}
                     className="p-2 text-gray-400 hover:text-white transition-colors"
+                    aria-label="Mở menu quản trị"
                 >
                     <Menu size={24} />
                 </button>

@@ -82,6 +82,8 @@ const MovieCard = ({ movie }) => {
 
                 <div 
                     onClick={handleToggleFavorite}
+                    role="button"
+                    aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào danh sách yêu thích"}
                     className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300 z-10 ${
                         isFavorite ? 'text-primary' : 'text-white/50 hover:text-white'
                     }`}
@@ -106,7 +108,7 @@ const MovieCard = ({ movie }) => {
                     {movie.title}
                 </h3>
                 <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase">
-                    <span className="text-gray-500 truncate max-w-[75%]">
+                    <span className="text-gray-400 truncate max-w-[75%]">
                         {movie.genres && Array.isArray(movie.genres) 
                             ? movie.genres.map(g => g.name || g).slice(0, 2).join(' • ')
                             : (movie.type === 'series' ? 'Phim Bộ' : 'Phim Lẻ')}

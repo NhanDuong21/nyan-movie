@@ -86,7 +86,8 @@ const ConfirmModal = ({
 
                 <button 
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                    aria-label="Đóng hộp thoại"
                 >
                     <X size={20} />
                 </button>

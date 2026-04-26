@@ -94,7 +94,7 @@ const MovieDetail = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <Loader2 className="animate-spin text-primary" size={48} />
-            <p className="text-gray-500 font-medium tracking-widest uppercase text-xs">Đang tải phim...</p>
+            <p className="text-gray-400 font-medium tracking-widest uppercase text-xs">Đang tải phim...</p>
         </div>
     );
 
@@ -167,7 +167,7 @@ const MovieDetail = () => {
                             ) : (
                                 <button 
                                     disabled
-                                    className="bg-gray-700 text-gray-500 px-10 py-4 rounded-2xl font-black flex items-center gap-3 cursor-not-allowed text-lg"
+                                    className="bg-gray-800 text-gray-400 px-10 py-4 rounded-2xl font-black flex items-center gap-3 cursor-not-allowed text-lg"
                                 >
                                     <Play size={24} fill="currentColor" />
                                     CHƯA CÓ TẬP
@@ -176,6 +176,7 @@ const MovieDetail = () => {
                             <button 
                                 onClick={handleToggleFavorite}
                                 disabled={favLoading}
+                                aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào danh sách yêu thích"}
                                 className={`w-14 h-14 rounded-2xl backdrop-blur-md flex items-center justify-center border transition-all active:scale-90 shadow-lg ${
                                     isFavorite 
                                     ? 'bg-primary/20 border-primary/30 text-primary shadow-primary/10' 
@@ -188,7 +189,10 @@ const MovieDetail = () => {
                                     <Heart size={24} fill={isFavorite ? "currentColor" : "none"} className={isFavorite ? "animate-pulse" : ""} />
                                 )}
                             </button>
-                            <button className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90 shadow-lg">
+                            <button 
+                                className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90 shadow-lg"
+                                aria-label="Chia sẻ phim"
+                            >
                                 <Share2 size={24} />
                             </button>
                         </div>
@@ -216,19 +220,19 @@ const MovieDetail = () => {
                                 <>
                                     {movie.director && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-600 block">Đạo diễn</span>
+                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Đạo diễn</span>
                                             <span className="text-gray-300">{movie.director}</span>
                                         </div>
                                     )}
                                     {movie.actors && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-600 block">Diễn viên</span>
+                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Diễn viên</span>
                                             <span className="text-gray-300">{movie.actors}</span>
                                         </div>
                                     )}
                                     {movie.language && (
                                         <div className="space-y-1">
-                                            <span className="text-gray-600 block">Ngôn ngữ</span>
+                                            <span className="text-gray-400 block pb-1 border-b border-white/5 mb-1">Ngôn ngữ</span>
                                             <span className="text-gray-300">{movie.language}</span>
                                         </div>
                                     )}
@@ -242,7 +246,7 @@ const MovieDetail = () => {
                                         <div className="w-1 h-6 bg-primary rounded-full"></div>
                                         <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
                                     </div>
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{movie.episodes?.length} TẬP</span>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{movie.episodes?.length} TẬP</span>
                                 </header>
                                 
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -266,7 +270,7 @@ const MovieDetail = () => {
                                             </Link>
                                         ))
                                     ) : (
-                                        <div className="col-span-full py-10 bg-white/2 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3 text-gray-500">
+                                        <div className="col-span-full py-10 bg-white/2 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3 text-gray-400">
                                             <Tv size={32} opacity={0.2} />
                                             <p className="text-xs font-bold uppercase tracking-widest">Đang cập nhật tập mới...</p>
                                         </div>
@@ -314,10 +318,10 @@ const MovieDetail = () => {
                                             <h4 className="font-bold uppercase tracking-tight line-clamp-2 group-hover:text-primary transition-colors text-sm leading-tight">{rec.title}</h4>
                                             <div className="flex flex-wrap gap-1">
                                                 {(rec.genres || []).slice(0, 2).map(g => (
-                                                    <span key={g._id} className="text-[9px] font-bold text-gray-600 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
+                                                    <span key={g._id} className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
                                                 ))}
                                             </div>
-                                            <div className="flex items-center gap-3 text-[10px] font-bold text-gray-500 uppercase">
+                                            <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase">
                                                 <span className="flex items-center gap-1">
                                                     <Star size={10} fill="currentColor" className="text-yellow-500" />
                                                     {rec.ratingAverage ? rec.ratingAverage.toFixed(1) : '0.0'}
@@ -332,7 +336,7 @@ const MovieDetail = () => {
                                 );
                             })
                         ) : (
-                            <p className="text-xs text-gray-600 font-bold uppercase tracking-widest text-center py-8">Không có gợi ý phù hợp.</p>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest text-center py-8">Không có gợi ý phù hợp.</p>
                         )}
                     </div>
                 </div>

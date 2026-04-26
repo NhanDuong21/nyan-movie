@@ -230,7 +230,7 @@ const CommentSection = ({ movieId }) => {
                 </div>
                 <div>
                     <h3 className="text-2xl font-black uppercase italic tracking-tight">Bình luận</h3>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{comments.length} Lượt tương tác</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{comments.length} Lượt tương tác</p>
                 </div>
             </header>
 
@@ -242,7 +242,7 @@ const CommentSection = ({ movieId }) => {
                             {user.avatar ? (
                                 <img src={getAvatarUrl(user.avatar)} alt={user.username} className="w-full h-full object-cover" />
                             ) : (
-                                <UserCircle size={24} className="text-gray-500" />
+                                <UserCircle size={24} className="text-gray-400" />
                             )}
                         </div>
                         <div className="flex-1 space-y-4">
@@ -251,7 +251,7 @@ const CommentSection = ({ movieId }) => {
                                 onChange={(e) => setContent(e.target.value)}
                                 onInput={handleTyping}
                                 placeholder="Viết bình luận của bạn..."
-                                className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-primary/50 transition-all min-h-[100px] resize-none"
+                                className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:border-primary/50 transition-all min-h-[100px] resize-none"
                             />
                             <div className="flex justify-end">
                                 <button
@@ -268,12 +268,12 @@ const CommentSection = ({ movieId }) => {
                 </form>
             ) : (
                 <div className="bg-white/2 p-10 rounded-3xl border border-white/5 border-dashed flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-gray-500">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-gray-400">
                         <UserCircle size={32} />
                     </div>
                     <div className="space-y-1">
                         <h4 className="font-black uppercase tracking-widest text-sm italic">Bạn chưa đăng nhập</h4>
-                        <p className="text-xs text-gray-500 font-medium">Vui lòng đăng nhập để tham gia thảo luận cùng cộng đồng.</p>
+                        <p className="text-xs text-gray-400 font-medium">Vui lòng đăng nhập để tham gia thảo luận cùng cộng đồng.</p>
                     </div>
                     <a href="/login" className="mt-2 text-primary font-black uppercase tracking-widest text-[10px] border-b border-primary/20 pb-1 hover:border-primary transition-all">Đăng nhập ngay</a>
                 </div>
@@ -287,8 +287,8 @@ const CommentSection = ({ movieId }) => {
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: '150ms' }}></span>
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                     </div>
-                    <span className="text-[10px] italic text-gray-500 tracking-wide">
-                        <span className="font-semibold text-gray-400 not-italic">{typingUsers.join(', ')}</span> đang nhập bình luận...
+                    <span className="text-[10px] italic text-gray-400 tracking-wide">
+                        <span className="font-semibold text-gray-300 not-italic">{typingUsers.join(', ')}</span> đang nhập bình luận...
                     </span>
                 </div>
             )}
@@ -298,7 +298,7 @@ const CommentSection = ({ movieId }) => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
                         <Loader2 className="animate-spin text-primary" size={32} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-600">Đang tải...</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Đang tải...</span>
                     </div>
                 ) : error ? (
                     <div className="flex items-center justify-center gap-3 py-10 text-red-400 bg-red-400/5 rounded-2xl border border-red-400/10">
@@ -326,7 +326,7 @@ const CommentSection = ({ movieId }) => {
                                             <div className="flex items-center gap-3">
                                                 <h5 className="font-black uppercase text-sm italic tracking-tight">{comment.user?.username || 'Người dùng ẩn danh'}</h5>
                                                 <span className="w-1 h-1 rounded-full bg-white/10"></span>
-                                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{formatDate(comment.createdAt)}</span>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formatDate(comment.createdAt)}</span>
                                                 
                                                 {user && (
                                                     <button 
@@ -348,7 +348,8 @@ const CommentSection = ({ movieId }) => {
                                             {canDelete(comment.user?._id) && (
                                                 <button 
                                                     onClick={() => handleDelete(comment._id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    aria-label="Xóa bình luận"
                                                     title="Xóa bình luận"
                                                 >
                                                     <Trash2 size={16} />
@@ -371,7 +372,7 @@ const CommentSection = ({ movieId }) => {
                                             {replyTargetUser && (
                                                 <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-white/5">
                                                     <CornerDownRight size={11} className="text-primary/50" />
-                                                    <span className="text-[10px] italic text-gray-600">Đang trả lời</span>
+                                                    <span className="text-[10px] italic text-gray-400">Đang trả lời</span>
                                                     <span className="text-[10px] font-bold text-primary/70">@{replyTargetUser}</span>
                                                 </div>
                                             )}
@@ -381,12 +382,12 @@ const CommentSection = ({ movieId }) => {
                                                 onChange={(e) => setReplyContent(e.target.value)}
                                                 onInput={handleTyping}
                                                 placeholder="Viết phản hồi..."
-                                                className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:ring-0 min-h-[60px] resize-none"
+                                                className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 min-h-[60px] resize-none"
                                             />
                                             <div className="flex justify-end items-center gap-3 mt-2 pt-2 border-t border-white/5">
                                                 <button 
                                                     onClick={() => { setReplyingTo(null); setReplyContent(''); setReplyTargetUser(null); }}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white transition-colors"
+                                                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
                                                 >
                                                     Hủy
                                                 </button>
@@ -413,14 +414,14 @@ const CommentSection = ({ movieId }) => {
                                                     {reply.user?.avatar ? (
                                                         <img src={getAvatarUrl(reply.user.avatar)} alt={reply.user.username} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <UserCircle size={18} className="text-gray-500" />
+                                                        <UserCircle size={18} className="text-gray-400" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 space-y-1.5">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <h5 className="font-black uppercase text-[11px] italic tracking-tight text-gray-300">{reply.user?.username || 'Người dùng ẩn danh'}</h5>
-                                                            <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{formatDate(reply.createdAt)}</span>
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{formatDate(reply.createdAt)}</span>
                                                             {user && (
                                                                 <button
                                                                     onClick={() => {
@@ -431,7 +432,7 @@ const CommentSection = ({ movieId }) => {
                                                                     className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded transition-all ${
                                                                         replyingTo === comment._id
                                                                         ? 'text-primary/60'
-                                                                        : 'text-gray-600 hover:text-primary'
+                                                                        : 'text-gray-400 hover:text-primary'
                                                                     }`}
                                                                 >
                                                                     Phản hồi
@@ -441,7 +442,8 @@ const CommentSection = ({ movieId }) => {
                                                         {canDelete(reply.user?._id) && (
                                                             <button 
                                                                 onClick={() => handleDelete(reply._id)}
-                                                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-700 hover:text-red-500 transition-all"
+                                                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                                                                aria-label="Xóa phản hồi"
                                                                 title="Xóa phản hồi"
                                                             >
                                                                 <Trash2 size={14} />
@@ -451,7 +453,7 @@ const CommentSection = ({ movieId }) => {
                                                     {/* Reply-to label from saved data */}
                                                     <div className="flex items-center gap-1.5 text-[10px]">
                                                         <CornerDownRight size={12} className="text-primary/50" />
-                                                        <span className="italic text-gray-600">Đang trả lời</span>
+                                                        <span className="italic text-gray-400">Đang trả lời</span>
                                                         <span className="font-bold text-primary/70">@{reply.replyToUser || comment.user?.username || 'Ẩn danh'}</span>
                                                     </div>
                                                     <div className="bg-white/[0.015] p-3 rounded-xl border border-white/5">
@@ -469,8 +471,8 @@ const CommentSection = ({ movieId }) => {
                     })()
                 ) : (
                     <div className="py-20 text-center space-y-4 bg-white/2 rounded-3xl border border-white/5 border-dashed">
-                        <MessageSquare size={48} className="mx-auto text-gray-700 opacity-20" />
-                        <p className="text-xs font-black uppercase tracking-widest text-gray-600 italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                        <MessageSquare size={48} className="mx-auto text-gray-400 opacity-20" />
+                        <p className="text-xs font-black uppercase tracking-widest text-gray-400 italic">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
                     </div>
                 )}
             </div>

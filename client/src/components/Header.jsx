@@ -121,6 +121,7 @@ const Header = () => {
                     <button 
                         onClick={() => setIsMenuOpen(true)}
                         className="md:hidden text-gray-400 hover:text-white transition-colors"
+                        aria-label="Mở menu điều hướng"
                     >
                         <Menu size={24} />
                     </button>
@@ -200,11 +201,15 @@ const Header = () => {
                         <input
                             type="text"
                             placeholder="Tìm kiếm phim..."
-                            className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-600 shadow-inner"
+                            className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-400 shadow-inner"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary transition-colors">
+                        <button 
+                            type="submit" 
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                            aria-label="Tìm kiếm phim"
+                        >
                             <Search size={18} />
                         </button>
                     </form>
@@ -215,6 +220,7 @@ const Header = () => {
                         <button 
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
                             className="lg:hidden text-gray-400 hover:text-white p-2 transition-colors relative z-10"
+                            aria-label="Mở khung tìm kiếm"
                         >
                             <Search size={22} />
                         </button>
@@ -296,7 +302,11 @@ const Header = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             autoFocus={isSearchOpen}
                         />
-                        <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 -mt-1 text-gray-400 hover:text-primary transition-colors">
+                        <button 
+                            type="submit" 
+                            className="absolute right-4 top-1/2 -translate-y-1/2 -mt-1 text-gray-400 hover:text-primary transition-colors"
+                            aria-label="Xác nhận tìm kiếm"
+                        >
                             <Search size={18} />
                         </button>
                     </form>
@@ -319,7 +329,11 @@ const Header = () => {
                             </div>
                             <span className="text-lg font-black text-white italic tracking-tighter">NYAN MOVIE</span>
                         </div>
-                        <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white transition-colors p-1">
+                        <button 
+                            onClick={() => setIsMenuOpen(false)} 
+                            className="text-gray-400 hover:text-white transition-colors p-1"
+                            aria-label="Đóng menu"
+                        >
                             <Menu size={20} />
                         </button>
                     </div>

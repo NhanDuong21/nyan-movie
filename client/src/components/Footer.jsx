@@ -31,7 +31,7 @@ const Footer = () => {
                     </div>
                 </div>
                 <div className="border-t border-white/5 pt-8 text-center">
-                    <p className="text-gray-500 text-xs italic">
+                    <p className="text-gray-400 text-xs italic">
                         © {new Date().getFullYear()} Nyan Movie Project. All rights reserved. 
                     </p>
                 </div>

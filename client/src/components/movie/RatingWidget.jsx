@@ -97,6 +97,7 @@ const RatingWidget = ({ movieId, initialAverage = 0, initialCount = 0 }) => {
                                 key={i}
                                 type="button"
                                 className={`transition-all duration-200 transform ${!loading && 'hover:scale-125'} disabled:cursor-not-allowed`}
+                                aria-label={`Đánh giá ${starValue} sao`}
                                 onMouseEnter={() => !loading && setHover(starValue)}
                                 onMouseLeave={() => !loading && setHover(0)}
                                 onClick={() => handleRate(starValue)}
@@ -107,7 +108,7 @@ const RatingWidget = ({ movieId, initialAverage = 0, initialCount = 0 }) => {
                                     className={`${
                                         isActive 
                                         ? 'text-yellow-400 fill-yellow-400' 
-                                        : 'text-gray-600'
+                                        : 'text-gray-400'
                                     }`}
                                 />
                             </button>
@@ -122,7 +123,7 @@ const RatingWidget = ({ movieId, initialAverage = 0, initialCount = 0 }) => {
                     <Star size={14} fill="currentColor" className="text-yellow-500" />
                     <span className="text-white text-sm">{avg.toFixed(1)}</span>
                 </span>
-                <span className="text-gray-600">/</span>
+                <span className="text-gray-400">/</span>
                 <span>{count} đánh giá</span>
                 {userVote > 0 && (
                     <span className="ml-2 text-primary text-[10px] lowercase italic font-normal">

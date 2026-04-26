@@ -57,8 +57,9 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                     <button 
                         onClick={onClose}
                         className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                        aria-label="Đóng menu"
                     >
-                        <LogOut size={20} className="rotate-180" /> {/* Using LogOut rotated as a back icon, but ArrowLeft is better */}
+                        <ArrowLeft size={20} />
                     </button>
                     {/* Fixed: Use ArrowLeft as Close icon to be consistent with main nav */}
                 </div>
