@@ -27,6 +27,7 @@ import {
     Settings2
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import useDebounce from '../../hooks/useDebounce';
 
 const ManageUsers = () => {
     const { user: currentUser } = useAuth();
@@ -60,6 +61,8 @@ const ManageUsers = () => {
         onConfirm: () => {}
     });
 
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
     const fetchUsers = async () => {
         setLoading(true);
         try {
@@ -67,7 +70,7 @@ const ManageUsers = () => {
                 params: {
                     page,
                     limit,
-                    search: searchTerm,
+                    search: debouncedSearchTerm,
                     status: statusFilter
                 }
             });
@@ -81,25 +84,16 @@ const ManageUsers = () => {
         }
     };
 
-    // Fetch when page, limit, or filters change
+    // SINGLE Unified Fetch Effect: Triggers on mount, page change, limit change, status change, or debounced search change
     useEffect(() => {
         fetchUsers();
-    }, [page, limit, statusFilter]);
+    }, [page, limit, statusFilter, debouncedSearchTerm]);
 
-    // Search with debounce/triggered by effect but reset page
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (page !== 1) setPage(1);
-            else fetchUsers();
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm]);
-
-    // Reset page to 1 when filters change (limit, status)
+    // Reset pagination to page 1 ONLY when filters or search terms change
+    // This effect runs separately to ensure clean state management
     useEffect(() => {
         setPage(1);
-    }, [limit, statusFilter]);
+    }, [debouncedSearchTerm, limit, statusFilter]);
 
     // Block background scroll when modal is open
     useEffect(() => {
