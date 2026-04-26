@@ -6,6 +6,7 @@ import {
     Star, Clock, AlertCircle, Activity 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 const Home = () => {
     const [latestMovies, setLatestMovies] = useState([]);
@@ -224,13 +225,22 @@ const Home = () => {
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
             <div className="relative w-full h-[500px] lg:h-[800px] overflow-hidden -mt-24">
+                {/* Mobile Fallback Image */}
+                <img 
+                    src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")} 
+                    alt="Cinema Banner" 
+                    className="block md:hidden absolute top-0 left-0 w-full h-full object-cover"
+                />
+
+                {/* Desktop Video */}
                 <video 
-                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    className="hidden md:block absolute top-0 left-0 w-full h-full object-cover"
                     src="/banner.mp4" 
                     autoPlay 
                     loop 
                     muted 
                     playsInline
+                    poster={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2000&auto=format&fit=crop")}
                 ></video>
                 
                 {/* Dark overlay for text readability */}
