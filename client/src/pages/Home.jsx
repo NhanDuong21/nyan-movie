@@ -229,7 +229,7 @@ const Home = () => {
                     </Link>
                 </div>
 
-                <div className="md:min-h-[440px]">
+                <div>
                     {renderContent()}
                 </div>
             </section>
@@ -239,7 +239,7 @@ const Home = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
-            <div className="relative w-full aspect-video md:h-[80vh] lg:h-screen overflow-hidden bg-gray-900 -mt-24">
+            <div className="relative w-full aspect-[4/5] md:aspect-video lg:h-screen overflow-hidden bg-gray-900 -mt-24">
                 {isMobile ? (
                     /* Mobile Fallback Image - Optimized for LCP */
                     <img 

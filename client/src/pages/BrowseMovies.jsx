@@ -118,7 +118,7 @@ const BrowseMovies = () => {
             </header>
 
             {/* Results Grid */}
-            <main className="space-y-16 min-h-[800px]">
+            <main className="space-y-16">
                 {movies.length > 0 ? (
                     <>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">

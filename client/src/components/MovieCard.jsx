@@ -55,8 +55,8 @@ const MovieCard = ({ movie }) => {
     const optimizedPosterUrl = optimizeCloudinaryUrl(posterUrl, 400);
 
     return (
-        <Link to={`/movie/${movie.slug}`} className="group cursor-pointer block">
-            <div className="relative aspect-[2/3] rounded-[32px] overflow-hidden mb-4 shadow-2xl shadow-black/50 border border-white/5 transition-all duration-500 group-hover:-translate-y-3 group-hover:border-primary/50 group-hover:shadow-[0_20px_50px_rgba(255,50,50,0.2)]">
+        <Link to={`/movie/${movie.slug}`} className="group cursor-pointer block w-full">
+            <div className="relative w-full aspect-[2/3] rounded-[32px] overflow-hidden mb-4 shadow-2xl shadow-black/50 border border-white/5 bg-gray-800 transition-all duration-500 group-hover:-translate-y-3 group-hover:border-primary/50 group-hover:shadow-[0_20px_50px_rgba(255,50,50,0.2)]">
                 <img
                     src={optimizedPosterUrl}
                     alt={movie.title}
