@@ -42,19 +42,22 @@ const TopTable = ({ title, data, icon: Icon, metricLabel, metricKey }) => (
                 <div className="divide-y divide-white/5">
                     {data.map((item, index) => (
                         <div key={item._id} className="p-4 flex items-center justify-between hover:bg-white/2 transition-colors group">
-                            <div className="flex items-center gap-4">
-                                <span className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-gray-500 group-hover:text-primary transition-colors">
+                            {/* Left Side: Rank & Title */}
+                            <div className="flex items-center gap-4 flex-1 min-w-0 pr-4">
+                                <span className="w-6 h-6 shrink-0 flex items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-gray-500 group-hover:text-primary transition-colors">
                                     {index + 1}
                                 </span>
-                                <span className="text-sm font-bold text-gray-300 group-hover:text-white truncate max-w-[150px]">
+                                <span className="text-sm font-bold text-gray-300 group-hover:text-white truncate">
                                     {item.title || 'Chưa cập nhật'}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2">
+
+                            {/* Right Side: Metric Stats (Aligned perfectly to the right) */}
+                            <div className="flex flex-col items-end shrink-0 text-right min-w-[80px]">
                                 <span className="text-xs font-black text-primary italic">
                                     {metricKey === 'createdAt' ? new Date(item[metricKey]).toLocaleDateString('vi-VN') : (item[metricKey] || item.count || 0)}
                                 </span>
-                                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-tighter">
+                                <span className="text-[9px] font-bold text-gray-600 uppercase tracking-tighter">
                                     {metricLabel}
                                 </span>
                             </div>
