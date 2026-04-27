@@ -72,8 +72,11 @@ exports.getMovies = async (req, res, next) => {
         if (sort) {
             const sortBy = sort.split(',').join(' ');
             query = query.sort(sortBy);
+        } else if (recent) {
+            // Default to updatedAt for "Recently Updated" sections
+            query = query.sort('-updatedAt');
         } else {
-            // Default to createdAt so "Latest Releases" aren't affected by view count updates
+            // Default to createdAt for "Latest Releases"
             query = query.sort('-createdAt');
         }
 
@@ -281,8 +284,8 @@ exports.incrementView = async (req, res, next) => {
         const { movieId, episodeId } = req.params;
 
         await Promise.all([
-            Movie.findByIdAndUpdate(movieId, { $inc: { views: 1 } }, { returnDocument: 'after' }),
-            Episode.findByIdAndUpdate(episodeId, { $inc: { views: 1 } }, { returnDocument: 'after' })
+            Movie.findByIdAndUpdate(movieId, { $inc: { views: 1 } }, { returnDocument: 'after', timestamps: false }),
+            Episode.findByIdAndUpdate(episodeId, { $inc: { views: 1 } }, { returnDocument: 'after', timestamps: false })
         ]);
 
         res.status(200).json({ success: true, message: 'View incremented' });
