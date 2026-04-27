@@ -80,10 +80,11 @@ const ManageEpisodes = () => {
             setFormData({ name: '', episodeNumber: '', videoUrl: '' });
             fetchData();
         } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || 'Lỗi không xác định';
             setConfirmConfig({
                 isOpen: true,
                 title: 'Lỗi',
-                message: `Lỗi khi ${editingEpisode ? 'cập nhật' : 'thêm'} tập phim. Vui lòng kiểm tra lại kết nối hoặc dữ liệu.`,
+                message: `${editingEpisode ? 'Cập nhật' : 'Thêm'} tập phim thất bại: ${errorMessage}`,
                 type: 'danger',
                 onConfirm: () => {},
                 cancelText: '',
@@ -125,10 +126,11 @@ const ManageEpisodes = () => {
                     await axiosClient.delete(`/episodes/${id}`);
                     fetchData();
                 } catch (err) {
+                    const errorMessage = err.response?.data?.message || err.message || 'Lỗi không xác định';
                     setConfirmConfig({
                         isOpen: true,
                         title: 'Lỗi',
-                        message: 'Không thể xóa tập phim. Vui lòng thử lại sau.',
+                        message: `Không thể xóa tập phim: ${errorMessage}`,
                         type: 'danger',
                         onConfirm: () => {},
                         cancelText: '',
