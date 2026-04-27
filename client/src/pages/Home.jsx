@@ -252,14 +252,18 @@ const Home = () => {
                     /* Desktop Video - Only rendered on larger screens to save mobile bandwidth */
                     <video 
                         className="absolute inset-0 w-full h-full object-cover"
-                        src="/banner.mp4" 
                         autoPlay 
                         loop 
                         muted 
                         playsInline
                         aria-hidden="true"
                         tabIndex="-1"
-                    ></video>
+                        poster="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop"
+                    >
+                        <source src="/banner.webm" type="video/webm" />
+                        <source src="/banner.mp4" type="video/mp4" />
+                        Trình duyệt của bạn không hỗ trợ tag video.
+                    </video>
                 )}
                 
                 {/* Dark overlay for text readability */}
