@@ -222,7 +222,7 @@ exports.updateUser = async (req, res) => {
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { username, email, role },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         ).select('-password');
 
         if (!user) {
@@ -246,7 +246,7 @@ exports.updateUserRole = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid role' });
         }
 
-        const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+        const user = await User.findByIdAndUpdate(req.params.id, { role }, { returnDocument: 'after' }).select('-password');
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }

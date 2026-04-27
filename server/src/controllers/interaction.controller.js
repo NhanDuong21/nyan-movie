@@ -68,7 +68,7 @@ exports.addToHistory = async (req, res, next) => {
         const history = await Interaction.findOneAndUpdate(
             { user: req.user.id, movie: movieId, type: 'history' },
             { episode: episodeId, updatedAt: Date.now() },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
 
         res.status(200).json({ success: true, data: history });

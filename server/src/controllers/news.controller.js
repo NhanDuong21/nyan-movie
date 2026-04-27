@@ -20,7 +20,7 @@ exports.getNewsBySlug = async (req, res, next) => {
         const news = await News.findOneAndUpdate(
             { slug: req.params.slug },
             { $inc: { views: 1 } },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!news) {
@@ -51,7 +51,7 @@ exports.createNews = async (req, res, next) => {
 exports.updateNews = async (req, res, next) => {
     try {
         const news = await News.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true
         });
 

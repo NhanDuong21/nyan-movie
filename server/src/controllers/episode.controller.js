@@ -79,7 +79,7 @@ exports.addEpisode = async (req, res, next) => {
 exports.updateEpisode = async (req, res, next) => {
     try {
         const episode = await Episode.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true
         });
 

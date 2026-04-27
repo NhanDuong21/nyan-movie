@@ -248,7 +248,7 @@ exports.createMovie = async (req, res, next) => {
 exports.updateMovie = async (req, res, next) => {
     try {
         const movie = await Movie.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true
         });
 
@@ -263,7 +263,7 @@ exports.updateMovie = async (req, res, next) => {
 exports.deleteMovie = async (req, res, next) => {
     try {
         // SOFT DELETE as per docs
-        const movie = await Movie.findByIdAndUpdate(req.params.id, { status: 'hidden' }, { new: true });
+        const movie = await Movie.findByIdAndUpdate(req.params.id, { status: 'hidden' }, { returnDocument: 'after' });
         
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
 
@@ -281,8 +281,8 @@ exports.incrementView = async (req, res, next) => {
         const { movieId, episodeId } = req.params;
 
         await Promise.all([
-            Movie.findByIdAndUpdate(movieId, { $inc: { views: 1 } }),
-            Episode.findByIdAndUpdate(episodeId, { $inc: { views: 1 } })
+            Movie.findByIdAndUpdate(movieId, { $inc: { views: 1 } }, { returnDocument: 'after' }),
+            Episode.findByIdAndUpdate(episodeId, { $inc: { views: 1 } }, { returnDocument: 'after' })
         ]);
 
         res.status(200).json({ success: true, message: 'View incremented' });
@@ -394,7 +394,7 @@ exports.rateMovie = async (req, res, next) => {
         await Rating.findOneAndUpdate(
             { user: req.user.id, movie: id },
             { score },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
 
         // Recalculate average and count using aggregation
@@ -416,7 +416,7 @@ exports.rateMovie = async (req, res, next) => {
         const updatedMovie = await Movie.findByIdAndUpdate(
             id,
             { ratingAverage, ratingCount },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         res.status(200).json({
