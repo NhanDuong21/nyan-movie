@@ -10,7 +10,9 @@ import {
     Check, 
     X,
     AlertCircle,
-    Edit
+    Edit,
+    Layers,
+    Eye
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -22,6 +24,9 @@ const ManageEpisodes = () => {
     const [showForm, setShowForm] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [editingEpisode, setEditingEpisode] = useState(null);
+    const [activeTab, setActiveTab] = useState('single'); // 'single' or 'bulk'
+    const [bulkText, setBulkText] = useState('');
+    const [startEpisodeNumber, setStartEpisodeNumber] = useState(1);
     
     const [formData, setFormData] = useState({
         name: '',
@@ -48,13 +53,19 @@ const ManageEpisodes = () => {
             ]);
             setMovie(movieRes.data.data);
             setEpisodes(epsRes.data.data);
+
+            const highestEp = epsRes.data.data.reduce((max, ep) => Math.max(max, ep.episodeNumber), 0);
+            const nextEp = highestEp + 1;
             
-            // Set default episode number
+            // Set default episode number/name for single add
             setFormData(prev => ({ 
                 ...prev, 
-                episodeNumber: epsRes.data.data.length + 1,
-                name: `Tập ${epsRes.data.data.length + 1}`
+                episodeNumber: nextEp,
+                name: `Tập ${nextEp}`
             }));
+
+            // Set default starting number for bulk add
+            setStartEpisodeNumber(nextEp);
         } catch (err) {
             console.error('Failed to fetch episodes', err);
         } finally {
@@ -65,6 +76,43 @@ const ManageEpisodes = () => {
     useEffect(() => {
         fetchData();
     }, [movieId]);
+
+    const getBulkEpisodes = () => {
+        const lines = bulkText.split('\n').filter(line => line.trim() !== '');
+        const startIndex = parseInt(startEpisodeNumber) || 1;
+        return lines.map((link, index) => ({
+            name: `Tập ${startIndex + index}`,
+            episodeNumber: startIndex + index,
+            videoUrl: link.trim()
+        })).filter(ep => ep.videoUrl);
+    };
+
+    const handleBulkSubmit = async () => {
+        const episodesPayload = getBulkEpisodes();
+        if (episodesPayload.length === 0) return;
+        
+        setIsSaving(true);
+        try {
+            await axiosClient.post(`/episodes/${movieId}/bulk`, { episodes: episodesPayload });
+            
+            setBulkText('');
+            setShowForm(false);
+            fetchData();
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || 'Lỗi không xác định';
+            setConfirmConfig({
+                isOpen: true,
+                title: 'Lỗi Thêm Nhanh',
+                message: `Thêm hàng loạt thất bại: ${errorMessage}`,
+                type: 'danger',
+                onConfirm: () => {},
+                cancelText: '',
+                confirmText: 'Đã hiểu'
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -170,21 +218,30 @@ const ManageEpisodes = () => {
                             <span className="text-xs font-black uppercase tracking-widest">Phim lẻ đã có video. Không thể thêm tập mới.</span>
                         </div>
                     ) : !showForm && (
-                        <button 
-                            onClick={() => {
-                                setEditingEpisode(null);
-                                setFormData({
-                                    name: `Tập ${episodes.length + 1}`,
-                                    episodeNumber: episodes.length + 1,
-                                    videoUrl: ''
-                                });
-                                setShowForm(true);
-                            }}
-                            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
-                        >
-                            <Plus size={20} />
-                            THÊM TẬP MỚI
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => {
+                                    setEditingEpisode(null);
+                                    setActiveTab('bulk');
+                                    setShowForm(true);
+                                }}
+                                className="bg-dark border border-white/10 hover:border-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-xl"
+                            >
+                                <Layers size={20} className="text-primary" />
+                                THÊM NHANH (BULK)
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setEditingEpisode(null);
+                                    setActiveTab('single');
+                                    setShowForm(true);
+                                }}
+                                className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                            >
+                                <Plus size={20} />
+                                THÊM TỪNG TẬP
+                            </button>
+                        </div>
                     )}
                 </div>
             </header>
@@ -192,56 +249,155 @@ const ManageEpisodes = () => {
             {showForm && (
                 <div className="bg-dark-card p-6 rounded-3xl border border-primary/20 shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-bold text-lg text-white">
-                            {editingEpisode ? `Sửa Tập Phim: ${editingEpisode.name}` : 'Thêm tập mới'}
-                        </h3>
+                        <div className="flex items-center gap-4">
+                            <h3 className="font-bold text-lg text-white">
+                                {editingEpisode ? `Sửa Tập Phim: ${editingEpisode.name}` : (activeTab === 'single' ? 'Thêm tập mới' : 'Thêm nhiều tập (Link-Only)')}
+                            </h3>
+                            {!editingEpisode && (
+                                <div className="flex bg-dark/50 p-1 rounded-xl border border-white/5">
+                                    <button 
+                                        onClick={() => setActiveTab('single')}
+                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'single' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                                    >
+                                        TỪNG TẬP
+                                    </button>
+                                    <button 
+                                        onClick={() => setActiveTab('bulk')}
+                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeTab === 'bulk' ? 'bg-primary text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                                    >
+                                        HÀNG LOẠT
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <button onClick={handleCloseForm} className="text-gray-500 hover:text-white"><X size={20}/></button>
                     </div>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tên tập</label>
-                            <input
-                                required
-                                type="text"
-                                className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
-                                placeholder="VD: Tập 1"
-                                value={formData.name}
-                                onChange={e => setFormData({...formData, name: e.target.value})}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Số tập</label>
-                            <input
-                                required
-                                type="number"
-                                className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
-                                placeholder="VD: 1"
-                                value={formData.episodeNumber}
-                                onChange={e => setFormData({...formData, episodeNumber: e.target.value})}
-                            />
-                        </div>
-                        <div className="md:col-span-2 space-y-2 flex gap-4 items-end">
-                            <div className="flex-1 space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">URL Video (Iframe/Direct)</label>
+
+                    {activeTab === 'single' || editingEpisode ? (
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tên tập</label>
                                 <input
                                     required
                                     type="text"
                                     className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
-                                    placeholder="https://youtube.com/..."
-                                    value={formData.videoUrl}
-                                    onChange={e => setFormData({...formData, videoUrl: e.target.value})}
+                                    placeholder="VD: Tập 1"
+                                    value={formData.name}
+                                    onChange={e => setFormData({...formData, name: e.target.value})}
                                 />
                             </div>
-                            <button 
-                                type="submit"
-                                disabled={isSaving}
-                                className="bg-primary hover:bg-primary-hover text-white h-[46px] px-6 rounded-xl font-bold flex items-center gap-2 transition-all disabled:opacity-50"
-                            >
-                                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                LƯU
-                            </button>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Số tập</label>
+                                <input
+                                    required
+                                    type="number"
+                                    className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
+                                    placeholder="VD: 1"
+                                    value={formData.episodeNumber}
+                                    onChange={e => setFormData({...formData, episodeNumber: e.target.value})}
+                                />
+                            </div>
+                            <div className="md:col-span-2 space-y-2 flex gap-4 items-end">
+                                <div className="flex-1 space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">URL Video (Iframe/Direct)</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all"
+                                        placeholder="https://youtube.com/..."
+                                        value={formData.videoUrl}
+                                        onChange={e => setFormData({...formData, videoUrl: e.target.value})}
+                                    />
+                                </div>
+                                <button 
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="bg-primary hover:bg-primary-hover text-white h-[46px] px-6 rounded-xl font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                                >
+                                    {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                    LƯU
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Bắt đầu từ tập số</label>
+                                        <input
+                                            type="number"
+                                            className="w-24 bg-dark border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-all"
+                                            value={startEpisodeNumber}
+                                            onChange={e => setStartEpisodeNumber(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="bg-primary/5 border border-primary/10 px-4 py-2 rounded-xl">
+                                        <span className="text-[10px] font-black uppercase text-primary tracking-widest block">Trạng thái hiện tại</span>
+                                        <span className="text-xs text-white/60">Đã có {episodes.length} tập phim.</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Danh sách link video</label>
+                                    <textarea
+                                        className="w-full h-64 bg-dark border border-white/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-primary transition-all resize-none"
+                                        placeholder="Dán danh sách link nhúng vào đây (mỗi dòng 1 link)..."
+                                        value={bulkText}
+                                        onChange={e => setBulkText(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500">
+                                    <Eye size={14} />
+                                    Xem trước kết quả ({getBulkEpisodes().length} tập)
+                                </div>
+                                <div className="bg-dark/50 border border-white/5 rounded-2xl overflow-hidden h-64 overflow-y-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead className="bg-white/5 text-gray-500 font-bold uppercase sticky top-0">
+                                            <tr>
+                                                <th className="px-4 py-3">Tên tập</th>
+                                                <th className="px-4 py-3">Link</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {getBulkEpisodes().length > 0 ? (
+                                                getBulkEpisodes().map((ep, idx) => (
+                                                    <tr key={idx} className="hover:bg-white/2">
+                                                        <td className="px-4 py-3 font-bold text-primary">{ep.name}</td>
+                                                        <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]">{ep.videoUrl}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="2" className="px-4 py-10 text-center text-gray-600 italic">
+                                                        Chưa có link nào được nhập.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-4">
+                                    <button 
+                                        onClick={handleCloseForm}
+                                        className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:text-white transition-all"
+                                    >
+                                        HỦY BỎ
+                                    </button>
+                                    <button 
+                                        onClick={handleBulkSubmit}
+                                        disabled={isSaving || getBulkEpisodes().length === 0}
+                                        className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+                                    >
+                                        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Layers size={20} />}
+                                        XÁC NHẬN THÊM
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </form>
+                    )}
                 </div>
             )}
 

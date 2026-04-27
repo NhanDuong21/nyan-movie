@@ -102,3 +102,47 @@ exports.deleteEpisode = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.bulkAddEpisodes = async (req, res, next) => {
+    try {
+        const { movieId } = req.params;
+        const { episodes } = req.body;
+
+        if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
+            return res.status(400).json({ success: false, message: 'Danh sách tập phim không hợp lệ.' });
+        }
+
+        const movie = await Movie.findById(movieId);
+        if (!movie) return res.status(404).json({ success: false, message: 'Phim không tồn tại' });
+
+        // Enforce business logic for single/cinema movies
+        if (movie.type === 'single' || movie.type === 'chieurap') {
+            const currentCount = await Episode.countDocuments({ movie: movieId });
+            if (currentCount + episodes.length > 1) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Lỗi: ${movie.type === 'single' ? 'Phim lẻ' : 'Phim chiếu rạp'} chỉ được phép có tối đa 1 tập.` 
+                });
+            }
+        }
+
+        const preparedEpisodes = episodes.map((ep) => ({
+            ...ep,
+            movie: movieId,
+            videoUrl: ep.videoUrl || ep.link_phim // Handle both names for flexibility
+        }));
+
+        await Episode.insertMany(preparedEpisodes);
+
+        // Update movie timestamp
+        await Movie.findByIdAndUpdate(movieId, { updatedAt: Date.now() });
+
+        res.status(201).json({ 
+            success: true, 
+            message: `Đã thêm thành công ${preparedEpisodes.length} tập phim.` 
+        });
+    } catch (error) {
+        console.error('Error in bulkAddEpisodes:', error);
+        next(error);
+    }
+};
