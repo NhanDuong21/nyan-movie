@@ -37,6 +37,12 @@ const CommentSection = ({ movieId }) => {
     });
 
     useEffect(() => {
+        console.log("CommentSection: Current Movie ID:", movieId);
+        // If movieId is missing or literally "undefined" string, stop loading and wait
+        if (!movieId || movieId === 'undefined') {
+            setLoading(false);
+            return;
+        }
         fetchComments();
     }, [movieId]);
 
@@ -104,9 +110,14 @@ const CommentSection = ({ movieId }) => {
     }, [movieId, user]);
 
     const fetchComments = async () => {
+        if (!movieId || movieId === 'undefined') {
+            setLoading(false);
+            return;
+        }
         try {
             setLoading(true);
             const res = await axiosClient.get(`/comments/movie/${movieId}`);
+            console.log("CommentSection: Fetched Comments:", res.data);
             setComments(res.data.data);
             setError(null);
         } catch (err) {
@@ -120,6 +131,12 @@ const CommentSection = ({ movieId }) => {
     const handleSubmit = async (e, parentId = null) => {
         if (e) e.preventDefault();
         
+        // Final safety check - Support both id and _id formats just in case
+        if (!movieId || movieId === 'undefined') {
+            console.warn("CommentSection: Cannot submit, movieId is invalid:", movieId);
+            return;
+        }
+
         const textToSubmit = parentId ? replyContent : content;
         if (!textToSubmit.trim()) return;
 

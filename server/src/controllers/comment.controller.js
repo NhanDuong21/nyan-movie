@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
 
@@ -6,7 +7,14 @@ const User = require('../models/User');
 // @access  Public
 exports.getMovieComments = async (req, res, next) => {
     try {
-        const comments = await Comment.find({ movie: req.params.movieId })
+        const { movieId } = req.params;
+
+        // Safety check to prevent CastError
+        if (!movieId || movieId === 'undefined' || !mongoose.Types.ObjectId.isValid(movieId)) {
+            return res.status(400).json({ success: false, message: 'Invalid or missing Movie ID' });
+        }
+
+        const comments = await Comment.find({ movie: movieId })
             .populate({
                 path: 'user',
                 select: 'username avatar'
@@ -29,6 +37,11 @@ exports.getMovieComments = async (req, res, next) => {
 exports.addComment = async (req, res, next) => {
     try {
         const { movieId, content, parentId, replyToUser } = req.body;
+
+        // Safety check to prevent CastError
+        if (!movieId || movieId === 'undefined' || !mongoose.Types.ObjectId.isValid(movieId)) {
+            return res.status(400).json({ success: false, message: 'Invalid or missing Movie ID' });
+        }
 
         // If parentId exists, verify it exists and belongs to the same movie
         if (parentId) {
@@ -121,7 +134,7 @@ exports.deleteComment = async (req, res, next) => {
         // Emit real-time event to the movie room
         if (global.io) {
             global.io.to(`movie_${movieId}`).emit('comment_deleted', { 
-                commentId: comment._id,
+                commentId: comment.id,
                 parentId: comment.parentId 
             });
         }

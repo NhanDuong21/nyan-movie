@@ -406,7 +406,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                                             : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                         }`}
                                     >
-                                        {formData.genres.includes(g._id) && <Check size={12} />}
+                                        {formData.genres.includes(g.id) && <Check size={12} />}
                                         {g.name}
                                     </button>
                                 ))}

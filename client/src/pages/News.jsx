@@ -48,7 +48,7 @@ const News = () => {
             <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {news.map((item) => (
                     <Link 
-                        key={item._id} 
+                        key={item.id} 
                         to={`/news/${item.slug}`}
                         className="group flex flex-col bg-white/2 border border-white/5 rounded-[32px] overflow-hidden hover:border-primary/30 hover:bg-white/5 transition-all duration-500 shadow-xl"
                     >

@@ -143,8 +143,8 @@ exports.getMovieBySlug = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: {
-                ...movie._doc,
-                episodes
+                ...movie.toJSON(),
+                episodes: episodes.map(ep => ep.toJSON())
             }
         });
     } catch (error) {

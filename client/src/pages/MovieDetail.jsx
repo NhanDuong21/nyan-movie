@@ -136,7 +136,7 @@ const MovieDetail = () => {
                                     {movie.type === 'series' ? 'PHIM BỘ' : 'PHIM LẺ'}
                                 </span>
                                 {movie.genres?.map(g => (
-                                    <span key={g._id} className="text-gray-400 text-[10px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
+                                    <span key={g.id} className="text-gray-400 text-[10px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
                                         {g.name}
                                     </span>
                                 ))}
@@ -281,7 +281,7 @@ const MovieDetail = () => {
                     </section>
 
                     {/* Comment System Integration */}
-                    <CommentSection movieId={movie._id} />
+                    <CommentSection movieId={movie.id} />
                 </div>
 
                 {/* Right Side: Recommendations */}
@@ -318,7 +318,7 @@ const MovieDetail = () => {
                                             <h4 className="font-bold uppercase tracking-tight line-clamp-2 group-hover:text-primary transition-colors text-sm leading-tight">{rec.title}</h4>
                                             <div className="flex flex-wrap gap-1">
                                                 {(rec.genres || []).slice(0, 2).map(g => (
-                                                    <span key={g._id} className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
+                                                    <span key={g.id} className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
                                                 ))}
                                             </div>
                                             <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase">
