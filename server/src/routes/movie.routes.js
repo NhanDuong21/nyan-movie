@@ -3,6 +3,7 @@ const router = express.Router();
 const { 
     getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById, incrementView, getRecommendations, rateMovie
 } = require('../controllers/movie.controller');
+const { getEpisodes } = require('../controllers/episode.controller');
 const { verifyToken, verifyAdmin, optionalAuth } = require('../middlewares/auth.middleware');
 
 router.route('/')
@@ -17,6 +18,7 @@ router.route('/:id')
     .put(verifyToken, verifyAdmin, updateMovie)
     .delete(verifyToken, verifyAdmin, deleteMovie);
 
+router.get('/:id/episodes', getEpisodes);
 router.post('/:movieId/episodes/:episodeId/view', incrementView);
 router.get('/:id/recommendations', getRecommendations);
 router.post('/:id/rate', verifyToken, rateMovie);

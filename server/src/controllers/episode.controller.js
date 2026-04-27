@@ -3,13 +3,32 @@ const Movie = require('../models/Movie');
 
 exports.getEpisodes = async (req, res, next) => {
     try {
-        const { movieId } = req.query;
-        if (!movieId) {
+        const { page = 1, limit = 12, movieId } = req.query;
+        const targetMovieId = req.params.id || movieId;
+
+        if (!targetMovieId) {
             return res.status(400).json({ success: false, message: 'Vui lòng cung cấp movieId' });
         }
 
-        const episodes = await Episode.find({ movie: movieId }).sort('episodeNumber');
-        res.status(200).json({ success: true, count: episodes.length, data: episodes });
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        const episodes = await Episode.find({ movie: targetMovieId })
+            .sort('episodeNumber')
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await Episode.countDocuments({ movie: targetMovieId });
+
+        res.status(200).json({ 
+            success: true, 
+            data: episodes,
+            pagination: {
+                total,
+                pages: Math.ceil(total / parseInt(limit)),
+                currentPage: parseInt(page),
+                limit: parseInt(limit)
+            }
+        });
     } catch (error) {
         console.error('Error fetching episodes:', error);
         next(error);

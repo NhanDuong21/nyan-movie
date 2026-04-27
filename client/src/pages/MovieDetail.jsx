@@ -30,17 +30,22 @@ const MovieDetail = () => {
     const [favLoading, setFavLoading] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
     const [recsLoading, setRecsLoading] = useState(false);
+    
+    // Pagination for Episodes
+    const [episodes, setEpisodes] = useState([]);
+    const [episodesPagination, setEpisodesPagination] = useState({ total: 0, pages: 0 });
+    const [episodesLoading, setEpisodesLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const EPISODES_PER_PAGE = 12;
 
     useEffect(() => {
         const fetchMovie = async () => {
-        setLoading(true);
-        setError(null);
-        try {
+            setLoading(true);
+            setError(null);
+            setCurrentPage(1);
+            try {
                 const res = await axiosClient.get(`/movies/slug/${slug}`);
                 setMovie(res.data.data);
-                if (res.data.data.episodes?.length > 0) {
-                    setSelectedEpisode(res.data.data.episodes[0]);
-                }
                 
                 // If logged in, check favorite status
                 if (user && res.data.data.id) {
@@ -242,33 +247,83 @@ const MovieDetail = () => {
                         {movie.type !== 'single' && (
                             <section className="space-y-6">
                                 <header className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3" id="episode-list-header">
                                         <div className="w-1 h-6 bg-primary rounded-full"></div>
                                         <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
                                     </div>
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{movie.episodes?.length} TẬP</span>
                                 </header>
                                 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {movie.episodes?.length > 0 ? (
-                                        movie.episodes.map((ep) => (
-                                            <Link 
-                                                key={ep.id}
-                                                to={`/watch/${movie.slug}/${ep.id}`}
-                                                className={`group relative aspect-video rounded-xl overflow-hidden border transition-all ${
-                                                    selectedEpisode?.id === ep.id 
-                                                    ? 'border-primary ring-2 ring-primary/20' 
-                                                    : 'border-white/5 hover:border-white/20'
-                                                }`}
-                                            >
-                                                <div className="absolute inset-0 bg-white/2 flex items-center justify-center group-hover:bg-white/5 transition-all">
-                                                    <Play size={20} className={selectedEpisode?.id === ep.id ? 'text-primary' : 'text-white/20 group-hover:text-white'} fill="currentColor" />
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 relative min-h-[100px]">
+                                    {episodesLoading ? (
+                                        <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 text-primary">
+                                            <Loader2 size={32} className="animate-spin" />
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Đang tải tập phim...</p>
+                                        </div>
+                                    ) : episodes.length > 0 ? (
+                                        <>
+                                            {episodes.map((ep) => (
+                                                <Link 
+                                                    key={ep.id}
+                                                    to={`/watch/${movie.slug}/${ep.id}`}
+                                                    className="group relative aspect-video rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all bg-white/[0.02]"
+                                                >
+                                                    <div className="absolute inset-0 bg-white/2 flex items-center justify-center group-hover:bg-white/5 transition-all">
+                                                        <Play size={20} className="text-white/20 group-hover:text-white transition-colors" fill="currentColor" />
+                                                    </div>
+                                                    <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                        <span className="text-[10px] font-black tracking-widest uppercase">{ep.name}</span>
+                                                    </div>
+                                                </Link>
+                                            ))}
+
+                                            {/* Pagination Controls */}
+                                            {episodesPagination.pages > 1 && (
+                                                <div className="col-span-full flex flex-wrap justify-center items-center gap-2 mt-8 pt-6 border-t border-white/5">
+                                                    <button
+                                                        disabled={currentPage === 1}
+                                                        onClick={() => {
+                                                            setCurrentPage(prev => prev - 1);
+                                                            const section = document.getElementById('episode-list-header');
+                                                            if (section) section.scrollIntoView({ behavior: 'smooth' });
+                                                        }}
+                                                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                                                    >
+                                                        &lt;
+                                                    </button>
+
+                                                    {Array.from({ length: episodesPagination.pages }, (_, i) => i + 1).map(page => (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => {
+                                                                setCurrentPage(page);
+                                                                const section = document.getElementById('episode-list-header');
+                                                                if (section) section.scrollIntoView({ behavior: 'smooth' });
+                                                            }}
+                                                            className={`w-10 h-10 rounded-xl font-black text-xs transition-all border ${
+                                                                currentPage === page
+                                                                ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                                : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    ))}
+
+                                                    <button
+                                                        disabled={currentPage === episodesPagination.pages}
+                                                        onClick={() => {
+                                                            setCurrentPage(prev => prev + 1);
+                                                            const section = document.getElementById('episode-list-header');
+                                                            if (section) section.scrollIntoView({ behavior: 'smooth' });
+                                                        }}
+                                                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                                                    >
+                                                        &gt;
+                                                    </button>
                                                 </div>
-                                                <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                    <span className="text-[10px] font-black tracking-widest uppercase">{ep.name}</span>
-                                                </div>
-                                            </Link>
-                                        ))
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="col-span-full py-10 bg-white/2 rounded-3xl border border-white/5 flex flex-col items-center justify-center gap-3 text-gray-400">
                                             <Tv size={32} opacity={0.2} />
