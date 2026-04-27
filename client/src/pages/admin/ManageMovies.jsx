@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { 
     Plus, 
@@ -22,20 +22,25 @@ import MovieForm from '../../components/admin/MovieForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageMovies = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    // Extract state from URL
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 5;
+    const filterType = searchParams.get('type') || 'all';
+    const filterStatus = searchParams.get('status') || 'all';
+    const debouncedSearch = searchParams.get('search') || '';
+
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(5);
+    const [searchQuery, setSearchQuery] = useState(debouncedSearch);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [showForm, setShowForm] = useState(false);
     const [editingMovie, setEditingMovie] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [movieToDelete, setMovieToDelete] = useState(null);
-    const [filterType, setFilterType] = useState('all');
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Master Fetcher
     useEffect(() => {
@@ -81,25 +86,54 @@ const ManageMovies = () => {
             isMounted = false;
             controller.abort();
         };
-    }, [page, limit, filterType, filterStatus, debouncedSearch]);
+    }, [page, limit, filterType, filterStatus, debouncedSearch, refreshTrigger]);
 
-    // Search with debounce logic ONLY
+    // Search with debounce logic: Updates URL instead of local state
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedSearch(searchQuery.trim());
+            const trimmed = searchQuery.trim();
+            const params = new URLSearchParams(searchParams);
+            
+            if (trimmed) {
+                params.set('search', trimmed);
+            } else {
+                params.delete('search');
+            }
+            
+            // Only update if value changed to avoid redundant fetches
+            if (params.get('search') !== searchParams.get('search')) {
+                params.set('page', 1);
+                setSearchParams(params);
+            }
         }, 500);
 
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Reset to page 1 when filters change
-    useEffect(() => {
-        setPage(1);
-    }, [filterType, filterStatus, debouncedSearch, limit]);
+    // Handle parameter changes
+    const updateParams = (updates) => {
+        const params = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value && value !== 'all') {
+                params.set(key, value);
+            } else {
+                params.delete(key);
+            }
+        });
+        setSearchParams(params);
+    };
+
+    const handlePageChange = (newPage) => {
+        updateParams({ page: newPage });
+    };
+
+    const handleFilterChange = (key, value) => {
+        updateParams({ [key]: value, page: 1 });
+    };
 
     // Helper for manual refresh (e.g., after edit/delete)
     const refreshData = () => {
-        setPage(1); // Triggers re-fetch due to dependency
+        setRefreshTrigger(prev => prev + 1);
     };
 
     const handleDelete = (id) => {
@@ -111,7 +145,13 @@ const ManageMovies = () => {
         if (!movieToDelete) return;
         try {
             await axiosClient.delete(`/movies/${movieToDelete}`);
-            setPage(1); // Force re-fetch
+            
+            // Smart pagination: if we deleted the last item on the page, go back
+            if (movies.length === 1 && page > 1) {
+                handlePageChange(page - 1);
+            } else {
+                refreshData(); 
+            }
         } catch (err) {
             console.error('Lỗi khi xóa phim', err);
         } finally {
@@ -211,7 +251,7 @@ const ManageMovies = () => {
                             <select 
                                 className="bg-[#111] border border-gray-800 rounded-xl px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer min-w-[160px] pr-10"
                                 value={filterType}
-                                onChange={(e) => setFilterType(e.target.value)}
+                                onChange={(e) => handleFilterChange('type', e.target.value)}
                             >
                                 <option value="all">TẤT CẢ LOẠI PHIM</option>
                                 <option value="single">PHIM LẺ</option>
@@ -226,7 +266,7 @@ const ManageMovies = () => {
                             <select 
                                 className="bg-[#111] border border-gray-800 rounded-xl px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer min-w-[160px] pr-10"
                                 value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
+                                onChange={(e) => handleFilterChange('status', e.target.value)}
                             >
                                 <option value="all">TẤT CẢ TRẠNG THÁI</option>
                                 <option value="ongoing">ĐANG CHIẾU</option>
@@ -241,7 +281,7 @@ const ManageMovies = () => {
                             <select 
                                 className="w-full bg-[#111] border border-gray-800 rounded-xl px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest appearance-none focus:outline-none focus:border-primary transition-all cursor-pointer"
                                 value={limit}
-                                onChange={(e) => setLimit(parseInt(e.target.value))}
+                                onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
                             >
                                 <option value={5}>5 / trang</option>
                                 <option value={10}>10 / trang</option>
@@ -352,7 +392,7 @@ const ManageMovies = () => {
                     <div className="flex items-center gap-2">
                         <button 
                             disabled={page === 1 || loading}
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            onClick={() => handlePageChange(Math.max(1, page - 1))}
                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
                         >
                             <ChevronLeft size={18} />
@@ -365,7 +405,7 @@ const ManageMovies = () => {
                                     <div key={p} className="flex items-center gap-1.5">
                                         {i > 0 && arr[i-1] !== p - 1 && <span className="text-gray-600 font-bold">...</span>}
                                         <button
-                                            onClick={() => setPage(p)}
+                                            onClick={() => handlePageChange(p)}
                                             className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
                                                 page === p 
                                                 ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' 
@@ -381,7 +421,7 @@ const ManageMovies = () => {
 
                         <button 
                             disabled={page === totalPages || loading}
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-primary disabled:opacity-20 disabled:hover:bg-white/5 transition-all shadow-lg active:scale-90"
                         >
                             <ChevronRight size={18} />
