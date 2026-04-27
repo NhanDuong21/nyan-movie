@@ -62,6 +62,26 @@ const MovieDetail = () => {
         window.scrollTo(0, 0);
     }, [slug, user]);
 
+    useEffect(() => {
+        const fetchEpisodes = async () => {
+            if (!movie?.id) return;
+            setEpisodesLoading(true);
+            try {
+                const res = await axiosClient.get(`/movies/${movie.id}/episodes`, {
+                    params: { page: currentPage, limit: EPISODES_PER_PAGE }
+                });
+                // Fix: backend returns { success: true, data: [...], pagination: { ... } }
+                setEpisodes(res.data.data || []);
+                setEpisodesPagination(res.data.pagination || { total: 0, pages: 0 });
+            } catch (err) {
+                console.error('Failed to fetch episodes', err);
+            } finally {
+                setEpisodesLoading(false);
+            }
+        };
+        fetchEpisodes();
+    }, [movie?.id, currentPage]);
+
     // Fetch recommendations whenever the movie ID is available
     useEffect(() => {
         if (!movie?.id) return;
