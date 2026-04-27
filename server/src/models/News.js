@@ -24,7 +24,15 @@ const NewsSchema = new mongoose.Schema({
         default: 0
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        transform: (doc, ret) => {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+            return ret;
+        }
+    }
 });
 
 // Create slug from title before saving

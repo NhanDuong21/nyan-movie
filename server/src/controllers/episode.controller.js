@@ -11,6 +11,7 @@ exports.getEpisodes = async (req, res, next) => {
         const episodes = await Episode.find({ movie: movieId }).sort('episodeNumber');
         res.status(200).json({ success: true, count: episodes.length, data: episodes });
     } catch (error) {
+        console.error('Error fetching episodes:', error);
         next(error);
     }
 };
@@ -51,6 +52,7 @@ exports.addEpisode = async (req, res, next) => {
 
         res.status(201).json({ success: true, data: episode });
     } catch (error) {
+        console.error('Error adding episode:', error);
         next(error);
     }
 };
@@ -66,6 +68,7 @@ exports.updateEpisode = async (req, res, next) => {
 
         res.status(200).json({ success: true, data: episode });
     } catch (error) {
+        console.error('Error updating episode:', error);
         next(error);
     }
 };
@@ -76,6 +79,7 @@ exports.deleteEpisode = async (req, res, next) => {
         if (!episode) return res.status(404).json({ success: false, message: 'Episode not found' });
         res.status(200).json({ success: true, message: 'Episode deleted' });
     } catch (error) {
+        console.error('Error deleting episode:', error);
         next(error);
     }
 };
