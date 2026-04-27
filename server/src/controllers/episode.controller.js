@@ -17,10 +17,20 @@ exports.getEpisodes = async (req, res, next) => {
 
 exports.addEpisode = async (req, res, next) => {
     try {
-        req.body.movie = req.params.movieId;
+        const { movieId } = req.params;
+
+        // Validation: Prevent CastError if movieId is "undefined" or missing
+        if (!movieId || movieId === 'undefined' || !movieId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'ID phim không hợp lệ hoặc bị thiếu.' 
+            });
+        }
+
+        req.body.movie = movieId;
 
         // Check if movie exists
-        const movie = await Movie.findById(req.params.movieId);
+        const movie = await Movie.findById(movieId);
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
 
         // Enforce business logic: Single movies (Phim lẻ) & Cinema movies (Phim chiếu rạp) can only have max 1 episode
