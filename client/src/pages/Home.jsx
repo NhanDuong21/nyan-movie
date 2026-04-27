@@ -169,7 +169,7 @@ const Home = () => {
                         >
                             {movies.map((movie) => (
                                 <div 
-                                    key={movie._id} 
+                                    key={movie.id} 
                                     className="snap-start flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] md:w-[calc(25%-12px)] lg:w-[calc(20%-13px)]"
                                 >
                                     <MovieCard movie={movie} />
@@ -184,7 +184,7 @@ const Home = () => {
                 return (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {movies.map((movie) => (
-                            <MovieCard key={movie._id} movie={movie} />
+                            <MovieCard key={movie.id} movie={movie} />
                         ))}
                     </div>
                 );
@@ -194,7 +194,7 @@ const Home = () => {
                 return (
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
                         {movies.map((movie) => (
-                            <MovieCard key={movie._id} movie={movie} />
+                            <MovieCard key={movie.id} movie={movie} />
                         ))}
                     </div>
                 );
@@ -204,7 +204,7 @@ const Home = () => {
             return (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-12">
                     {movies.map((movie) => (
-                        <MovieCard key={movie._id} movie={movie} />
+                        <MovieCard key={movie.id} movie={movie} />
                     ))}
                 </div>
             );

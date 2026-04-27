@@ -78,9 +78,9 @@ const MovieForm = ({ initialData, onSuccess }) => {
         if (initialData) {
             setFormData({
                 ...initialData,
-                genres: initialData.genres?.map(g => g._id || g),
-                country: initialData.country?._id || initialData.country,
-                year: initialData.year?._id || initialData.year,
+                genres: initialData.genres?.map(g => g.id || g),
+                country: initialData.country?.id || initialData.country,
+                year: initialData.year?.id || initialData.year,
             });
         }
     }, [initialData]);
@@ -143,7 +143,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
 
         try {
             if (initialData) {
-                await axiosClient.put(`/movies/${initialData._id}`, formData);
+                await axiosClient.put(`/movies/${initialData.id}`, formData);
             } else {
                 await axiosClient.post('/movies', formData);
             }
@@ -375,7 +375,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                                     className="w-full bg-dark border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:border-primary transition-all"
                                 >
                                     <option value="">Chọn quốc gia...</option>
-                                    {categories.countries.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                    {categories.countries.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
@@ -387,7 +387,7 @@ const MovieForm = ({ initialData, onSuccess }) => {
                                     className="w-full bg-dark border border-white/10 rounded-xl px-5 py-3 text-sm focus:outline-none focus:border-primary transition-all"
                                 >
                                     <option value="">Chọn năm...</option>
-                                    {categories.years.map(y => <option key={y._id} value={y._id}>{y.year}</option>)}
+                                    {categories.years.map(y => <option key={y.id} value={y.id}>{y.year}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -397,11 +397,11 @@ const MovieForm = ({ initialData, onSuccess }) => {
                             <div className="flex flex-wrap gap-2">
                                 {categories.genres.map(g => (
                                     <button
-                                        key={g._id}
+                                        key={g.id}
                                         type="button"
-                                        onClick={() => handleGenreChange(g._id)}
+                                        onClick={() => handleGenreChange(g.id)}
                                         className={`px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-2 ${
-                                            formData.genres.includes(g._id)
+                                            formData.genres.includes(g.id)
                                             ? 'bg-primary text-white'
                                             : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                         }`}

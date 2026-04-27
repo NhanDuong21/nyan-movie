@@ -43,8 +43,8 @@ const MovieDetail = () => {
                 }
                 
                 // If logged in, check favorite status
-                if (user && res.data.data._id) {
-                    const favRes = await axiosClient.get(`/interactions/favorite/check/${res.data.data._id}`);
+                if (user && res.data.data.id) {
+                    const favRes = await axiosClient.get(`/interactions/favorite/check/${res.data.data.id}`);
                     setIsFavorite(favRes.data.isFavorite);
                 }
             } catch (err) {
@@ -59,11 +59,11 @@ const MovieDetail = () => {
 
     // Fetch recommendations whenever the movie ID is available
     useEffect(() => {
-        if (!movie?._id) return;
+        if (!movie?.id) return;
         const fetchRecs = async () => {
             setRecsLoading(true);
             try {
-                const res = await axiosClient.get(`/movies/${movie._id}/recommendations`);
+                const res = await axiosClient.get(`/movies/${movie.id}/recommendations`);
                 setRecommendations(res.data.data || []);
             } catch (err) {
                 console.error('Failed to fetch recommendations', err);
@@ -72,7 +72,7 @@ const MovieDetail = () => {
             }
         };
         fetchRecs();
-    }, [movie?._id]);
+    }, [movie?.id]);
 
     const handleToggleFavorite = async () => {
         if (!user) {
@@ -82,7 +82,7 @@ const MovieDetail = () => {
 
         try {
             setFavLoading(true);
-            const res = await axiosClient.post('/interactions/favorite', { movieId: movie._id });
+            const res = await axiosClient.post('/interactions/favorite', { movieId: movie.id });
             setIsFavorite(res.data.isFavorite);
         } catch (err) {
             console.error('Error toggling favorite', err);
@@ -146,7 +146,7 @@ const MovieDetail = () => {
                             
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm font-bold text-gray-400">
                                 <RatingWidget 
-                                    movieId={movie._id} 
+                                    movieId={movie.id} 
                                     initialAverage={movie.ratingAverage || 0} 
                                     initialCount={movie.ratingCount || 0} 
                                 />
@@ -158,7 +158,7 @@ const MovieDetail = () => {
                             <div className="flex items-center justify-center md:justify-start gap-4 pt-4">
                                 {movie.episodes?.length > 0 ? (
                                     <Link 
-                                        to={`/watch/${movie.slug}/${movie.episodes[0]._id}`}
+                                        to={`/watch/${movie.slug}/${movie.episodes[0].id}`}
                                         className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg"
                                     >
                                         <Play size={24} fill="currentColor" />
@@ -253,16 +253,16 @@ const MovieDetail = () => {
                                     {movie.episodes?.length > 0 ? (
                                         movie.episodes.map((ep) => (
                                             <Link 
-                                                key={ep._id}
-                                                to={`/watch/${movie.slug}/${ep._id}`}
+                                                key={ep.id}
+                                                to={`/watch/${movie.slug}/${ep.id}`}
                                                 className={`group relative aspect-video rounded-xl overflow-hidden border transition-all ${
-                                                    selectedEpisode?._id === ep._id 
+                                                    selectedEpisode?.id === ep.id 
                                                     ? 'border-primary ring-2 ring-primary/20' 
                                                     : 'border-white/5 hover:border-white/20'
                                                 }`}
                                             >
                                                 <div className="absolute inset-0 bg-white/2 flex items-center justify-center group-hover:bg-white/5 transition-all">
-                                                    <Play size={20} className={selectedEpisode?._id === ep._id ? 'text-primary' : 'text-white/20 group-hover:text-white'} fill="currentColor" />
+                                                    <Play size={20} className={selectedEpisode?.id === ep.id ? 'text-primary' : 'text-white/20 group-hover:text-white'} fill="currentColor" />
                                                 </div>
                                                 <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                                                     <span className="text-[10px] font-black tracking-widest uppercase">{ep.name}</span>
@@ -302,7 +302,7 @@ const MovieDetail = () => {
                                     : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${rec.poster}`;
                                 return (
                                     <Link
-                                        key={rec._id}
+                                        key={rec.id}
                                         to={`/movie/${rec.slug}`}
                                         className="flex gap-4 p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
                                     >

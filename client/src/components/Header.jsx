@@ -155,7 +155,7 @@ const Header = () => {
                             <div className="absolute top-full left-0 w-64 bg-dark-card border border-white/5 rounded-2xl shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 grid grid-cols-2 p-4 translate-y-2 group-hover/dropdown:translate-y-0">
                                 {genres.map(g => (
                                     <Link 
-                                        key={g._id} 
+                                        key={g.id} 
                                         to={`/browse?genre=${g.slug}`}
                                         className="px-3 py-2 text-[10px] font-bold text-gray-400 hover:text-primary hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest"
                                     >
@@ -172,7 +172,7 @@ const Header = () => {
                                 <div className="grid grid-cols-2 gap-1">
                                     {countries.map(c => (
                                         <Link 
-                                            key={c._id} 
+                                            key={c.id} 
                                             to={`/browse?country=${c.slug}`}
                                             className="px-3 py-2 text-[10px] font-bold text-gray-400 hover:text-primary hover:bg-white/5 rounded-lg transition-all uppercase tracking-widest"
                                         >
@@ -360,7 +360,7 @@ const Header = () => {
                                     <div className="grid grid-cols-2 gap-y-3 gap-x-2 mt-4 pl-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                         {genres.slice(0, 10).map(g => (
                                             <Link 
-                                                key={g._id} 
+                                                key={g.id} 
                                                 to={`/browse?genre=${g.slug}`} 
                                                 onClick={() => setIsMenuOpen(false)} 
                                                 className="text-[11px] font-bold text-gray-300 hover:text-primary transition-colors uppercase tracking-widest"
@@ -386,7 +386,7 @@ const Header = () => {
                                     <div className="grid grid-cols-2 gap-y-3 gap-x-2 mt-4 pl-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                         {countries.slice(0, 10).map(c => (
                                             <Link 
-                                                key={c._id} 
+                                                key={c.id} 
                                                 to={`/browse?country=${c.slug}`} 
                                                 onClick={() => setIsMenuOpen(false)} 
                                                 className="text-[11px] font-bold text-gray-300 hover:text-primary transition-colors uppercase tracking-widest"

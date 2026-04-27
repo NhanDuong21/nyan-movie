@@ -71,7 +71,7 @@ const ManageEpisodes = () => {
         setIsSaving(true);
         try {
             if (editingEpisode) {
-                await axiosClient.put(`/episodes/${editingEpisode._id}`, formData);
+                await axiosClient.put(`/episodes/${editingEpisode.id}`, formData);
             } else {
                 await axiosClient.post(`/episodes/${movieId}`, formData);
             }
@@ -257,7 +257,7 @@ const ManageEpisodes = () => {
                         <tbody className="divide-y divide-white/5">
                             {episodes.length > 0 ? (
                                 episodes.map((ep) => (
-                                    <tr key={ep._id} className="hover:bg-white/2 transition-colors group">
+                                    <tr key={ep.id} className="hover:bg-white/2 transition-colors group">
                                         <td className="px-6 py-4">
                                             <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 text-gray-300 font-bold text-xs ring-1 ring-white/10 group-hover:ring-primary/30 group-hover:text-primary transition-all uppercase">
                                                 {ep.episodeNumber}
@@ -277,7 +277,7 @@ const ManageEpisodes = () => {
                                                     <Edit size={16} />
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleDelete(ep._id)}
+                                                    onClick={() => handleDelete(ep.id)}
                                                     className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all"
                                                     title="Xóa tập phim"
                                                 >

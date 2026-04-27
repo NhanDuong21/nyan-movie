@@ -141,7 +141,7 @@ const ManageUsers = () => {
 
         try {
             if (editingUser) {
-                await axiosClient.put(`/admin/users/${editingUser._id}`, {
+                await axiosClient.put(`/admin/users/${editingUser.id}`, {
                     username: formData.username,
                     email: formData.email,
                     role: formData.role
@@ -188,10 +188,10 @@ const ManageUsers = () => {
             onConfirm: async () => {
                 setIsUpdating(true);
                 try {
-                    await axiosClient.patch(`/admin/users/${user._id}/ban`);
+                    await axiosClient.patch(`/admin/users/${user.id}/ban`);
                     // Update local state for immediate feedback
                     setUsers(prev => prev.map(u => 
-                        u._id === user._id ? { ...u, isActive: !u.isActive } : u
+                        u.id === user.id ? { ...u, isActive: !u.isActive } : u
                     ));
                 } catch (err) {
                     alert(err.response?.data?.message || 'Có lỗi xảy ra khi thay đổi trạng thái');
@@ -299,7 +299,7 @@ const ManageUsers = () => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {displayUsers.map(user => (
-                                <tr key={user._id} className="hover:bg-white/[0.01] transition-colors group">
+                                <tr key={user.id} className="hover:bg-white/[0.01] transition-colors group">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-dark group-hover:border-primary transition-all shadow-lg flex items-center justify-center shrink-0">
@@ -378,15 +378,15 @@ const ManageUsers = () => {
                                             ) : (
                                                 <>
                                                     <button 
-                                                        disabled={isUpdating || user._id === currentUser?._id}
+                                                        disabled={isUpdating || user.id === currentUser?.id}
                                                         onClick={() => handleToggleBan(user)}
                                                         className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
-                                                            user._id === currentUser?._id ? 'opacity-20 cursor-not-allowed border-white/5' :
+                                                            user.id === currentUser?.id ? 'opacity-20 cursor-not-allowed border-white/5' :
                                                             user.isActive
                                                             ? 'border-orange-500/20 text-orange-500 hover:bg-orange-500/10'
                                                             : 'border-green-500/20 text-green-500 hover:bg-green-500/10'
                                                         }`}
-                                                        title={user._id === currentUser?._id ? 'Không thể tự khóa' : (user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản')}
+                                                        title={user.id === currentUser?.id ? 'Không thể tự khóa' : (user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản')}
                                                     >
                                                         {user.isActive ? <Lock size={18} /> : <Unlock size={18} />}
                                                     </button>
@@ -398,14 +398,14 @@ const ManageUsers = () => {
                                                         <Pencil size={18} />
                                                     </button>
                                                     <button 
-                                                        disabled={isUpdating || user._id === currentUser?._id}
-                                                        onClick={() => handleDelete(user._id)}
+                                                        disabled={isUpdating || user.id === currentUser?.id}
+                                                        onClick={() => handleDelete(user.id)}
                                                         className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
-                                                            user._id === currentUser?._id
+                                                            user.id === currentUser?.id
                                                             ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-20'
                                                             : 'border-red-500/20 text-red-500 hover:bg-red-500/10 active:scale-90'
                                                         }`}
-                                                        title={user._id === currentUser?._id ? 'Không thể tự xóa' : 'Xóa người dùng'}
+                                                        title={user.id === currentUser?.id ? 'Không thể tự xóa' : 'Xóa người dùng'}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
@@ -538,7 +538,7 @@ const ManageUsers = () => {
                                             <select
                                                 disabled={
                                                     (currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || 
-                                                    (editingUser?._id === currentUser?._id)
+                                                    (editingUser?.id === currentUser?.id)
                                                 }
                                                 className={`w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:border-primary transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed underline-none outline-none`}
                                                 value={formData.role}
@@ -552,9 +552,9 @@ const ManageUsers = () => {
                                             </div>
                                         </div>
                                         {/* Helper text for locked role */}
-                                        {((currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || (editingUser?._id === currentUser?._id)) && (
+                                        {((currentUser?.email !== 'sgoku4880@gmail.com' && !currentUser?.is_root) || (editingUser?.id === currentUser?.id)) && (
                                             <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest pl-1 flex items-center gap-1">
-                                                {editingUser?._id === currentUser?._id 
+                                                {editingUser?.id === currentUser?.id 
                                                     ? "Không thể tự thay đổi chức vụ của mình" 
                                                     : "Chỉ Root mới có quyền thay đổi chức vụ"}
                                             </p>

@@ -53,7 +53,7 @@ const CommentSection = ({ movieId }) => {
         const handleNewComment = (newComment) => {
             setComments(prev => {
                 // Avoid duplicates (our own comment is already added optimistically)
-                if (prev.some(c => c._id === newComment._id)) return prev;
+                if (prev.some(c => c.id === newComment.id)) return prev;
                 return [newComment, ...prev];
             });
         };
@@ -63,9 +63,9 @@ const CommentSection = ({ movieId }) => {
             setComments(prev => {
                 // If a parent was deleted, also remove its replies
                 if (!parentId) {
-                    return prev.filter(c => c._id !== commentId && c.parentId !== commentId);
+                    return prev.filter(c => c.id !== commentId && c.parentId !== commentId);
                 }
-                return prev.filter(c => c._id !== commentId);
+                return prev.filter(c => c.id !== commentId);
             });
         };
 
@@ -137,7 +137,7 @@ const CommentSection = ({ movieId }) => {
             
             // Add new comment to local state (Socket will handle sync for others)
             setComments(prev => {
-                if (prev.some(c => c._id === res.data.data._id)) return prev;
+                if (prev.some(c => c.id === res.data.data.id)) return prev;
                 return [res.data.data, ...prev];
             });
             
@@ -174,7 +174,7 @@ const CommentSection = ({ movieId }) => {
                 try {
                     await axiosClient.delete(`/comments/${commentId}`);
                     // Socket will sync deletions to other clients
-                    setComments(prev => prev.filter(c => c._id !== commentId && c.parentId !== commentId));
+                    setComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
                 } catch (err) {
                     console.error('Failed to delete comment', err);
                     setConfirmConfig({
@@ -214,7 +214,7 @@ const CommentSection = ({ movieId }) => {
     const canDelete = (commentOwnerId) => {
         if (!user) return false;
         // Owner can always delete their own
-        if (user._id === commentOwnerId) return true;
+        if (user.id === commentOwnerId) return true;
         // Root can delete anything
         if (user.is_root || user.email === 'sgoku4880@gmail.com') return true;
         // Admin can delete (backend handles admin-vs-admin block)
@@ -311,7 +311,7 @@ const CommentSection = ({ movieId }) => {
                         const replies = comments.filter(c => c.parentId);
 
                         return rootComments.map((comment) => (
-                            <div key={comment._id} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                            <div key={comment.id} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
                                 {/* Root Comment Card */}
                                 <div className="flex gap-4 group">
                                     <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center shadow-lg">
@@ -331,23 +331,23 @@ const CommentSection = ({ movieId }) => {
                                                 {user && (
                                                     <button 
                                                         onClick={() => {
-                                                            setReplyingTo(replyingTo === comment._id ? null : comment._id);
+                                                            setReplyingTo(replyingTo === comment.id ? null : comment.id);
                                                             setReplyTargetUser(comment.user?.username);
                                                             setReplyContent('');
                                                         }}
                                                         className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md transition-all ${
-                                                            replyingTo === comment._id 
+                                                            replyingTo === comment.id 
                                                             ? 'bg-primary text-white shadow-lg shadow-primary/20' 
                                                             : 'text-primary hover:bg-primary/10'
                                                         }`}
                                                     >
-                                                        {replyingTo === comment._id ? 'Đang phản hồi' : 'Phản hồi'}
+                                                        {replyingTo === comment.id ? 'Đang phản hồi' : 'Phản hồi'}
                                                     </button>
                                                 )}
                                             </div>
-                                            {canDelete(comment.user?._id) && (
+                                            {canDelete(comment.user?.id) && (
                                                 <button 
-                                                    onClick={() => handleDelete(comment._id)}
+                                                    onClick={() => handleDelete(comment.id)}
                                                     className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                                                     aria-label="Xóa bình luận"
                                                     title="Xóa bình luận"
@@ -366,7 +366,7 @@ const CommentSection = ({ movieId }) => {
                                 </div>
 
                                 {/* Reply Input Area */}
-                                {replyingTo === comment._id && (
+                                {replyingTo === comment.id && (
                                     <div className="ml-16 animate-in slide-in-from-top-2 duration-300">
                                         <div className="bg-[#111] p-4 rounded-2xl border border-primary/20 ring-1 ring-primary/5">
                                             {replyTargetUser && (
@@ -392,7 +392,7 @@ const CommentSection = ({ movieId }) => {
                                                     Hủy
                                                 </button>
                                                 <button
-                                                    onClick={() => handleSubmit(null, comment._id)}
+                                                    onClick={() => handleSubmit(null, comment.id)}
                                                     disabled={submitting || !replyContent.trim()}
                                                     className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 disabled:opacity-50"
                                                 >
@@ -407,9 +407,9 @@ const CommentSection = ({ movieId }) => {
                                 {/* Nested Replies Rendering */}
                                 <div className="ml-16 space-y-4 border-l-2 border-white/5 pl-4">
                                     {replies
-                                        .filter(reply => reply.parentId === comment._id)
+                                        .filter(reply => reply.parentId === comment.id)
                                         .map(reply => (
-                                            <div key={reply._id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                            <div key={reply.id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500">
                                                 <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center shadow-lg">
                                                     {reply.user?.avatar ? (
                                                         <img src={getAvatarUrl(reply.user.avatar)} alt={reply.user.username} className="w-full h-full object-cover" />
@@ -425,12 +425,12 @@ const CommentSection = ({ movieId }) => {
                                                             {user && (
                                                                 <button
                                                                     onClick={() => {
-                                                                        setReplyingTo(comment._id);
+                                                                        setReplyingTo(comment.id);
                                                                         setReplyTargetUser(reply.user?.username);
                                                                         setReplyContent('');
                                                                     }}
                                                                     className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded transition-all ${
-                                                                        replyingTo === comment._id
+                                                                        replyingTo === comment.id
                                                                         ? 'text-primary/60'
                                                                         : 'text-gray-400 hover:text-primary'
                                                                     }`}
@@ -439,9 +439,9 @@ const CommentSection = ({ movieId }) => {
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        {canDelete(reply.user?._id) && (
+                                                        {canDelete(reply.user?.id) && (
                                                             <button 
-                                                                onClick={() => handleDelete(reply._id)}
+                                                                onClick={() => handleDelete(reply.id)}
                                                                 className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
                                                                 aria-label="Xóa phản hồi"
                                                                 title="Xóa phản hồi"

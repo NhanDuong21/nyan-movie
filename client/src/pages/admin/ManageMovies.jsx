@@ -273,7 +273,7 @@ const ManageMovies = () => {
                             <tbody className="divide-y divide-white/5">
                                 {movies.length > 0 ? (
                                     movies.map((movie) => (
-                                        <tr key={movie._id} className="hover:bg-white/2 transition-colors">
+                                        <tr key={movie.id} className="hover:bg-white/2 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-16 rounded-lg overflow-hidden bg-white/5 border border-white/5 flex-shrink-0">
@@ -310,7 +310,7 @@ const ManageMovies = () => {
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link 
-                                                        to={`/admin/episodes/${movie._id}`}
+                                                        to={`/admin/episodes/${movie.id}`}
                                                         className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary/5 text-primary hover:bg-primary/10 transition-all"
                                                         title="Quản lý tập phim"
                                                     >
@@ -323,7 +323,7 @@ const ManageMovies = () => {
                                                         <Edit size={16} />
                                                     </button>
                                                     <button 
-                                                        onClick={() => handleDelete(movie._id)}
+                                                        onClick={() => handleDelete(movie.id)}
                                                         className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all"
                                                     >
                                                         <Trash2 size={16} />

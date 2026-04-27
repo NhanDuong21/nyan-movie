@@ -87,7 +87,7 @@ const ManageNews = () => {
         e.preventDefault();
         try {
             if (editingNews) {
-                await axiosClient.put(`/news/${editingNews._id}`, formData);
+                await axiosClient.put(`/news/${editingNews.id}`, formData);
             } else {
                 await axiosClient.post('/news', formData);
             }
@@ -144,7 +144,7 @@ const ManageNews = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {news.map((item) => (
-                    <div key={item._id} className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden group hover:border-primary/30 transition-all duration-300 shadow-xl">
+                    <div key={item.id} className="bg-dark-card rounded-3xl border border-white/5 overflow-hidden group hover:border-primary/30 transition-all duration-300 shadow-xl">
                         <div className="relative aspect-video overflow-hidden">
                             <img 
                                 src={item.thumbnail.startsWith('http') ? item.thumbnail : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${item.thumbnail}`} 
@@ -160,7 +160,7 @@ const ManageNews = () => {
                                         <Edit2 size={16} />
                                     </button>
                                     <button 
-                                        onClick={() => handleDelete(item._id)}
+                                        onClick={() => handleDelete(item.id)}
                                         className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-red-500 transition-colors"
                                     >
                                         <Trash2 size={16} />

@@ -12,14 +12,14 @@ const MovieCard = ({ movie }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (user && movie?._id) {
+        if (user && movie?.id) {
             checkFavoriteStatus();
         }
-    }, [user, movie?._id]);
+    }, [user, movie?.id]);
 
     const checkFavoriteStatus = async () => {
         try {
-            const res = await axiosClient.get(`/interactions/favorite/check/${movie._id}`);
+            const res = await axiosClient.get(`/interactions/favorite/check/${movie.id}`);
             setIsFavorite(res.data.isFavorite);
         } catch (err) {
             console.error('Error checking favorite status', err);
@@ -37,7 +37,7 @@ const MovieCard = ({ movie }) => {
 
         try {
             setLoading(true);
-            const res = await axiosClient.post('/interactions/favorite', { movieId: movie._id });
+            const res = await axiosClient.post('/interactions/favorite', { movieId: movie.id });
             setIsFavorite(res.data.isFavorite);
         } catch (err) {
             console.error('Error toggling favorite', err);

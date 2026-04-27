@@ -159,7 +159,7 @@ const MyList = () => {
                         {favorites.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
                                 {favorites.map(movie => (
-                                    <MovieCard key={movie._id} movie={movie} />
+                                    <MovieCard key={movie.id} movie={movie} />
                                 ))}
                             </div>
                         ) : (
@@ -176,7 +176,7 @@ const MyList = () => {
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {history.map(item => (
-                                        <HistoryCard key={item._id} item={item} />
+                                        <HistoryCard key={item.id} item={item} />
                                     ))}
                                 </div>
                                 
@@ -237,7 +237,7 @@ const HistoryCard = ({ item }) => {
                         Xem lúc: {new Date(updatedAt).toLocaleDateString('vi-VN')} {new Date(updatedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     <Link 
-                        to={`/watch/${movie.slug}/${episode?._id || ''}`}
+                        to={`/watch/${movie.slug}/${episode?.id || ''}`}
                         className="flex items-center justify-center gap-2 w-full py-2 bg-white/5 hover:bg-primary rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group/btn"
                     >
                         Xem tiếp

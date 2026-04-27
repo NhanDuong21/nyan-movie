@@ -100,13 +100,13 @@ const CategorySection = ({ type, title }) => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {items.map((item) => (
-                                <tr key={item._id} className="hover:bg-white/5 transition-colors">
+                                <tr key={item.id} className="hover:bg-white/5 transition-colors">
                                     <td className="px-4 py-3 font-medium text-gray-200">
                                         {type === 'years' ? item.year : item.name}
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         <button 
-                                            onClick={() => handleDelete(item._id)}
+                                            onClick={() => handleDelete(item.id)}
                                             className="text-gray-500 hover:text-red-500 transition-colors p-1"
                                         >
                                             <Trash2 size={16} />

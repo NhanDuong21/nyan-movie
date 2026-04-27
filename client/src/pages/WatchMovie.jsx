@@ -30,16 +30,16 @@ const WatchMovie = () => {
                 setMovie(res.data.data);
                 
                 // Find current episode in the movie's episodes list
-                const episode = res.data.data.episodes?.find(ep => ep._id === episodeId);
+                const episode = res.data.data.episodes?.find(ep => ep.id === episodeId);
                 const activeEp = episode || (res.data.data.episodes?.length > 0 ? res.data.data.episodes[0] : null);
                 setCurrentEpisode(activeEp);
                 setHasCountedView(false); // Reset view count state when episode changes
 
                 // Track Watch History if logged in
-                if (user && res.data.data._id && activeEp?._id) {
+                if (user && res.data.data.id && activeEp?.id) {
                     await axiosClient.post('/interactions/history', {
-                        movieId: res.data.data._id,
-                        episodeId: activeEp._id
+                        movieId: res.data.data.id,
+                        episodeId: activeEp.id
                     });
                 }
             } catch (err) {
@@ -58,7 +58,7 @@ const WatchMovie = () => {
 
         // Rule: Increment view ONLY IF user plays for >= 15 seconds
         if (video.currentTime >= 15) {
-            const viewKey = `nyan_view_${movie._id}_${currentEpisode._id}`;
+            const viewKey = `nyan_view_${movie.id}_${currentEpisode.id}`;
             const lastView = localStorage.getItem(viewKey);
             const now = Date.now();
             const COOLDOWN = 30 * 60 * 1000; // 30 minutes
@@ -66,7 +66,7 @@ const WatchMovie = () => {
             // Anti-spam Rule: 1 view per session per 30 minutes
             if (!lastView || (now - parseInt(lastView)) >= COOLDOWN) {
                 try {
-                    await axiosClient.post(`/movies/${movie._id}/episodes/${currentEpisode._id}/view`);
+                    await axiosClient.post(`/movies/${movie.id}/episodes/${currentEpisode.id}/view`);
                     localStorage.setItem(viewKey, now.toString());
                     localStorage.setItem(`view_${movieSlug}_${episodeId}`, Date.now().toString());
                 } catch (err) {
@@ -161,7 +161,7 @@ const WatchMovie = () => {
                             {movie.description}
                         </p>
 
-                        <CommentSection movieId={movie._id} />
+                        <CommentSection movieId={movie.id} />
                     </div>
                 </div>
 
@@ -176,21 +176,21 @@ const WatchMovie = () => {
                         <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
                             {movie.episodes?.map((ep) => (
                                 <Link 
-                                    key={ep._id}
-                                    to={`/watch/${movie.slug}/${ep._id}`}
+                                    key={ep.id}
+                                    to={`/watch/${movie.slug}/${ep.id}`}
                                     className={`flex items-center gap-4 p-4 rounded-2xl border transition-all group ${
-                                        currentEpisode._id === ep._id 
+                                        currentEpisode.id === ep.id 
                                         ? 'bg-primary/20 border-primary shadow-lg shadow-primary/10' 
                                         : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/10'
                                     }`}
                                 >
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                                        currentEpisode._id === ep._id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/40' : 'bg-white/5 text-gray-500 group-hover:text-white group-hover:bg-white/10'
+                                        currentEpisode.id === ep.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/40' : 'bg-white/5 text-gray-500 group-hover:text-white group-hover:bg-white/10'
                                     }`}>
-                                        <Play size={16} fill={currentEpisode._id === ep._id ? 'white' : 'transparent'} />
+                                        <Play size={16} fill={currentEpisode.id === ep.id ? 'white' : 'transparent'} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={`font-black text-sm uppercase tracking-tight truncate ${currentEpisode._id === ep._id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                                        <h4 className={`font-black text-sm uppercase tracking-tight truncate ${currentEpisode.id === ep.id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
                                             {ep.name}
                                         </h4>
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">TẬP {ep.episodeNumber}</p>
