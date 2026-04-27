@@ -12,6 +12,7 @@ import {
     CornerDownRight
 } from 'lucide-react';
 import ConfirmModal from '../common/ConfirmModal';
+import CommentItem from './CommentItem';
 
 const CommentSection = ({ movieId }) => {
     const { user } = useAuth();
@@ -328,162 +329,25 @@ const CommentSection = ({ movieId }) => {
                         const replies = comments.filter(c => c.parentId);
 
                         return rootComments.map((comment) => (
-                            <div key={comment.id} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
-                                {/* Root Comment Card */}
-                                <div className="flex gap-4 group">
-                                    <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center shadow-lg">
-                                        {comment.user?.avatar ? (
-                                            <img src={getAvatarUrl(comment.user.avatar)} alt={comment.user.username} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <UserCircle size={28} className="text-gray-500" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <h5 className="font-black uppercase text-sm italic tracking-tight">{comment.user?.username || 'Người dùng ẩn danh'}</h5>
-                                                <span className="w-1 h-1 rounded-full bg-white/10"></span>
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formatDate(comment.createdAt)}</span>
-                                                
-                                                {user && (
-                                                    <button 
-                                                        onClick={() => {
-                                                            setReplyingTo(replyingTo === comment.id ? null : comment.id);
-                                                            setReplyTargetUser(comment.user?.username);
-                                                            setReplyContent('');
-                                                        }}
-                                                        className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md transition-all ${
-                                                            replyingTo === comment.id 
-                                                            ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                                                            : 'text-primary hover:bg-primary/10'
-                                                        }`}
-                                                    >
-                                                        {replyingTo === comment.id ? 'Đang phản hồi' : 'Phản hồi'}
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {canDelete(comment.user?.id) && (
-                                                <button 
-                                                    onClick={() => handleDelete(comment.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                    aria-label="Xóa bình luận"
-                                                    title="Xóa bình luận"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="bg-white/2 p-4 rounded-2xl rounded-tl-none border border-white/5 relative">
-                                            <p className="text-sm text-gray-300 leading-relaxed font-medium">
-                                                {comment.content}
-                                            </p>
-                                            <div className="absolute top-0 -left-1 w-2 h-2 bg-dark-card border-l border-t border-white/5 -rotate-45 -translate-x-1/2"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Reply Input Area */}
-                                {replyingTo === comment.id && (
-                                    <div className="ml-16 animate-in slide-in-from-top-2 duration-300">
-                                        <div className="bg-[#111] p-4 rounded-2xl border border-primary/20 ring-1 ring-primary/5">
-                                            {replyTargetUser && (
-                                                <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-white/5">
-                                                    <CornerDownRight size={11} className="text-primary/50" />
-                                                    <span className="text-[10px] italic text-gray-400">Đang trả lời</span>
-                                                    <span className="text-[10px] font-bold text-primary/70">@{replyTargetUser}</span>
-                                                </div>
-                                            )}
-                                            <textarea
-                                                autoFocus
-                                                value={replyContent}
-                                                onChange={(e) => setReplyContent(e.target.value)}
-                                                onInput={handleTyping}
-                                                placeholder="Viết phản hồi..."
-                                                className="w-full bg-transparent border-none p-0 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 min-h-[60px] resize-none"
-                                            />
-                                            <div className="flex justify-end items-center gap-3 mt-2 pt-2 border-t border-white/5">
-                                                <button 
-                                                    onClick={() => { setReplyingTo(null); setReplyContent(''); setReplyTargetUser(null); }}
-                                                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
-                                                >
-                                                    Hủy
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSubmit(null, comment.id)}
-                                                    disabled={submitting || !replyContent.trim()}
-                                                    className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 disabled:opacity-50"
-                                                >
-                                                    {submitting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                                                    Gửi
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Nested Replies Rendering */}
-                                <div className="ml-16 space-y-4 border-l-2 border-white/5 pl-4">
-                                    {replies
-                                        .filter(reply => reply.parentId === comment.id)
-                                        .map(reply => (
-                                            <div key={reply.id} className="flex gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-dark-lighter flex items-center justify-center shadow-lg">
-                                                    {reply.user?.avatar ? (
-                                                        <img src={getAvatarUrl(reply.user.avatar)} alt={reply.user.username} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <UserCircle size={18} className="text-gray-400" />
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 space-y-1.5">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <h5 className="font-black uppercase text-[11px] italic tracking-tight text-gray-300">{reply.user?.username || 'Người dùng ẩn danh'}</h5>
-                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{formatDate(reply.createdAt)}</span>
-                                                            {user && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setReplyingTo(comment.id);
-                                                                        setReplyTargetUser(reply.user?.username);
-                                                                        setReplyContent('');
-                                                                    }}
-                                                                    className={`text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded transition-all ${
-                                                                        replyingTo === comment.id
-                                                                        ? 'text-primary/60'
-                                                                        : 'text-gray-400 hover:text-primary'
-                                                                    }`}
-                                                                >
-                                                                    Phản hồi
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                        {canDelete(reply.user?.id) && (
-                                                            <button 
-                                                                onClick={() => handleDelete(reply.id)}
-                                                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
-                                                                aria-label="Xóa phản hồi"
-                                                                title="Xóa phản hồi"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    {/* Reply-to label from saved data */}
-                                                    <div className="flex items-center gap-1.5 text-[10px]">
-                                                        <CornerDownRight size={12} className="text-primary/50" />
-                                                        <span className="italic text-gray-400">Đang trả lời</span>
-                                                        <span className="font-bold text-primary/70">@{reply.replyToUser || comment.user?.username || 'Ẩn danh'}</span>
-                                                    </div>
-                                                    <div className="bg-white/[0.015] p-3 rounded-xl border border-white/5">
-                                                        <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                                                            {reply.content}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            </div>
+                            <CommentItem 
+                                key={comment.id}
+                                comment={comment}
+                                replies={replies.filter(reply => reply.parentId === comment.id)}
+                                user={user}
+                                formatDate={formatDate}
+                                getAvatarUrl={getAvatarUrl}
+                                canDelete={canDelete}
+                                handleDelete={handleDelete}
+                                onSubmitReply={handleSubmit}
+                                replyingTo={replyingTo}
+                                setReplyingTo={setReplyingTo}
+                                replyTargetUser={replyTargetUser}
+                                setReplyTargetUser={setReplyTargetUser}
+                                replyContent={replyContent}
+                                setReplyContent={setReplyContent}
+                                handleTyping={handleTyping}
+                                submitting={submitting}
+                            />
                         ));
                     })()
                 ) : (
