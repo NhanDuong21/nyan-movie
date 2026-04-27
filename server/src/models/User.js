@@ -61,5 +61,14 @@ const userSchema = new mongoose.Schema(
     }
 );
 
+userSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+});
+
 const User = mongoose.model('User', userSchema);
 module.exports = User;

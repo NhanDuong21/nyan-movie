@@ -55,12 +55,17 @@ exports.getMovies = async (req, res, next) => {
         }
 
         // Create query
-        let query = Movie.find(filters).populate('genres country year');
+        let query = Movie.find(filters)
+            .populate('genres', '-__v -createdAt -updatedAt')
+            .populate('country', '-__v -createdAt -updatedAt')
+            .populate('year', '-__v -createdAt -updatedAt');
 
         // Select Fields
         if (select) {
             const fields = select.split(',').join(' ');
             query = query.select(fields);
+        } else {
+            query = query.select('-__v -createdAt -updatedAt');
         }
 
         // Sort
@@ -99,7 +104,11 @@ exports.getMovies = async (req, res, next) => {
 
 exports.getMovieById = async (req, res, next) => {
     try {
-        const movie = await Movie.findById(req.params.id).populate('genres country year');
+        const movie = await Movie.findById(req.params.id)
+            .select('-__v -createdAt -updatedAt')
+            .populate('genres', '-__v -createdAt -updatedAt')
+            .populate('country', '-__v -createdAt -updatedAt')
+            .populate('year', '-__v -createdAt -updatedAt');
 
         if (!movie) {
             return res.status(404).json({ success: false, message: 'Movie not found' });
@@ -113,7 +122,11 @@ exports.getMovieById = async (req, res, next) => {
 
 exports.getMovieBySlug = async (req, res, next) => {
     try {
-        const movie = await Movie.findOne({ slug: req.params.slug }).populate('genres country year');
+        const movie = await Movie.findOne({ slug: req.params.slug })
+            .select('-__v -createdAt -updatedAt')
+            .populate('genres', '-__v -createdAt -updatedAt')
+            .populate('country', '-__v -createdAt -updatedAt')
+            .populate('year', '-__v -createdAt -updatedAt');
 
         if (!movie) {
             return res.status(404).json({ success: false, message: 'Movie not found' });
@@ -177,12 +190,17 @@ exports.getAdminMovies = async (req, res, next) => {
         }
 
         // Create query
-        let query = Movie.find(filters).populate('genres country year');
+        let query = Movie.find(filters)
+            .populate('genres', '-__v -createdAt -updatedAt')
+            .populate('country', '-__v -createdAt -updatedAt')
+            .populate('year', '-__v -createdAt -updatedAt');
 
         // Select Fields
         if (select) {
             const fields = select.split(',').join(' ');
             query = query.select(fields);
+        } else {
+            query = query.select('-__v');
         }
 
         // Sort

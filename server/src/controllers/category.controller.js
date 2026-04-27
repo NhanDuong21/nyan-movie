@@ -5,7 +5,7 @@ const Year = require('../models/Year');
 // GENRES
 exports.getAllGenres = async (req, res, next) => {
     try {
-        const genres = await Genre.find().sort({ name: 1 });
+        const genres = await Genre.find().select('-__v -createdAt -updatedAt').sort({ name: 1 });
         res.status(200).json({ success: true, count: genres.length, data: genres });
     } catch (error) {
         if (typeof next === 'function') {
@@ -46,7 +46,7 @@ exports.deleteGenre = async (req, res, next) => {
 // COUNTRIES
 exports.getAllCountries = async (req, res, next) => {
     try {
-        const countries = await Country.find().sort({ name: 1 });
+        const countries = await Country.find().select('-__v -createdAt -updatedAt').sort({ name: 1 });
         res.status(200).json({ success: true, count: countries.length, data: countries });
     } catch (error) {
         if (typeof next === 'function') {
@@ -87,7 +87,7 @@ exports.deleteCountry = async (req, res, next) => {
 // YEARS
 exports.getAllYears = async (req, res, next) => {
     try {
-        const years = await Year.find().sort({ year: -1 });
+        const years = await Year.find().select('-__v -createdAt -updatedAt').sort({ year: -1 });
         res.status(200).json({ success: true, count: years.length, data: years });
     } catch (error) {
         if (typeof next === 'function') {

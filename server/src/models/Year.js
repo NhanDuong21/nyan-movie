@@ -8,4 +8,13 @@ const yearSchema = new mongoose.Schema({
     }
 });
 
+yearSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+});
+
 module.exports = mongoose.model('Year', yearSchema);
