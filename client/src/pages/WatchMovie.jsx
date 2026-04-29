@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
+import Hls from 'hls.js';
 import { 
     Play, 
     Loader2, 
@@ -22,6 +23,8 @@ const WatchMovie = () => {
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [hasCountedView, setHasCountedView] = useState(false);
+    const videoRef = useRef(null);
+    const hlsRef = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -50,7 +53,79 @@ const WatchMovie = () => {
         };
         fetchData();
         window.scrollTo(0, 0);
+
+        // Cleanup previous HLS instance when episode changes
+        return () => {
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+        };
     }, [movieSlug, episodeId, user]);
+
+    // HLS.js initialization effect
+    useEffect(() => {
+        const video = videoRef.current;
+        const videoUrl = currentEpisode?.videoUrl;
+        if (!video || !videoUrl) return;
+
+        // Destroy previous HLS instance before creating a new one
+        if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+        }
+
+        const isHLS = videoUrl.includes('.m3u8');
+
+        if (isHLS && Hls.isSupported()) {
+            // Chrome, Firefox, Edge — needs hls.js engine
+            const hls = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 600,
+            });
+
+            hls.loadSource(videoUrl);
+            hls.attachMedia(video);
+
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                console.log('HLS engine loaded. Ready to play.');
+            });
+
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.error('Fatal network error, attempting recovery...');
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.error('Fatal media error, attempting recovery...');
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            console.error('Unrecoverable HLS error, destroying instance.');
+                            hls.destroy();
+                            break;
+                    }
+                }
+            });
+
+            hlsRef.current = hls;
+        } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari / iOS — native HLS support
+            video.src = videoUrl;
+        } else {
+            // Regular .mp4 or other direct files
+            video.src = videoUrl;
+        }
+
+        return () => {
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
+                hlsRef.current = null;
+            }
+        };
+    }, [currentEpisode?.videoUrl]);
 
     const handleTimeUpdate = async (e) => {
         const video = e.target;
@@ -125,7 +200,7 @@ const WatchMovie = () => {
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode.videoUrl ? (
                             <video
-                                src={currentEpisode.videoUrl}
+                                ref={videoRef}
                                 controls
                                 onTimeUpdate={handleTimeUpdate}
                                 className="absolute inset-0 w-full h-full object-contain"
