@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { 
     Plus, 
@@ -12,7 +12,8 @@ import {
     AlertCircle,
     Edit,
     Layers,
-    Eye
+    Eye,
+    ChevronRight
 } from 'lucide-react';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -27,6 +28,10 @@ const ManageEpisodes = () => {
     const [activeTab, setActiveTab] = useState('single'); // 'single' or 'bulk'
     const [bulkText, setBulkText] = useState('');
     const [startEpisodeNumber, setStartEpisodeNumber] = useState(1);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get('page')) || 1;
+    const [totalPages, setTotalPages] = useState(1);
+    const ADMIN_EPISODE_LIMIT = 10;
     
     const [formData, setFormData] = useState({
         name: '',
@@ -44,27 +49,27 @@ const ManageEpisodes = () => {
         confirmText: 'Xác nhận'
     });
 
-    const fetchData = async () => {
+    const fetchData = async (page = currentPage) => {
         setLoading(true);
         try {
             const [movieRes, epsRes] = await Promise.all([
                 axiosClient.get(`/movies/${movieId}`),
-                axiosClient.get(`/episodes?movieId=${movieId}`)
+                axiosClient.get(`/episodes?movieId=${movieId}&page=${page}&limit=${ADMIN_EPISODE_LIMIT}`)
             ]);
             setMovie(movieRes.data.data);
             setEpisodes(epsRes.data.data);
+            setTotalPages(epsRes.data.pagination?.pages || 1);
 
-            const highestEp = epsRes.data.data.reduce((max, ep) => Math.max(max, ep.episodeNumber), 0);
-            const nextEp = highestEp + 1;
+            // Fetch ALL episodes just to calculate the next episode number (for UX)
+            // Or use the total count from pagination
+            const totalCount = epsRes.data.pagination?.total || 0;
+            const nextEp = totalCount + 1;
             
-            // Set default episode number/name for single add
             setFormData(prev => ({ 
                 ...prev, 
                 episodeNumber: nextEp,
                 name: `Tập ${nextEp}`
             }));
-
-            // Set default starting number for bulk add
             setStartEpisodeNumber(nextEp);
         } catch (err) {
             console.error('Failed to fetch episodes', err);
@@ -74,8 +79,12 @@ const ManageEpisodes = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, [movieId]);
+        fetchData(currentPage);
+    }, [movieId, currentPage]);
+
+    const handlePageChange = (newPage) => {
+        setSearchParams({ page: newPage });
+    };
 
     const getBulkEpisodes = () => {
         const lines = bulkText.split('\n').filter(line => line.trim() !== '');
@@ -97,6 +106,8 @@ const ManageEpisodes = () => {
             
             setBulkText('');
             setShowForm(false);
+            // If total pages will increase, maybe go to last page
+            // For now just refresh current
             fetchData();
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.message || 'Lỗi không xác định';
@@ -458,6 +469,52 @@ const ManageEpisodes = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {totalPages > 1 && (
+                    <div className="p-6 border-t border-white/5 flex items-center justify-between">
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">
+                            Trang <span className="text-white">{currentPage}</span> / {totalPages}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            
+                            {[...Array(totalPages)].map((_, i) => {
+                                const pageNum = i + 1;
+                                // Basic logic to show limited page numbers if too many
+                                if (totalPages > 5) {
+                                    if (pageNum !== 1 && pageNum !== totalPages && Math.abs(pageNum - currentPage) > 1) {
+                                        if (Math.abs(pageNum - currentPage) === 2) return <span key={pageNum} className="text-gray-700">...</span>;
+                                        return null;
+                                    }
+                                }
+                                
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        onClick={() => handlePageChange(pageNum)}
+                                        className={`w-10 h-10 rounded-xl font-bold text-xs transition-all ${currentPage === pageNum ? 'bg-primary text-white shadow-lg shadow-primary/30 ring-2 ring-primary/20' : 'bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 border border-white/5'}`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button 
+                                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages}
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
             <ConfirmModal 
                 isOpen={confirmConfig.isOpen}
