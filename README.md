@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/1200x400/0B0B13/FF2E63?text=NYAN+MOVIE+-+THE+NEXT+GENERATION+OF+WEB-BASED+CINEMA" alt="Nyan Movie Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+  <img src="https://nyanmovie.site/banner.webm" alt="Nyan Movie Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
 
   <h1>Nyan Movie</h1>
   <p><b>The next generation of web-based cinema. Fast, fluid, and responsive.</b></p>
