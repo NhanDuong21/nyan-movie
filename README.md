@@ -1,9 +1,5 @@
-
-
-https://github.com/user-attachments/assets/d4a52b31-2b42-42a5-9a98-4e9ef671f91c
-
 <div align="center">
-  <video src="./client/public/banner.webm" autoplay loop muted playsinline width="100%" style="border-radius: 12px; margin-bottom: 20px;"></video>
+  <video src="https://github.com/user-attachments/assets/d4a52b31-2b42-42a5-9a98-4e9ef671f91c" autoplay loop muted playsinline width="100%" style="border-radius: 12px; margin-bottom: 20px;"></video>
 
   <h1>Nyan Movie Platform</h1>
   <p><b>The next generation of web-based cinema. Fast, fluid, and responsive.</b></p>
