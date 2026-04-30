@@ -24,8 +24,16 @@ const WatchMovie = () => {
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [hasCountedView, setHasCountedView] = useState(false);
+    const [activeChunkIndex, setActiveChunkIndex] = useState(0);
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
+
+    const CHUNK_SIZE = 100;
+    const totalChunks = Math.ceil(episodes.length / CHUNK_SIZE);
+    const displayedEpisodes = episodes.slice(
+        activeChunkIndex * CHUNK_SIZE,
+        (activeChunkIndex + 1) * CHUNK_SIZE
+    );
 
     useEffect(() => {
         const fetchData = async () => {
@@ -37,7 +45,7 @@ const WatchMovie = () => {
                 
                 // 2. Fetch Episodes List (ensure we have latest data)
                 const epsRes = await axiosClient.get(`/movies/${movieData.id}/episodes`, {
-                    params: { limit: 1000 } // Get all for the sidebar
+                    params: { limit: 9999 } // Get all for the sidebar
                 });
                 const fetchedEpisodes = epsRes.data.data || [];
                 setEpisodes(fetchedEpisodes);
@@ -79,6 +87,17 @@ const WatchMovie = () => {
             }
         };
     }, [movieSlug, episodeId, user]);
+
+    // Auto-select the correct chunk when the current episode changes
+    useEffect(() => {
+        if (currentEpisode && episodes.length > 0) {
+            const episodeIndex = episodes.findIndex(ep => ep.id === currentEpisode.id);
+            if (episodeIndex !== -1) {
+                const correctChunk = Math.floor(episodeIndex / CHUNK_SIZE);
+                setActiveChunkIndex(correctChunk);
+            }
+        }
+    }, [currentEpisode, episodes]);
 
     // HLS.js initialization effect
     useEffect(() => {
@@ -263,10 +282,34 @@ const WatchMovie = () => {
                         <header className="flex items-center gap-3">
                             <ListVideo size={24} className="text-primary" />
                             <h2 className="text-xl font-black uppercase italic tracking-widest">Danh sách tập</h2>
+                            <span className="ml-auto text-[10px] font-black text-gray-500 uppercase tracking-widest">{episodes.length} tập</span>
                         </header>
 
+                        {/* Episode Range Tabs */}
+                        {totalChunks > 1 && (
+                            <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-white/10">
+                                {Array.from({ length: totalChunks }).map((_, index) => {
+                                    const start = index * CHUNK_SIZE + 1;
+                                    const end = Math.min((index + 1) * CHUNK_SIZE, episodes.length);
+                                    return (
+                                        <button
+                                            key={index}
+                                            onClick={() => setActiveChunkIndex(index)}
+                                            className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-all shrink-0 ${
+                                                activeChunkIndex === index
+                                                ? 'bg-primary/20 text-primary border-primary/30 shadow-lg shadow-primary/10'
+                                                : 'bg-white/[0.02] text-gray-500 border-white/5 hover:bg-white/5 hover:text-gray-300'
+                                            }`}
+                                        >
+                                            {start} - {end}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                            {episodes.map((ep) => (
+                            {displayedEpisodes.map((ep) => (
                                 <Link 
                                     key={ep.id}
                                     to={`/watch/${movie.slug}/${ep.id}`}
