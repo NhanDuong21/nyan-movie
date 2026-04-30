@@ -1,5 +1,4 @@
 <div align="center">
-  <div align="center">
   <video src="https://nyanmovie.site/banner.webm" autoplay loop muted playsinline width="100%" style="border-radius: 12px; margin-bottom: 20px;"></video>
 
   <h1>Nyan Movie</h1>
