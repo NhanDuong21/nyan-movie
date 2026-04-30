@@ -79,13 +79,6 @@ const WatchMovie = () => {
         fetchData();
         window.scrollTo(0, 0);
 
-        // Cleanup previous HLS instance when episode changes
-        return () => {
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-            }
-        };
     }, [movieSlug, episodeId, user]);
 
     // Auto-select the correct chunk when the current episode changes
@@ -100,62 +93,68 @@ const WatchMovie = () => {
     }, [currentEpisode, episodes]);
 
     // HLS.js initialization effect
+    // The <video key={videoUrl}> forces React to remount the element on URL change.
+    // The 150ms delay bypasses IDM/Adblocker extensions that hijack <video> on mount.
     useEffect(() => {
         const video = videoRef.current;
         const videoUrl = currentEpisode?.videoUrl;
         if (!video || !videoUrl) return;
 
-        // Destroy previous HLS instance before creating a new one
-        if (hlsRef.current) {
-            hlsRef.current.destroy();
-            hlsRef.current = null;
-        }
+        let hls;
 
-        const isHLS = videoUrl.includes('.m3u8');
+        const initTimer = setTimeout(() => {
+            const isHLS = videoUrl.includes('.m3u8');
 
-        if (isHLS && Hls.isSupported()) {
-            // Chrome, Firefox, Edge — needs hls.js engine
-            const hls = new Hls({
-                maxBufferLength: 30,
-                maxMaxBufferLength: 600,
-            });
+            if (isHLS && Hls.isSupported()) {
+                hls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    maxBufferLength: 30,
+                    maxMaxBufferLength: 600,
+                });
 
-            hls.loadSource(videoUrl);
-            hls.attachMedia(video);
+                hls.loadSource(videoUrl);
+                hls.attachMedia(video);
 
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                console.log('HLS engine loaded. Ready to play.');
-            });
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(() => { /* Autoplay blocked by browser policy */ });
+                });
 
-            hls.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    switch (data.type) {
-                        case Hls.ErrorTypes.NETWORK_ERROR:
-                            console.error('Fatal network error, attempting recovery...');
-                            hls.startLoad();
-                            break;
-                        case Hls.ErrorTypes.MEDIA_ERROR:
-                            console.error('Fatal media error, attempting recovery...');
-                            hls.recoverMediaError();
-                            break;
-                        default:
-                            console.error('Unrecoverable HLS error, destroying instance.');
-                            hls.destroy();
-                            break;
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.error('Fatal network error, attempting recovery...');
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.error('Fatal media error, attempting recovery...');
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                console.error('Unrecoverable HLS error, destroying instance.');
+                                hls.destroy();
+                                break;
+                        }
                     }
-                }
-            });
+                });
 
-            hlsRef.current = hls;
-        } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Safari / iOS — native HLS support
-            video.src = videoUrl;
-        } else {
-            // Regular .mp4 or other direct files
-            video.src = videoUrl;
-        }
+                hlsRef.current = hls;
+            } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari / iOS — native HLS support
+                video.src = videoUrl;
+            } else {
+                // Regular .mp4 or other direct files
+                video.src = videoUrl;
+            }
+        }, 150);
 
         return () => {
+            clearTimeout(initTimer);
+            if (hls) {
+                hls.destroy();
+            }
             if (hlsRef.current) {
                 hlsRef.current.destroy();
                 hlsRef.current = null;
@@ -236,8 +235,11 @@ const WatchMovie = () => {
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode.videoUrl ? (
                             <video
+                                key={currentEpisode.videoUrl}
                                 ref={videoRef}
                                 controls
+                                preload="auto"
+                                playsInline
                                 onTimeUpdate={handleTimeUpdate}
                                 className="absolute inset-0 w-full h-full object-contain"
                                 poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
