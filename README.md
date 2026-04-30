@@ -1,5 +1,6 @@
 <div align="center">
-  <img src="https://nyanmovie.site/banner.webm" alt="Nyan Movie Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+  <div align="center">
+  <video src="https://nyanmovie.site/banner.webm" autoplay loop muted playsinline width="100%" style="border-radius: 12px; margin-bottom: 20px;"></video>
 
   <h1>Nyan Movie</h1>
   <p><b>The next generation of web-based cinema. Fast, fluid, and responsive.</b></p>
