@@ -13,9 +13,18 @@ const register = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Please provide all required fields' });
         }
 
-        const userExists = await User.findOne({ $or: [{ email }, { username }] });
+        const userExists = await User.findOne({ 
+            $or: [
+                { email: { $regex: new RegExp(`^${email}$`, 'i') } }, 
+                { username: { $regex: new RegExp(`^${username}$`, 'i') } }
+            ] 
+        });
         if (userExists) {
-            return res.status(400).json({ success: false, message: 'User already exists' });
+            const isEmail = userExists.email.toLowerCase() === email.toLowerCase();
+            return res.status(400).json({ 
+                success: false, 
+                message: isEmail ? 'Email đã được sử dụng!' : 'Username đã tồn tại!' 
+            });
         }
 
         // Hash password before saving
