@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import MovieForm from '../../components/admin/MovieForm';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import toast from 'react-hot-toast';
 
 const ManageMovies = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -145,6 +146,7 @@ const ManageMovies = () => {
         if (!movieToDelete) return;
         try {
             await axiosClient.delete(`/movies/${movieToDelete}`);
+            toast.success('Xóa phim thành công!');
             
             // Smart pagination: if we deleted the last item on the page, go back
             if (movies.length === 1 && page > 1) {
@@ -154,6 +156,7 @@ const ManageMovies = () => {
             }
         } catch (err) {
             console.error('Lỗi khi xóa phim', err);
+            toast.error(err.response?.data?.message || 'Lỗi khi xóa phim');
         } finally {
             setMovieToDelete(null);
             setShowDeleteConfirm(false);

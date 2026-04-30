@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { Upload, X, Check, Loader2, Image as ImageIcon, Film } from 'lucide-react';
 import ConfirmModal from '../common/ConfirmModal';
+import toast from 'react-hot-toast';
 
 const MovieForm = ({ initialData, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -144,12 +145,16 @@ const MovieForm = ({ initialData, onSuccess }) => {
         try {
             if (initialData) {
                 await axiosClient.put(`/movies/${initialData.id}`, formData);
+                toast.success('Cập nhật phim thành công!');
             } else {
                 await axiosClient.post('/movies', formData);
+                toast.success('Thêm phim mới thành công!');
             }
             onSuccess();
         } catch (err) {
-            setError(err.response?.data?.message || 'Có lỗi xảy ra khi lưu phim');
+            const msg = err.response?.data?.message || 'Có lỗi xảy ra khi lưu phim';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
