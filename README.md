@@ -1,7 +1,7 @@
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/d4a52b31-2b42-42a5-9a98-4e9ef671f91c" autoplay loop muted playsinline width="100%" style="border-radius: 12px; margin-bottom: 20px;"></video>
-
-  <h1>Nyan Movie Platform</h1>
+  <img width="1280" height="720" alt="ezgif-2e6bfd2fb39777ef" src="https://github.com/user-attachments/assets/f97cda96-fbeb-4965-8684-1e63a2fc0d47" />
+  
+  <h1>Nyan Movie</h1>
   <p><b>The next generation of web-based cinema. Fast, fluid, and responsive.</b></p>
   <p>Built with the MERN Stack and optimized for high-performance video streaming.</p>
 
