@@ -5,6 +5,7 @@ const Country = require('../models/Country');
 const Year = require('../models/Year');
 const Rating = require('../models/Rating');
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 exports.getMovies = async (req, res, next) => {
     try {
@@ -250,7 +251,19 @@ exports.createMovie = async (req, res, next) => {
 
 exports.updateMovie = async (req, res, next) => {
     try {
-        const movie = await Movie.findByIdAndUpdate(req.params.id, req.body, {
+        const updateData = { ...req.body };
+
+        // Auto-generate slug if title changes
+        if (updateData.title) {
+            updateData.slug = slugify(updateData.title, {
+                lower: true,
+                strict: true,
+                locale: 'vi',
+                trim: true
+            });
+        }
+
+        const movie = await Movie.findByIdAndUpdate(req.params.id, updateData, {
             returnDocument: 'after',
             runValidators: true
         });
