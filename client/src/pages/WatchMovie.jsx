@@ -20,6 +20,7 @@ const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
     const { user } = useAuth();
     const [movie, setMovie] = useState(null);
+    const [episodes, setEpisodes] = useState([]);
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [loading, setLoading] = useState(true);
     const [hasCountedView, setHasCountedView] = useState(false);
@@ -29,19 +30,35 @@ const WatchMovie = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axiosClient.get(`/movies/slug/${movieSlug}`);
-                setMovie(res.data.data);
+                // 1. Fetch Movie Data
+                const movieRes = await axiosClient.get(`/movies/slug/${movieSlug}`);
+                const movieData = movieRes.data.data;
+                setMovie(movieData);
                 
-                // Find current episode in the movie's episodes list
-                const episode = res.data.data.episodes?.find(ep => ep.id === episodeId);
-                const activeEp = episode || (res.data.data.episodes?.length > 0 ? res.data.data.episodes[0] : null);
+                // 2. Fetch Episodes List (ensure we have latest data)
+                const epsRes = await axiosClient.get(`/movies/${movieData.id}/episodes`, {
+                    params: { limit: 1000 } // Get all for the sidebar
+                });
+                const fetchedEpisodes = epsRes.data.data || [];
+                setEpisodes(fetchedEpisodes);
+                
+                // 3. Determine Active Episode
+                // First, try to find the episode matching the ID from URL
+                let activeEp = fetchedEpisodes.find(ep => ep.id === episodeId);
+                
+                // Fallback: If no ID in URL or ID not found, auto-select first episode
+                if (!activeEp && fetchedEpisodes.length > 0) {
+                    activeEp = fetchedEpisodes[0];
+                    console.log("Auto-selecting first episode:", activeEp.name);
+                }
+                
                 setCurrentEpisode(activeEp);
-                setHasCountedView(false); // Reset view count state when episode changes
+                setHasCountedView(false);
 
                 // Track Watch History if logged in
-                if (user && res.data.data.id && activeEp?.id) {
+                if (user && movieData.id && activeEp?.id) {
                     await axiosClient.post('/interactions/history', {
-                        movieId: res.data.data.id,
+                        movieId: movieData.id,
                         episodeId: activeEp.id
                     });
                 }
@@ -189,7 +206,7 @@ const WatchMovie = () => {
                     <p className="text-xs font-bold text-primary tracking-widest">{currentEpisode.name}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded border border-white/10">{movie.episodes?.length} Tập</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded border border-white/10">Tập {currentEpisode.episodeNumber}</span>
                 </div>
             </div>
 
@@ -249,7 +266,7 @@ const WatchMovie = () => {
                         </header>
 
                         <div className="grid grid-cols-1 gap-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                            {movie.episodes?.map((ep) => (
+                            {episodes.map((ep) => (
                                 <Link 
                                     key={ep.id}
                                     to={`/watch/${movie.slug}/${ep.id}`}
