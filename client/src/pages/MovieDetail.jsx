@@ -36,6 +36,7 @@ const MovieDetail = () => {
     const [episodes, setEpisodes] = useState([]);
     const [episodesLoading, setEpisodesLoading] = useState(false);
     const [activeChunkIndex, setActiveChunkIndex] = useState(0);
+    const [resumeEpisodeId, setResumeEpisodeId] = useState(null);
     const CHUNK_SIZE = 100;
     const totalChunks = Math.ceil(episodes.length / CHUNK_SIZE);
     const displayedEpisodes = episodes.slice(
@@ -64,6 +65,16 @@ const MovieDetail = () => {
         };
         fetchMovie();
         window.scrollTo(0, 0);
+
+        // Check localStorage for resume watching
+        try {
+            const history = JSON.parse(localStorage.getItem('nyan_watch_history')) || {};
+            if (history[slug]) {
+                setResumeEpisodeId(history[slug]);
+            }
+        } catch (e) {
+            // Ignore parse errors
+        }
     }, [slug, user]);
 
     useEffect(() => {
@@ -135,6 +146,14 @@ const MovieDetail = () => {
         }
     };
 
+    const handleWatchNow = () => {
+        if (resumeEpisodeId) {
+            navigate(`/watch/${movie.slug}/${resumeEpisodeId}`);
+        } else if (movie.episodes?.length > 0) {
+            navigate(`/watch/${movie.slug}/${movie.episodes[0].id}`);
+        }
+    };
+
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <Loader2 className="animate-spin text-primary" size={48} />
@@ -201,13 +220,13 @@ const MovieDetail = () => {
 
                             <div className="flex items-center justify-center md:justify-start gap-4 pt-4">
                                 {movie.episodes?.length > 0 ? (
-                                    <Link 
-                                        to={`/watch/${movie.slug}/${movie.episodes[0].id}`}
+                                    <button 
+                                        onClick={handleWatchNow}
                                         className="bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl font-black transition-all flex items-center gap-3 shadow-2xl shadow-primary/40 active:scale-95 text-lg"
                                     >
                                         <Play size={24} fill="currentColor" />
-                                    XEM NGAY
-                                </Link>
+                                    {resumeEpisodeId ? 'XEM TIEP' : 'XEM NGAY'}
+                                </button>
                             ) : (
                                 <button 
                                     disabled

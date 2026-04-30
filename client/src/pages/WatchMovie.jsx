@@ -81,6 +81,19 @@ const WatchMovie = () => {
 
     }, [movieSlug, episodeId, user]);
 
+    // Save watch progress to localStorage for Resume Watching feature
+    useEffect(() => {
+        if (movie?.slug && currentEpisode?.id) {
+            try {
+                const history = JSON.parse(localStorage.getItem('nyan_watch_history')) || {};
+                history[movie.slug] = currentEpisode.id;
+                localStorage.setItem('nyan_watch_history', JSON.stringify(history));
+            } catch (error) {
+                console.error('Failed to save watch history', error);
+            }
+        }
+    }, [movie?.slug, currentEpisode?.id]);
+
     // Auto-select the correct chunk when the current episode changes
     useEffect(() => {
         if (currentEpisode && episodes.length > 0) {
