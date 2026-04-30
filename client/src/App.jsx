@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
+import { Toaster } from 'react-hot-toast';
 
 // Lazy load all pages to reduce initial bundle size (FCP optimization)
 const Home = lazy(() => import('./pages/Home'));
@@ -41,6 +42,19 @@ function App() {
 
     return (
         <Router>
+            <Toaster 
+                position="top-right" 
+                toastOptions={{ 
+                    duration: 3000, 
+                    style: { 
+                        background: '#18181b', 
+                        color: '#fff', 
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                    } 
+                }} 
+            />
             <Suspense fallback={<LoadingFallback />}>
                 <Routes>
                     {/* Public Routes */}

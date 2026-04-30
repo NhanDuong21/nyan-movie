@@ -17,6 +17,7 @@ import {
 import CommentSection from '../components/movie/CommentSection';
 import RatingWidget from '../components/movie/RatingWidget';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
+import toast from 'react-hot-toast';
 
 const MovieDetail = () => {
     const { slug } = useParams();
@@ -113,6 +114,22 @@ const MovieDetail = () => {
             console.error('Error toggling favorite', err);
         } finally {
             setFavLoading(false);
+        }
+    };
+    
+    const handleShare = async () => {
+        if (!navigator.share) return;
+        
+        try {
+            await navigator.share({
+                title: movie?.title || "Nyan Movie",
+                text: `Xem phim ${movie?.title || 'này'} cực hay trên Nyan Movie!`,
+                url: window.location.href,
+            });
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error("Error sharing:", error);
+            }
         }
     };
 
@@ -215,7 +232,8 @@ const MovieDetail = () => {
                                 )}
                             </button>
                             <button 
-                                className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90 shadow-lg"
+                                onClick={handleShare}
+                                className="md:hidden w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-all active:scale-90 shadow-lg"
                                 aria-label="Chia sẻ phim"
                             >
                                 <Share2 size={24} />
