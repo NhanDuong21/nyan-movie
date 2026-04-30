@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { 
     Plus, 
@@ -19,6 +19,7 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ManageEpisodes = () => {
     const { movieId } = useParams();
+    const navigate = useNavigate();
     const [movie, setMovie] = useState(null);
     const [episodes, setEpisodes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -212,10 +213,13 @@ const ManageEpisodes = () => {
     return (
         <div className="space-y-8">
             <header className="flex flex-col gap-4">
-                <Link to="/admin/movies" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors w-max group">
+                <button 
+                    onClick={() => navigate(-1)} 
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors w-max group"
+                >
                     <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                     Quay lại danh sách phim
-                </Link>
+                </button>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <h1 className="text-3xl font-bold text-white uppercase tracking-tight">
