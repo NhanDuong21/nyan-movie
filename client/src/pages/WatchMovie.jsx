@@ -15,6 +15,7 @@ import {
     Globe
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
+import { getYouTubeEmbedUrl } from '../utils/youtube';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
@@ -247,22 +248,34 @@ const WatchMovie = () => {
                     {/* Video Embed */}
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode.videoUrl ? (
-                            <video
-                                key={currentEpisode.videoUrl}
-                                ref={videoRef}
-                                controls
-                                preload="auto"
-                                playsInline
-                                onTimeUpdate={handleTimeUpdate}
-                                className="absolute inset-0 w-full h-full object-contain"
-                                poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
-                            >
-                                Your browser does not support the video tag.
-                            </video>
+                            getYouTubeEmbedUrl(currentEpisode.videoUrl) ? (
+                                <iframe
+                                    key={currentEpisode.videoUrl}
+                                    src={getYouTubeEmbedUrl(currentEpisode.videoUrl)}
+                                    title={`${movie.title} - ${currentEpisode.name}`}
+                                    className="absolute inset-0 w-full h-full"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                />
+                            ) : (
+                                <video
+                                    key={currentEpisode.videoUrl}
+                                    ref={videoRef}
+                                    controls
+                                    preload="auto"
+                                    playsInline
+                                    onTimeUpdate={handleTimeUpdate}
+                                    className="absolute inset-0 w-full h-full object-contain"
+                                    poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
+                                >
+                                    Your browser does not support the video tag.
+                                </video>
+                            )
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
                                 <VideoOff size={48} className="opacity-20" />
-                                <p className="font-bold uppercase tracking-widest text-xs">Video hiện chưa khả dụng</p>
+                                <p className="font-bold uppercase tracking-widest text-xs">Video hi&#7879;n ch&#432;a kh&#7843; d&#7909;ng</p>
                             </div>
                         )}
                     </div>
