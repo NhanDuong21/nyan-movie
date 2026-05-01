@@ -197,8 +197,8 @@ const MovieDetail = () => {
                                 <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-primary/20">
                                     {movie.type === 'series' ? 'PHIM BỘ' : 'PHIM LẺ'}
                                 </span>
-                                {movie.genres?.map(g => (
-                                    <span key={g.id} className="text-gray-400 text-[10px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
+                                {movie.genres?.map((g, index) => (
+                                    <span key={g.id || g._id || index} className="text-gray-400 text-[10px] font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
                                         {g.name}
                                     </span>
                                 ))}
@@ -340,9 +340,9 @@ const MovieDetail = () => {
 
                                         <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
                                             <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                                                {displayedEpisodes.map((ep) => (
+                                                {displayedEpisodes.map((ep, index) => (
                                                     <Link
-                                                        key={ep.id}
+                                                        key={ep.id || ep._id || index}
                                                         to={`/watch/${movie.slug}/${ep.id}`}
                                                         title={ep.name}
                                                         className="bg-white/[0.03] border border-white/5 hover:border-primary hover:text-primary hover:bg-primary/10 transition-all rounded-lg py-2.5 text-center text-sm font-bold text-gray-300 active:scale-95"
@@ -377,13 +377,13 @@ const MovieDetail = () => {
                                 <Loader2 className="animate-spin text-primary" size={28} />
                             </div>
                         ) : recommendations.length > 0 ? (
-                            recommendations.map(rec => {
+                            recommendations.map((rec, index) => {
                                 const posterUrl = rec.poster?.startsWith('http')
                                     ? rec.poster
                                     : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${rec.poster}`;
                                 return (
                                     <Link
-                                        key={rec.id}
+                                        key={rec.id || rec._id || index}
                                         to={`/movie/${rec.slug}`}
                                         className="flex gap-4 p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
                                     >
@@ -398,8 +398,8 @@ const MovieDetail = () => {
                                         <div className="flex flex-col justify-center gap-2 min-w-0">
                                             <h4 className="font-bold uppercase tracking-tight line-clamp-2 group-hover:text-primary transition-colors text-sm leading-tight">{rec.title}</h4>
                                             <div className="flex flex-wrap gap-1">
-                                                {(rec.genres || []).slice(0, 2).map(g => (
-                                                    <span key={g.id} className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
+                                                {(rec.genres || []).slice(0, 2).map((g, idx) => (
+                                                    <span key={g.id || g._id || idx} className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 rounded">{g.name}</span>
                                                 ))}
                                             </div>
                                             <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase">
