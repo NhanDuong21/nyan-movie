@@ -239,7 +239,7 @@ const Home = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
-            <div className="relative w-full h-[60vh] md:h-screen lg:h-screen overflow-hidden bg-gray-900 -mt-24">
+            <div className="relative w-full h-[50vh] md:h-[70vh] lg:h-[85vh] bg-gray-900 overflow-hidden">
                 {isMobile ? (
                     /* Mobile Fallback Image - Optimized for LCP */
                     <img 
@@ -269,8 +269,8 @@ const Home = () => {
                 {/* Dark overlay for text readability */}
                 <div className="absolute inset-0 bg-black/40 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
                 
-                {/* Banner Content (Title, Play Button, etc.) */}
-                <div className="absolute inset-0 flex flex-col justify-center items-start z-10 max-w-[1400px] mx-auto px-6 md:px-12 pt-20">
+                {/* Banner Content (Title, buttons, etc.) MUST be relatively positioned to sit on top */}
+                <div className="relative z-10 w-full h-full flex flex-col justify-end pb-16 px-6 md:px-12 max-w-[1400px] mx-auto">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
                             <Activity size={14} /> Live Experience
