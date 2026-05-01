@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -19,6 +19,7 @@ import SEO from '../components/SEO';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [movie, setMovie] = useState(null);
     const [episodes, setEpisodes] = useState([]);
@@ -167,18 +168,31 @@ const WatchMovie = () => {
             <main className="max-w-[1400px] mx-auto px-0 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-4 gap-12">
                 <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
-                        {currentEpisode?.videoUrl ? (
-                            <HlsPlayer 
-                                videoUrl={currentEpisode.videoUrl} 
-                                poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
-                                onTimeUpdate={handleTimeUpdate}
-                            />
-                        ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
-                                <VideoOff size={48} className="opacity-20" />
-                                <p className="font-bold uppercase tracking-widest text-xs">Video hi&#7879;n ch&#432;a kh&#7843; d&#7909;ng</p>
-                            </div>
-                        )}
+                        {(() => {
+                            const currentIndex = episodes.findIndex(ep => ep.id === currentEpisode?.id);
+                            const hasNext = currentIndex !== -1 && currentIndex < episodes.length - 1;
+                            const hasPrev = currentIndex > 0;
+
+                            const handleNext = () => { if (hasNext) navigate(`/watch/${movie.slug}/${episodes[currentIndex + 1].id}`); };
+                            const handlePrev = () => { if (hasPrev) navigate(`/watch/${movie.slug}/${episodes[currentIndex - 1].id}`); };
+
+                            return currentEpisode?.videoUrl ? (
+                                <HlsPlayer 
+                                    videoUrl={currentEpisode.videoUrl} 
+                                    poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
+                                    onTimeUpdate={handleTimeUpdate}
+                                    onNext={handleNext}
+                                    onPrev={handlePrev}
+                                    hasNext={hasNext}
+                                    hasPrev={hasPrev}
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
+                                    <VideoOff size={48} className="opacity-20" />
+                                    <p className="font-bold uppercase tracking-widest text-xs">Video hi&#7879;n ch&#432;a kh&#7843; d&#7909;ng</p>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <div className="px-6 md:px-0 space-y-6">
