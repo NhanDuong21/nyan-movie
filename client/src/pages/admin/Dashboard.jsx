@@ -41,7 +41,7 @@ const TopTable = ({ title, data, icon: Icon, metricLabel, metricKey }) => (
             {data && data.length > 0 ? (
                 <div className="divide-y divide-white/5">
                     {data.map((item, index) => (
-                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-white/2 transition-colors group">
+                        <div key={item.id || item._id || index} className="p-4 flex items-center justify-between hover:bg-white/2 transition-colors group">
                             {/* Left Side: Rank & Title */}
                             <div className="flex items-center gap-4 flex-1 min-w-0 pr-4">
                                 <span className="w-6 h-6 shrink-0 flex items-center justify-center rounded-lg bg-white/5 text-[10px] font-black text-gray-500 group-hover:text-primary transition-colors">
