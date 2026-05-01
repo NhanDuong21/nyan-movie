@@ -52,17 +52,6 @@ const Home = () => {
     }, []);
 
 
-    if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
-            <div className="relative">
-                <Loader2 className="animate-spin text-primary" size={64} strokeWidth={1} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full blur-xl"></div>
-                </div>
-            </div>
-            <p className="text-gray-300 font-black tracking-[0.2em] uppercase text-[10px] animate-pulse">Đang tải trải nghiệm...</p>
-        </div>
-    );
 
     if (error) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-6 text-center">
@@ -120,6 +109,16 @@ const Home = () => {
         }, [layout, movies.length, isPaused]);
 
         const renderContent = () => {
+            if (loading) {
+                return (
+                    <div className="flex gap-4 md:gap-5 overflow-hidden">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] md:w-[calc(25%-12px)] lg:w-[calc(20%-13px)] aspect-[2/3] bg-gray-800 animate-pulse rounded-[32px]"></div>
+                        ))}
+                    </div>
+                );
+            }
+
             if (movies.length === 0) {
                 return (
                     <div className="py-24 bg-white/2 rounded-[40px] border border-dashed border-white/5 flex flex-col items-center justify-center gap-6 text-center px-6">
@@ -239,58 +238,71 @@ const Home = () => {
     return (
         <div className="space-y-16 pb-20">
             {/* Native HTML5 Video Banner */}
-            <div className="relative w-full h-[50vh] md:h-[70vh] lg:h-[85vh] bg-gray-900 overflow-hidden">
-                {isMobile ? (
-                    /* Mobile Fallback Image - Optimized for LCP */
-                    <img 
-                        src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")} 
-                        alt="Cinema Banner" 
-                        className="absolute inset-0 w-full h-full object-cover"
-                        fetchPriority="high"
-                    />
+            <div className="relative w-full h-[50vh] md:h-[70vh] lg:h-[85vh] bg-gray-900 overflow-hidden shrink-0">
+                {loading ? (
+                    <div className="absolute inset-0 bg-gray-800 animate-pulse"></div>
                 ) : (
-                    /* Desktop Video - Only rendered on larger screens to save mobile bandwidth */
-                    <video 
-                        className="absolute inset-0 w-full h-full object-cover"
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        aria-hidden="true"
-                        tabIndex="-1"
-                        poster="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop"
-                    >
-                        <source src="/banner.webm" type="video/webm" />
-                        <source src="/banner.mp4" type="video/mp4" />
-                        Trình duyệt của bạn không hỗ trợ tag video.
-                    </video>
-                )}
-                
-                {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-black/40 bg-gradient-to-t from-dark via-transparent to-transparent"></div>
-                
-                {/* Banner Content (Title, buttons, etc.) MUST be relatively positioned to sit on top */}
-                <div className="relative z-10 w-full h-full flex flex-col justify-end pb-16 px-6 md:px-12 max-w-[1400px] mx-auto">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
-                            <Activity size={14} /> Live Experience
-                        </div>
-                        <h1 className="text-6xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
-                            NYAN <span className="text-primary italic">MOVIE</span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-gray-300 max-w-xl font-medium tracking-wide">
-                            Trải nghiệm không gian điện ảnh đỉnh cao ngay tại nhà với hàng ngàn bộ phim bom tấn cực nét.
-                        </p>
-                        <div className="flex items-center gap-4 pt-4">
-                            <Link 
-                                to="/browse"
-                                className="bg-primary hover:bg-primary-hover text-white font-black py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-primary/40 active:scale-95 text-lg"
+                    <>
+                        {isMobile ? (
+                            /* Mobile Fallback Image - Optimized for LCP */
+                            <img 
+                                src={optimizeCloudinaryUrl("https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop")} 
+                                alt="Cinema Banner" 
+                                className="absolute inset-0 w-full h-full object-cover"
+                                fetchPriority="high"
+                            />
+                        ) : (
+                            /* Desktop Video - Only rendered on larger screens to save mobile bandwidth */
+                            <video 
+                                className="absolute inset-0 w-full h-full object-cover"
+                                autoPlay 
+                                loop 
+                                muted 
+                                playsInline
+                                aria-hidden="true"
+                                tabIndex="-1"
+                                poster="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop"
                             >
-                                <Play size={24} fill="currentColor" /> XEM NGAY
-                            </Link>
+                                <source src="/banner.webm" type="video/webm" />
+                                <source src="/banner.mp4" type="video/mp4" />
+                                Trình duyệt của bạn không hỗ trợ tag video.
+                            </video>
+                        )}
+                        
+                        {/* CINEMATIC OVERLAYS */}
+                        {/* 1. Base dark tint for overall contrast */}
+                        <div className="absolute inset-0 bg-black/30"></div>
+
+                        {/* 2. Left gradient for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
+
+                        {/* 3. CRITICAL: The bottom fade. */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+                        
+                        {/* CONTENT WRAPPER - Fixed Alignment */}
+                        <div className="relative z-10 w-full h-full flex flex-col justify-center px-6 md:px-16 lg:px-24 max-w-[1400px] mx-auto">
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
+                                    <Activity size={14} /> Live Experience
+                                </div>
+                                <h1 className="text-6xl md:text-8xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+                                    NYAN <span className="text-primary italic">MOVIE</span>
+                                </h1>
+                                <p className="text-lg md:text-xl text-gray-300 max-w-xl font-medium tracking-wide">
+                                    Trải nghiệm không gian điện ảnh đỉnh cao ngay tại nhà với hàng ngàn bộ phim bom tấn cực nét.
+                                </p>
+                                <div className="flex items-center gap-4 pt-4">
+                                    <Link 
+                                        to="/browse"
+                                        className="bg-primary hover:bg-primary-hover text-white font-black py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-primary/40 active:scale-95 text-lg"
+                                    >
+                                        <Play size={24} fill="currentColor" /> XEM NGAY
+                                    </Link>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </>
+                )}
             </div>
 
             {/* Movie Sections */}
