@@ -6,9 +6,42 @@ const Year = require('../models/Year');
 const Rating = require('../models/Rating');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const { redisClient } = require('../config/redis');
+
+// Helper function to invalidate movie list caches
+const clearMovieListCache = async () => {
+    try {
+        if (!redisClient || !redisClient.isReady) return;
+        
+        // Find all keys matching the movie list pattern
+        const keys = await redisClient.keys('movies:list:*');
+        
+        if (keys.length > 0) {
+            // Delete all matching keys
+            await redisClient.del(keys);
+            console.log(`Cache Invalidation: Cleared ${keys.length} movie list cache keys.`);
+        }
+    } catch (error) {
+        console.error('Redis Cache Invalidation Error:', error);
+    }
+};
 
 exports.getMovies = async (req, res, next) => {
     try {
+        const cacheKey = `movies:list:${JSON.stringify(req.query || {})}`;
+
+        try {
+            if (redisClient && redisClient.isReady) {
+                const cachedData = await redisClient.get(cacheKey);
+                if (cachedData) {
+                    console.log('Serving from Redis Cache:', cacheKey);
+                    return res.status(200).json(JSON.parse(cachedData));
+                }
+            }
+        } catch (cacheError) {
+            console.error('Redis GET Error:', cacheError);
+        }
+
         const { search, type, genre, country, year, status, recent, select, sort, page, limit } = req.query;
         let filters = {};
 
@@ -91,7 +124,7 @@ exports.getMovies = async (req, res, next) => {
 
         const movies = await query;
 
-        res.status(200).json({
+        const responseData = {
             success: true,
             count: movies.length,
             pagination: {
@@ -100,7 +133,18 @@ exports.getMovies = async (req, res, next) => {
                 pages: Math.ceil(total / limitNum)
             },
             data: movies
-        });
+        };
+
+        try {
+            if (redisClient && redisClient.isReady) {
+                await redisClient.setEx(cacheKey, 3600, JSON.stringify(responseData));
+                console.log('Saved to Redis Cache:', cacheKey);
+            }
+        } catch (cacheSetError) {
+            console.error('Redis SET Error:', cacheSetError);
+        }
+
+        res.status(200).json(responseData);
     } catch (error) {
         next(error);
     }
@@ -243,6 +287,7 @@ exports.getAdminMovies = async (req, res, next) => {
 exports.createMovie = async (req, res, next) => {
     try {
         const movie = await Movie.create(req.body);
+        await clearMovieListCache();
         res.status(201).json({ success: true, data: movie });
     } catch (error) {
         next(error);
@@ -270,6 +315,8 @@ exports.updateMovie = async (req, res, next) => {
 
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
 
+        await clearMovieListCache();
+
         res.status(200).json({ success: true, data: movie });
     } catch (error) {
         next(error);
@@ -282,6 +329,8 @@ exports.deleteMovie = async (req, res, next) => {
         const movie = await Movie.findByIdAndUpdate(req.params.id, { status: 'hidden' }, { returnDocument: 'after' });
         
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
+
+        await clearMovieListCache();
 
         res.status(200).json({ success: true, message: 'Movie status set to hidden' });
     } catch (error) {
