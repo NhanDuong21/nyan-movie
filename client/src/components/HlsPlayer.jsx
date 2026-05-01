@@ -131,13 +131,37 @@ const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeU
 
     // Also, add an event listener to sync state if user exits via system gesture
     useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!(
+        const handleFullscreenChange = async () => {
+            const isFull = !!(
                 document.fullscreenElement || 
                 document.webkitFullscreenElement || 
                 document.mozFullScreenElement || 
                 document.msFullscreenElement
-            ));
+            );
+            
+            setIsFullscreen(isFull);
+
+            // SCREEN ORIENTATION LOGIC
+            if (isFull) {
+                // When entering fullscreen, attempt to lock orientation to landscape
+                if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+                    try {
+                        await window.screen.orientation.lock('landscape');
+                    } catch (err) {
+                        // Ignore error: Some browsers/devices do not support orientation locking
+                        console.log("Screen orientation lock to landscape failed or is not supported.", err);
+                    }
+                }
+            } else {
+                // When exiting fullscreen, unlock orientation to return to default (portrait)
+                if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+                    try {
+                        window.screen.orientation.unlock();
+                    } catch (err) {
+                        console.log("Screen orientation unlock failed.", err);
+                    }
+                }
+            }
         };
 
         document.addEventListener('fullscreenchange', handleFullscreenChange);
