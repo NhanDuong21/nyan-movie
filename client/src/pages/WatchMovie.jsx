@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
-import Hls from 'hls.js';
 import { 
     Play, 
     Loader2, 
@@ -15,7 +14,7 @@ import {
     Globe
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
-import { getYouTubeEmbedUrl } from '../utils/youtube';
+import HlsPlayer from '../components/HlsPlayer';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
@@ -26,8 +25,6 @@ const WatchMovie = () => {
     const [loading, setLoading] = useState(true);
     const [hasCountedView, setHasCountedView] = useState(false);
     const [activeChunkIndex, setActiveChunkIndex] = useState(0);
-    const videoRef = useRef(null);
-    const hlsRef = useRef(null);
 
     const CHUNK_SIZE = 100;
     const totalChunks = Math.ceil(episodes.length / CHUNK_SIZE);
@@ -106,76 +103,6 @@ const WatchMovie = () => {
         }
     }, [currentEpisode, episodes]);
 
-    // HLS.js initialization effect
-    // The <video key={videoUrl}> forces React to remount the element on URL change.
-    // The 150ms delay bypasses IDM/Adblocker extensions that hijack <video> on mount.
-    useEffect(() => {
-        const video = videoRef.current;
-        const videoUrl = currentEpisode?.videoUrl;
-        if (!video || !videoUrl) return;
-
-        let hls;
-
-        const initTimer = setTimeout(() => {
-            const isHLS = videoUrl.includes('.m3u8');
-
-            if (isHLS && Hls.isSupported()) {
-                hls = new Hls({
-                    debug: false,
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                    maxBufferLength: 30,
-                    maxMaxBufferLength: 600,
-                });
-
-                hls.loadSource(videoUrl);
-                hls.attachMedia(video);
-
-                hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(() => { /* Autoplay blocked by browser policy */ });
-                });
-
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        switch (data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.error('Fatal network error, attempting recovery...');
-                                hls.startLoad();
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                console.error('Fatal media error, attempting recovery...');
-                                hls.recoverMediaError();
-                                break;
-                            default:
-                                console.error('Unrecoverable HLS error, destroying instance.');
-                                hls.destroy();
-                                break;
-                        }
-                    }
-                });
-
-                hlsRef.current = hls;
-            } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari / iOS — native HLS support
-                video.src = videoUrl;
-            } else {
-                // Regular .mp4 or other direct files
-                video.src = videoUrl;
-            }
-        }, 150);
-
-        return () => {
-            clearTimeout(initTimer);
-            if (hls) {
-                hls.destroy();
-            }
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-            }
-        };
-    }, [currentEpisode?.videoUrl]);
-
     const handleTimeUpdate = async (e) => {
         const video = e.target;
         if (!movie || !currentEpisode || hasCountedView) return;
@@ -247,31 +174,12 @@ const WatchMovie = () => {
                 <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
                     {/* Video Embed */}
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
-                        {currentEpisode.videoUrl ? (
-                            getYouTubeEmbedUrl(currentEpisode.videoUrl) ? (
-                                <iframe
-                                    key={currentEpisode.videoUrl}
-                                    src={getYouTubeEmbedUrl(currentEpisode.videoUrl)}
-                                    title={`${movie.title} - ${currentEpisode.name}`}
-                                    className="absolute inset-0 w-full h-full"
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    allowFullScreen
-                                />
-                            ) : (
-                                <video
-                                    key={currentEpisode.videoUrl}
-                                    ref={videoRef}
-                                    controls
-                                    preload="auto"
-                                    playsInline
-                                    onTimeUpdate={handleTimeUpdate}
-                                    className="absolute inset-0 w-full h-full object-contain"
-                                    poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
-                                >
-                                    Your browser does not support the video tag.
-                                </video>
-                            )
+                        {currentEpisode?.videoUrl ? (
+                            <HlsPlayer 
+                                videoUrl={currentEpisode.videoUrl} 
+                                poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
+                                onTimeUpdate={handleTimeUpdate}
+                            />
                         ) : (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
                                 <VideoOff size={48} className="opacity-20" />
