@@ -167,7 +167,7 @@ const WatchMovie = () => {
 
             <main className="max-w-[1400px] mx-auto px-0 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-4 gap-12">
                 <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
-                    <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
+                    <div className="relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {(() => {
                             const currentIndex = episodes.findIndex(ep => ep.id === currentEpisode?.id);
                             const hasNext = currentIndex !== -1 && currentIndex < episodes.length - 1;
