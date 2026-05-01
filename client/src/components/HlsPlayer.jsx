@@ -92,13 +92,65 @@ const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeU
     }, [isPlaying]);
 
     const toggleFullscreen = useCallback(() => {
-        if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen();
+        const container = containerRef.current;
+        const video = videoRef.current;
+
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+            
+            // ENTER FULLSCREEN
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen(); // Chrome/Safari/Opera
+            } else if (container.mozRequestFullScreen) {
+                container.mozRequestFullScreen(); // Firefox
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen(); // IE/Edge
+            } else if (video.webkitEnterFullscreen) {
+                // CRITICAL FOR IOS: Fallback to native video fullscreen
+                video.webkitEnterFullscreen();
+            }
             setIsFullscreen(true);
         } else {
-            document.exitFullscreen();
+            // EXIT FULLSCREEN
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
             setIsFullscreen(false);
         }
+    }, []);
+
+    // Also, add an event listener to sync state if user exits via system gesture
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!(
+                document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.mozFullScreenElement || 
+                document.msFullscreenElement
+            ));
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+        };
     }, []);
 
     const handleSkip = useCallback((seconds) => { 
