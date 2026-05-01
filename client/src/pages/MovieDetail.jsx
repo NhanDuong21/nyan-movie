@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
 import RatingWidget from '../components/movie/RatingWidget';
+import SEO from '../components/SEO';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 import toast from 'react-hot-toast';
 
@@ -32,7 +33,6 @@ const MovieDetail = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [recsLoading, setRecsLoading] = useState(false);
     
-    // Episode chunking for long series
     const [episodes, setEpisodes] = useState([]);
     const [episodesLoading, setEpisodesLoading] = useState(false);
     const [activeChunkIndex, setActiveChunkIndex] = useState(0);
@@ -52,7 +52,6 @@ const MovieDetail = () => {
                 const res = await axiosClient.get(`/movies/slug/${slug}`);
                 setMovie(res.data.data);
                 
-                // If logged in, check favorite status
                 if (user && res.data.data.id) {
                     const favRes = await axiosClient.get(`/interactions/favorite/check/${res.data.data.id}`);
                     setIsFavorite(favRes.data.isFavorite);
@@ -66,14 +65,12 @@ const MovieDetail = () => {
         fetchMovie();
         window.scrollTo(0, 0);
 
-        // Check localStorage for resume watching
         try {
             const history = JSON.parse(localStorage.getItem('nyan_watch_history')) || {};
             if (history[slug]) {
                 setResumeEpisodeId(history[slug]);
             }
         } catch (e) {
-            // Ignore parse errors
         }
     }, [slug, user]);
 
@@ -96,7 +93,6 @@ const MovieDetail = () => {
         fetchEpisodes();
     }, [movie?.id]);
 
-    // Fetch recommendations whenever the movie ID is available
     useEffect(() => {
         if (!movie?.id) return;
         const fetchRecs = async () => {
@@ -170,7 +166,11 @@ const MovieDetail = () => {
 
     return (
         <div className="pb-20 text-white">
-            {/* Backdrop Section */}
+            <SEO 
+                title={`Xem phim ${movie.title}`} 
+                description={movie.description} 
+                image={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
+            />
             <section className="relative h-[65vh] md:h-[80vh] group">
                 <div className="absolute inset-0">
                     <img 
@@ -184,7 +184,6 @@ const MovieDetail = () => {
 
                 <div className="relative h-full max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col justify-end pb-12 gap-8">
                     <div className="flex flex-col md:flex-row items-end md:items-center gap-8">
-                        {/* Poster Over Backdrop (Mobile: hidden or small) */}
                         <div className="hidden md:block w-64 aspect-[2/3] rounded-3xl overflow-hidden border-4 border-white/10 shadow-2xl shadow-black/50 shrink-0 transform -translate-y-4">
                             <img 
                                 src={optimizeCloudinaryUrl(movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`, 400)} 
@@ -265,9 +264,7 @@ const MovieDetail = () => {
                 </div>
             </section>
 
-            {/* Content Body */}
             <main className="max-w-[1400px] mx-auto px-6 md:px-12 mt-16 grid grid-cols-1 lg:grid-cols-3 gap-16">
-                {/* Left Side: Info & Episodes */}
                 <div className="lg:col-span-2 space-y-12">
                     <section className="space-y-4">
                         <header className="flex items-center gap-3">
@@ -278,7 +275,6 @@ const MovieDetail = () => {
                             {movie.description}
                         </p>
 
-                        {/* Additional Metadata */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 pt-6 border-t border-white/5 text-sm uppercase tracking-widest font-black italic">
                             {(movie.director || movie.actors || movie.language) && (
                                 <>
@@ -320,7 +316,6 @@ const MovieDetail = () => {
                                     </div>
                                 ) : episodes.length > 0 ? (
                                     <>
-                                        {/* Range Tabs */}
                                         {totalChunks > 1 && (
                                             <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-white/10">
                                                 {Array.from({ length: totalChunks }).map((_, index) => {
@@ -343,7 +338,6 @@ const MovieDetail = () => {
                                             </div>
                                         )}
 
-                                        {/* Compact Episode Grid */}
                                         <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
                                             <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
                                                 {displayedEpisodes.map((ep) => (
@@ -369,11 +363,9 @@ const MovieDetail = () => {
                         )}
                     </section>
 
-                    {/* Comment System Integration */}
                     <CommentSection movieId={movie.id} />
                 </div>
 
-                {/* Right Side: Recommendations */}
                 <div className="space-y-8 min-h-[400px]">
                     <header className="flex items-center gap-3">
                         <div className="w-1 h-6 bg-primary rounded-full"></div>

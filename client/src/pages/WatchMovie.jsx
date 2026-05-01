@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import CommentSection from '../components/movie/CommentSection';
 import HlsPlayer from '../components/HlsPlayer';
+import SEO from '../components/SEO';
 
 const WatchMovie = () => {
     const { movieSlug, episodeId } = useParams();
@@ -36,23 +37,18 @@ const WatchMovie = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Fetch Movie Data
                 const movieRes = await axiosClient.get(`/movies/slug/${movieSlug}`);
                 const movieData = movieRes.data.data;
                 setMovie(movieData);
                 
-                // 2. Fetch Episodes List (ensure we have latest data)
                 const epsRes = await axiosClient.get(`/movies/${movieData.id}/episodes`, {
                     params: { limit: 9999 } // Get all for the sidebar
                 });
                 const fetchedEpisodes = epsRes.data.data || [];
                 setEpisodes(fetchedEpisodes);
                 
-                // 3. Determine Active Episode
-                // First, try to find the episode matching the ID from URL
                 let activeEp = fetchedEpisodes.find(ep => ep.id === episodeId);
                 
-                // Fallback: If no ID in URL or ID not found, auto-select first episode
                 if (!activeEp && fetchedEpisodes.length > 0) {
                     activeEp = fetchedEpisodes[0];
                     console.log("Auto-selecting first episode:", activeEp.name);
@@ -61,7 +57,6 @@ const WatchMovie = () => {
                 setCurrentEpisode(activeEp);
                 setHasCountedView(false);
 
-                // Track Watch History if logged in
                 if (user && movieData.id && activeEp?.id) {
                     await axiosClient.post('/interactions/history', {
                         movieId: movieData.id,
@@ -79,7 +74,6 @@ const WatchMovie = () => {
 
     }, [movieSlug, episodeId, user]);
 
-    // Save watch progress to localStorage for Resume Watching feature
     useEffect(() => {
         if (movie?.slug && currentEpisode?.id) {
             try {
@@ -92,7 +86,6 @@ const WatchMovie = () => {
         }
     }, [movie?.slug, currentEpisode?.id]);
 
-    // Auto-select the correct chunk when the current episode changes
     useEffect(() => {
         if (currentEpisode && episodes.length > 0) {
             const episodeIndex = episodes.findIndex(ep => ep.id === currentEpisode.id);
@@ -107,14 +100,12 @@ const WatchMovie = () => {
         const video = e.target;
         if (!movie || !currentEpisode || hasCountedView) return;
 
-        // Rule: Increment view ONLY IF user plays for >= 15 seconds
         if (video.currentTime >= 15) {
             const viewKey = `nyan_view_${movie.id}_${currentEpisode.id}`;
             const lastView = localStorage.getItem(viewKey);
             const now = Date.now();
-            const COOLDOWN = 30 * 60 * 1000; // 30 minutes
+            const COOLDOWN = 30 * 60 * 1000; 
 
-            // Anti-spam Rule: 1 view per session per 30 minutes
             if (!lastView || (now - parseInt(lastView)) >= COOLDOWN) {
                 try {
                     await axiosClient.post(`/movies/${movie.id}/episodes/${currentEpisode.id}/view`);
@@ -151,7 +142,11 @@ const WatchMovie = () => {
 
     return (
         <div className="pb-20 text-white animate-in fade-in duration-700">
-            {/* Breadcrumb / Back Navigation */}
+            <SEO 
+                title={`Tập ${currentEpisode.name} - ${movie.title}`} 
+                description={`Đang xem tập ${currentEpisode.name} của bộ phim ${movie.title}. ${movie.description}`} 
+                image={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
+            />
             <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-6 flex items-center justify-between border-b border-white/5 bg-dark/50 backdrop-blur-xl sticky top-20 z-40">
                 <Link to={`/movie/${movie.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group">
                     <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
@@ -170,9 +165,7 @@ const WatchMovie = () => {
             </div>
 
             <main className="max-w-[1400px] mx-auto px-0 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-4 gap-12">
-                {/* Player Column */}
                 <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
-                    {/* Video Embed */}
                     <div className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group">
                         {currentEpisode?.videoUrl ? (
                             <HlsPlayer 
@@ -188,7 +181,6 @@ const WatchMovie = () => {
                         )}
                     </div>
 
-                    {/* Movie Info & Actions below player */}
                     <div className="px-6 md:px-0 space-y-6">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-2">
@@ -212,7 +204,6 @@ const WatchMovie = () => {
                     </div>
                 </div>
 
-                {/* Sidebar: Episodes List */}
                 {movie.type !== 'single' && (
                     <div className="px-6 md:px-0 space-y-8">
                         <header className="flex items-center gap-3">
@@ -221,7 +212,6 @@ const WatchMovie = () => {
                             <span className="ml-auto text-[10px] font-black text-gray-500 uppercase tracking-widest">{episodes.length} tập</span>
                         </header>
 
-                        {/* Episode Range Tabs */}
                         {totalChunks > 1 && (
                             <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-white/10">
                                 {Array.from({ length: totalChunks }).map((_, index) => {
@@ -270,7 +260,6 @@ const WatchMovie = () => {
                             ))}
                         </div>
 
-                        {/* Recommendation Card */}
                         <div className="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-3xl border border-primary/20 space-y-4">
                             <h5 className="font-black text-xs uppercase tracking-[0.2em] text-primary">NYAN PRO TIP</h5>
                             <p className="text-xs font-medium text-gray-300 leading-relaxed">
