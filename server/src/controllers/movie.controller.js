@@ -7,6 +7,9 @@ const Rating = require('../models/Rating');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const { redisClient } = require('../config/redis');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper function to invalidate movie list caches
 const clearMovieListCache = async () => {
@@ -493,5 +496,113 @@ exports.rateMovie = async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+};
+
+exports.searchMoviesByAI = async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt || typeof prompt !== 'string') {
+            return res.status(400).json({ success: false, message: 'Please provide a valid search prompt.' });
+        }
+
+        // 1. Check Redis Cache first (Normalize prompt to lowercase for consistency)
+        const cacheKey = `ai:search:${prompt.toLowerCase().trim()}`;
+        try {
+            if (redisClient && redisClient.isReady) {
+                const cachedResult = await redisClient.get(cacheKey);
+                if (cachedResult) {
+                    console.log('Serving AI result from Redis Cache:', cacheKey);
+                    return res.status(200).json(JSON.parse(cachedResult));
+                }
+            }
+        } catch (cacheErr) {
+            console.error('Redis Get Error in AI Search:', cacheErr);
+        }
+
+        // 2. Call Gemini API to parse the natural language
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const systemPrompt = `You are a movie recommendation engine for a Vietnamese streaming site. Analyze the user's mood or request. Return ONLY a valid JSON object with NO markdown formatting (no \`\`\`json). The JSON format MUST be exactly: {"genres": ["genre1"], "countries": ["country1"], "tags": ["keyword1"]}. If you cannot determine a field, return an empty array for it. User request: "${prompt}"`;
+
+        const result = await model.generateContent(systemPrompt);
+        const responseText = result.response.text().trim();
+        
+        // Sanitize response in case Gemini includes markdown tags
+        const cleanJsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        let aiData;
+        try {
+            aiData = JSON.parse(cleanJsonString);
+        } catch (parseError) {
+            console.error('Failed to parse Gemini response:', responseText);
+            return res.status(500).json({ success: false, message: 'AI failed to generate valid parameters.' });
+        }
+
+        // 3. Build MongoDB Query dynamically based on AI output
+        const query = { $or: [] };
+        
+        if (aiData.genres && aiData.genres.length > 0) {
+            const genreRegex = aiData.genres.map(g => new RegExp(g, 'i'));
+            const genreDocs = await Genre.find({ name: { $in: genreRegex } });
+            if (genreDocs.length > 0) {
+                query.$or.push({ genres: { $in: genreDocs.map(g => g._id) } });
+            }
+        }
+        
+        if (aiData.countries && aiData.countries.length > 0) {
+            const countryRegex = aiData.countries.map(c => new RegExp(c, 'i'));
+            const countryDocs = await Country.find({ name: { $in: countryRegex } });
+            if (countryDocs.length > 0) {
+                query.$or.push({ country: { $in: countryDocs.map(c => c._id) } });
+            }
+        }
+        
+        if (aiData.tags && aiData.tags.length > 0) {
+            // Search in title or description
+            const tagRegex = aiData.tags.map(t => new RegExp(t, 'i'));
+            query.$or.push({ title: { $in: tagRegex } });
+            query.$or.push({ description: { $in: tagRegex } });
+        }
+
+        // If AI returned empty arrays or we didn't match any genres/countries, remove the $or
+        if (query.$or.length === 0) {
+            delete query.$or;
+        }
+
+        // 4. Fetch movies from MongoDB
+        // Populate genres and country to match frontend expectations
+        const moviesQuery = Object.keys(query).length > 0 ? query : {};
+        const movies = await Movie.find(moviesQuery)
+            .populate('genres', 'name slug')
+            .populate('country', 'name slug')
+            .limit(12);
+        
+        const responseData = { 
+            success: true, 
+            aiAnalysis: aiData, // Send back what the AI thought for UI purposes
+            movies 
+        };
+
+        // 5. Save to Redis Cache (TTL: 7 days = 604800 seconds)
+        try {
+            if (redisClient && redisClient.isReady) {
+                await redisClient.setEx(cacheKey, 604800, JSON.stringify(responseData));
+                console.log('Saved AI result to Redis Cache:', cacheKey);
+            }
+        } catch (cacheSetErr) {
+            console.error('Redis Set Error in AI Search:', cacheSetErr);
+        }
+
+        // 6. Return Data
+        res.status(200).json(responseData);
+
+    } catch (error) {
+        console.error('AI Search Endpoint Error:', error);
+        // Expose the error message temporarily for debugging
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server Error during AI processing.',
+            errorDetail: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };

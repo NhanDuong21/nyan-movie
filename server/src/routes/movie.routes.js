@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById, incrementView, getRecommendations, rateMovie
+    getMovies, getMovieBySlug, createMovie, updateMovie, deleteMovie, getMovieById, incrementView, getRecommendations, rateMovie, searchMoviesByAI
 } = require('../controllers/movie.controller');
 const { getEpisodes } = require('../controllers/episode.controller');
 const { verifyToken, verifyAdmin, optionalAuth } = require('../middlewares/auth.middleware');
@@ -12,6 +12,8 @@ router.route('/')
 
 router.route('/slug/:slug')
     .get(optionalAuth, getMovieBySlug);
+
+router.post('/ai-search', searchMoviesByAI);
 
 router.route('/:id')
     .get(getMovieById)
