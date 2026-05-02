@@ -80,7 +80,7 @@ const AISearchModal = () => {
                             <Bot size={16} className="text-primary" />
                         </div>
                         <div className="bg-gray-800 rounded-2xl rounded-tl-sm p-3 max-w-[85%] shadow-sm">
-                            <p className="text-sm text-gray-200">Xin chào! Sếp đang có tâm trạng thế nào? Để Nyan tìm phim cho sếp nhé!</p>
+                            <p className="text-sm text-gray-200">Xin chào! Bạn đang có tâm trạng thế nào? Để Nyan tìm phim cho bạn nhé!</p>
                         </div>
                     </div>
 
@@ -130,7 +130,7 @@ const AISearchModal = () => {
                                     <Bot size={16} className="text-primary" />
                                 </div>
                                 <div className="bg-gray-800 rounded-2xl rounded-tl-sm p-3 max-w-[90%] shadow-sm">
-                                    <p className="text-sm text-gray-200 mb-2">Đã tìm thấy phim dựa trên phân tích tâm trạng của sếp!</p>
+                                    <p className="text-sm text-gray-200 mb-2">Đã tìm thấy phim dựa trên phân tích tâm trạng của bạn!</p>
                                     <div className="flex flex-wrap gap-1">
                                         {results.aiAnalysis?.genres?.map((g, i) => (
                                             <span key={`g-${i}`} className="text-[10px] px-2 py-0.5 bg-gray-700 rounded-md text-gray-300">{g}</span>

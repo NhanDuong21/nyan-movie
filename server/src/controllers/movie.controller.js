@@ -301,7 +301,6 @@ exports.updateMovie = async (req, res, next) => {
     try {
         const updateData = { ...req.body };
 
-        // Auto-generate slug if title changes
         if (updateData.title) {
             updateData.slug = slugify(updateData.title, {
                 lower: true,
@@ -328,7 +327,6 @@ exports.updateMovie = async (req, res, next) => {
 
 exports.deleteMovie = async (req, res, next) => {
     try {
-        // SOFT DELETE as per docs
         const movie = await Movie.findByIdAndUpdate(req.params.id, { status: 'hidden' }, { returnDocument: 'after' });
         
         if (!movie) return res.status(404).json({ success: false, message: 'Movie not found' });
@@ -341,9 +339,7 @@ exports.deleteMovie = async (req, res, next) => {
     }
 };
 
-// @desc    Increment views for movie and episode
-// @route   POST /api/movies/:movieId/episodes/:episodeId/view
-// @access  Public
+
 exports.incrementView = async (req, res, next) => {
     try {
         const { movieId, episodeId } = req.params;
@@ -359,14 +355,11 @@ exports.incrementView = async (req, res, next) => {
     }
 };
 
-// @desc    Get content-based recommendations for a movie
-// @route   GET /api/movies/:id/recommendations
-// @access  Public
+
 exports.getRecommendations = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        // Fetch the source movie with its key attributes
         const source = await Movie.findById(id)
             .populate('genres', '_id')
             .populate('country', '_id')
@@ -384,7 +377,6 @@ exports.getRecommendations = async (req, res, next) => {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const HIGH_VIEWS_THRESHOLD = 500;
 
-        // Fetch candidate movies (pre-filter to same-genre OR same-country for efficiency)
         const candidates = await Movie.find({
             _id: { $ne: id },
             status: { $ne: 'hidden' },
@@ -399,37 +391,28 @@ exports.getRecommendations = async (req, res, next) => {
             .select('title slug poster genres country type tags views ratingAverage ratingCount createdAt year')
             .lean();
 
-        // Score each candidate
         const scored = candidates.map(candidate => {
             let score = 0;
 
-            // +5: At least one overlapping genre
             const candidateGenreIds = (candidate.genres || []).map(g => g._id.toString());
             if (candidateGenreIds.some(id => sourceGenreIds.includes(id))) score += 5;
 
-            // +4: At least one overlapping tag (safe — tags may be undefined)
             const candidateTags = candidate.tags || [];
             if (sourceTags.length > 0 && candidateTags.some(t => sourceTags.includes(t))) score += 4;
 
-            // +3: Same country
             if (candidate.country?._id?.toString() === sourceCountryId) score += 3;
 
-            // +3: Same type
             if (candidate.type === sourceType) score += 3;
 
-            // +1: High views
             if ((candidate.views || 0) > HIGH_VIEWS_THRESHOLD) score += 1;
 
-            // +1: High rating
             if ((candidate.ratingAverage || 0) >= 8.0) score += 1;
 
-            // +1: New release (within the last 30 days)
             if (new Date(candidate.createdAt) >= thirtyDaysAgo) score += 1;
 
             return { ...candidate, score };
         });
 
-        // Sort descending by score, take top 6
         const recommendations = scored
             .sort((a, b) => b.score - a.score)
             .slice(0, 6);
@@ -440,32 +423,25 @@ exports.getRecommendations = async (req, res, next) => {
     }
 };
 
-// @desc    Rate a movie (1-10)
-// @route   POST /api/movies/:id/rate
-// @access  Private
 exports.rateMovie = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { score } = req.body;
 
-        // Validation
         if (!score || score < 1 || score > 10) {
             return res.status(400).json({ success: false, message: 'Vui lòng chọn điểm từ 1 đến 10.' });
         }
 
-        // Rule Check: Admin/Root cannot rate
         if (req.user.role === 'admin' || req.user.is_root || req.user.email === 'sgoku4880@gmail.com') {
             return res.status(403).json({ success: false, message: 'Quản trị viên không thể đánh giá phim.' });
         }
 
-        // Create or update existing rating
         await Rating.findOneAndUpdate(
             { user: req.user.id, movie: id },
             { score },
             { upsert: true, returnDocument: 'after' }
         );
 
-        // Recalculate average and count using aggregation
         const stats = await Rating.aggregate([
             { $match: { movie: new mongoose.Types.ObjectId(id) } },
             {
@@ -480,7 +456,6 @@ exports.rateMovie = async (req, res, next) => {
         const ratingCount = stats[0]?.ratingCount || 0;
         const ratingAverage = stats[0]?.ratingAverage || 0;
 
-        // Update Movie document
         const updatedMovie = await Movie.findByIdAndUpdate(
             id,
             { ratingAverage, ratingCount },
@@ -506,7 +481,6 @@ exports.searchMoviesByAI = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Please provide a valid search prompt.' });
         }
 
-        // 1. Check Redis Cache first (Normalize prompt to lowercase for consistency)
         const cacheKey = `ai:search:${prompt.toLowerCase().trim()}`;
         try {
             if (redisClient && redisClient.isReady) {
@@ -520,14 +494,12 @@ exports.searchMoviesByAI = async (req, res) => {
             console.error('Redis Get Error in AI Search:', cacheErr);
         }
 
-        // 2. Call Gemini API to parse the natural language
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const systemPrompt = `You are a movie recommendation engine for a Vietnamese streaming site. Analyze the user's mood or request. Return ONLY a valid JSON object with NO markdown formatting (no \`\`\`json). The JSON format MUST be exactly: {"genres": ["genre1"], "countries": ["country1"], "tags": ["keyword1"]}. If you cannot determine a field, return an empty array for it. User request: "${prompt}"`;
+        const systemPrompt = `You are an AI movie assistant for a Vietnamese streaming site. First, carefully evaluate if the user's input is related to finding movies, describing a mood, requesting recommendations, or discussing film genres. If the input is just a simple greeting (e.g., "hello", "hi", "chào"), gibberish, or entirely unrelated to movies/moods, return EXACTLY this JSON: {"isRelevant": false}. If the input IS relevant, analyze it and return EXACTLY this JSON: {"isRelevant": true, "genres": ["genre1"], "countries": ["country1"], "tags": ["keyword1"]}. Return ONLY a valid JSON object with NO markdown formatting. User input: "${prompt}"`;
 
         const result = await model.generateContent(systemPrompt);
         const responseText = result.response.text().trim();
         
-        // Sanitize response in case Gemini includes markdown tags
         const cleanJsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         let aiData;
         try {
@@ -537,14 +509,25 @@ exports.searchMoviesByAI = async (req, res) => {
             return res.status(500).json({ success: false, message: 'AI failed to generate valid parameters.' });
         }
 
-        // 3. Build MongoDB Query dynamically based on AI output
-        const query = { $or: [] };
+        if (aiData.isRelevant === false) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Xin lỗi, Nyan chỉ hiểu các yêu cầu về tìm phim hoặc chia sẻ tâm trạng. Bạn gõ cụ thể hơn được không?" 
+            });
+        }
+
+        const baseConditions = [
+            { status: { $ne: 'hidden' } }, 
+            { totalEpisodes: { $gt: 0 } }  
+        ];
+
+        const aiSearchConditions = [];
         
         if (aiData.genres && aiData.genres.length > 0) {
             const genreRegex = aiData.genres.map(g => new RegExp(g, 'i'));
             const genreDocs = await Genre.find({ name: { $in: genreRegex } });
             if (genreDocs.length > 0) {
-                query.$or.push({ genres: { $in: genreDocs.map(g => g._id) } });
+                aiSearchConditions.push({ genres: { $in: genreDocs.map(g => g._id) } });
             }
         }
         
@@ -552,37 +535,33 @@ exports.searchMoviesByAI = async (req, res) => {
             const countryRegex = aiData.countries.map(c => new RegExp(c, 'i'));
             const countryDocs = await Country.find({ name: { $in: countryRegex } });
             if (countryDocs.length > 0) {
-                query.$or.push({ country: { $in: countryDocs.map(c => c._id) } });
+                aiSearchConditions.push({ country: { $in: countryDocs.map(c => c._id) } });
             }
         }
         
         if (aiData.tags && aiData.tags.length > 0) {
-            // Search in title or description
             const tagRegex = aiData.tags.map(t => new RegExp(t, 'i'));
-            query.$or.push({ title: { $in: tagRegex } });
-            query.$or.push({ description: { $in: tagRegex } });
+            aiSearchConditions.push({ title: { $in: tagRegex } });
+            aiSearchConditions.push({ description: { $in: tagRegex } });
         }
 
-        // If AI returned empty arrays or we didn't match any genres/countries, remove the $or
-        if (query.$or.length === 0) {
-            delete query.$or;
+        const query = { $and: baseConditions };
+        
+        if (aiSearchConditions.length > 0) {
+            query.$and.push({ $or: aiSearchConditions });
         }
 
-        // 4. Fetch movies from MongoDB
-        // Populate genres and country to match frontend expectations
-        const moviesQuery = Object.keys(query).length > 0 ? query : {};
-        const movies = await Movie.find(moviesQuery)
+        const movies = await Movie.find(query)
             .populate('genres', 'name slug')
             .populate('country', 'name slug')
             .limit(12);
         
         const responseData = { 
             success: true, 
-            aiAnalysis: aiData, // Send back what the AI thought for UI purposes
+            aiAnalysis: aiData, 
             movies 
         };
 
-        // 5. Save to Redis Cache (TTL: 7 days = 604800 seconds)
         try {
             if (redisClient && redisClient.isReady) {
                 await redisClient.setEx(cacheKey, 604800, JSON.stringify(responseData));
@@ -592,12 +571,10 @@ exports.searchMoviesByAI = async (req, res) => {
             console.error('Redis Set Error in AI Search:', cacheSetErr);
         }
 
-        // 6. Return Data
         res.status(200).json(responseData);
 
     } catch (error) {
         console.error('AI Search Endpoint Error:', error);
-        // Expose the error message temporarily for debugging
         res.status(500).json({ 
             success: false, 
             message: 'Server Error during AI processing.',
