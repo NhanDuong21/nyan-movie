@@ -19,7 +19,6 @@ const AISearchModal = () => {
     
     const messagesEndRef = useRef(null);
 
-    // Auto scroll to bottom when results load
     useEffect(() => {
         if (results && messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -33,7 +32,7 @@ const AISearchModal = () => {
         setLoading(true);
         setError('');
         setResults(null);
-        if (!searchQuery) setPrompt(''); // Clear input if typed manually
+        if (!searchQuery) setPrompt(''); 
 
         try {
             const response = await axiosClient.post('/movies/ai-search', { prompt: queryToUse });
@@ -46,14 +45,10 @@ const AISearchModal = () => {
     };
 
     return (
-        // Outer container: Fixed to viewport, very high z-index
         <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end pointer-events-none">
-            
-            {/* Chat Window */}
-            {/* Added pointer-events-auto so clicks work inside the window */}
+
             <div className={`pointer-events-auto mb-4 w-[calc(100vw-3rem)] sm:w-[400px] bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 h-[500px] max-h-[70vh]' : 'scale-0 opacity-0 h-0'}`}>
                 
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/20 to-gray-900 border-b border-gray-800 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary rounded-full text-white shadow-lg shadow-primary/30">
@@ -71,10 +66,8 @@ const AISearchModal = () => {
                     </button>
                 </div>
 
-                {/* Chat Area */}
                 <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-700 bg-gray-950/50">
                     
-                    {/* Welcome Bubble */}
                     <div className="flex gap-3 mb-6">
                         <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
                             <Bot size={16} className="text-primary" />
@@ -84,7 +77,6 @@ const AISearchModal = () => {
                         </div>
                     </div>
 
-                    {/* Suggestions */}
                     {!results && !loading && (
                         <div className="flex flex-col gap-2 pl-11 mb-6">
                             {SUGGESTIONS.map((sug, idx) => (
@@ -99,7 +91,6 @@ const AISearchModal = () => {
                         </div>
                     )}
 
-                    {/* Loading State */}
                     {loading && (
                         <div className="flex gap-3 mb-6">
                             <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
@@ -112,7 +103,6 @@ const AISearchModal = () => {
                         </div>
                     )}
 
-                    {/* Error State */}
                     {error && (
                         <div className="flex justify-center mb-6">
                             <div className="bg-red-900/20 text-red-400 text-sm py-2 px-4 rounded-lg border border-red-900/50">
@@ -121,10 +111,8 @@ const AISearchModal = () => {
                         </div>
                     )}
 
-                    {/* Results Display */}
                     {results && !loading && (
                         <div className="flex flex-col gap-4 mb-6">
-                            {/* AI Thought Bubble */}
                             <div className="flex gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
                                     <Bot size={16} className="text-primary" />
@@ -147,7 +135,6 @@ const AISearchModal = () => {
                                 </div>
                             </div>
 
-                            {/* Movies Grid */}
                             <div className="pl-11 grid grid-cols-2 gap-2">
                                 {results.movies?.length > 0 ? (
                                     results.movies.map((movie) => {
@@ -174,7 +161,6 @@ const AISearchModal = () => {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
                 <div className="p-3 bg-gray-900 border-t border-gray-800 shrink-0">
                     <form 
                         onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
@@ -185,7 +171,7 @@ const AISearchModal = () => {
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="Nhập tâm trạng của bạn..."
-                            className="w-full bg-gray-800 border border-gray-700 text-white text-sm px-4 py-3 rounded-full focus:outline-none focus:border-primary focus:bg-gray-900 transition pr-12"
+                            className="w-full bg-gray-800 border border-gray-700 text-white text-base px-4 py-3 rounded-full focus:outline-none focus:border-primary focus:bg-gray-900 transition pr-12"
                         />
                         <button 
                             type="submit" 
@@ -199,8 +185,6 @@ const AISearchModal = () => {
 
             </div>
 
-            {/* Floating Toggle Button */}
-            {/* Added pointer-events-auto so the button is clickable */}
             <button 
                 type="button"
                 onClick={(e) => {
