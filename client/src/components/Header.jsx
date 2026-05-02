@@ -1,8 +1,9 @@
 import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X, Sparkles } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
+
 
 import logo from '../assets/logo.png';
 
@@ -11,6 +12,7 @@ const Header = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
+
     const [genres, setGenres] = useState([]);
     const [countries, setCountries] = useState([]);
     const searchTimeoutRef = useRef(null);
@@ -464,7 +466,6 @@ const Header = () => {
                     </div>
                 </div>
             </div>
-
         </header>
     );
 };

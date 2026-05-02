@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import AISearchModal from '../components/AISearchModal';
 
 const MainLayout = () => {
     return (
@@ -12,6 +13,9 @@ const MainLayout = () => {
             <div className="mt-auto w-full">
                 <Footer />
             </div>
+            
+            {/* Global AI Chat Widget */}
+            <AISearchModal />
         </div>
     );
 };
