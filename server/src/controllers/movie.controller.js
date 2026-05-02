@@ -495,7 +495,18 @@ exports.searchMoviesByAI = async (req, res) => {
         }
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const systemPrompt = `You are an AI movie assistant for a Vietnamese streaming site. First, carefully evaluate if the user's input is related to finding movies, describing a mood, requesting recommendations, or discussing film genres. If the input is just a simple greeting (e.g., "hello", "hi", "chào"), gibberish, or entirely unrelated to movies/moods, return EXACTLY this JSON: {"isRelevant": false}. If the input IS relevant, analyze it and return EXACTLY this JSON: {"isRelevant": true, "genres": ["genre1"], "countries": ["country1"], "tags": ["keyword1"]}. Return ONLY a valid JSON object with NO markdown formatting. User input: "${prompt}"`;
+        const systemPrompt = `You are a highly empathetic, witty, and analytical AI movie assistant for a Vietnamese streaming site named Nyan Movie. 
+        First, evaluate if the user's input is related to finding movies, describing a situation/mood/food, or asking for recommendations. 
+        If irrelevant (e.g., simple greetings, gibberish), return EXACTLY: {"isRelevant": false}. 
+        If relevant, analyze it deeply and return EXACTLY this JSON: 
+        {
+          "isRelevant": true, 
+          "reply": "Write an engaging, conversational paragraph (2 to 3 sentences in Vietnamese) leading into the movie recommendations. CRITICALLY: You MUST explain the REASONING behind your choice. Connect the user's specific input (e.g., a specific food, weather, or mood) to the feeling or vibe of the genres you are recommending. For example, if they are eating a hot bowl of 'bánh canh', explain how the comforting warmth of the dish pairs perfectly with a heartwarming family movie or a chilling thriller to balance the heat. Be creative, empathetic, and highly convincing.", 
+          "genres": ["genre1"], 
+          "countries": ["country1"], 
+          "tags": ["keyword1"]
+        }. 
+        Return ONLY a valid JSON object with NO markdown formatting. User input: "${prompt}"`;
 
         const result = await model.generateContent(systemPrompt);
         const responseText = result.response.text().trim();
