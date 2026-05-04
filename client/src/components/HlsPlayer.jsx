@@ -3,7 +3,7 @@ import Hls from 'hls.js';
 import { Play, Pause, Rewind, FastForward, SkipBack, SkipForward, Volume2, VolumeX, Maximize, PictureInPicture, Settings } from 'lucide-react';
 import { getYouTubeEmbedUrl } from '../utils/youtube';
 
-const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeUpdate }) => {
+const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeUpdate, onEnded }) => {
     const videoRef = useRef(null);
     const containerRef = useRef(null);
     const hlsRef = useRef(null);
@@ -204,6 +204,7 @@ const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeU
         const handleLoadedMetadata = () => setDuration(video.duration);
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
+        const handleEnded = () => { if (onEnded) onEnded(); };
 
         const handleKeyDown = (e) => {
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
@@ -230,6 +231,7 @@ const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeU
         video.addEventListener('loadedmetadata', handleLoadedMetadata);
         video.addEventListener('play', handlePlay);
         video.addEventListener('pause', handlePause);
+        video.addEventListener('ended', handleEnded);
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
@@ -237,9 +239,10 @@ const HlsPlayer = ({ videoUrl, poster, onNext, onPrev, hasNext, hasPrev, onTimeU
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             video.removeEventListener('play', handlePlay);
             video.removeEventListener('pause', handlePause);
+            video.removeEventListener('ended', handleEnded);
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [onTimeUpdate, youtubeEmbedUrl, togglePlay, toggleFullscreen, toggleMute, handleSkip]);
+    }, [onTimeUpdate, youtubeEmbedUrl, togglePlay, toggleFullscreen, toggleMute, handleSkip, onEnded]);
 
     const handleSeek = (e) => {
         const time = parseFloat(e.target.value);

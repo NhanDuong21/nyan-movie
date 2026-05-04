@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +31,10 @@ const WatchMovie = () => {
     const playerContainerRef = useRef(null);
     const [isMiniPlayer, setIsMiniPlayer] = useState(false);
     const [isMiniPlayerDismissed, setIsMiniPlayerDismissed] = useState(false);
+    
+    // Auto-play Next Episode States
+    const [showNextOverlay, setShowNextOverlay] = useState(false);
+    const [countdown, setCountdown] = useState(10);
 
     const CHUNK_SIZE = 100;
     const totalChunks = Math.ceil(episodes.length / CHUNK_SIZE);
@@ -134,6 +138,33 @@ const WatchMovie = () => {
             }
         }
     }, [currentEpisode, episodes]);
+
+    const nextEpisode = useMemo(() => {
+        if (!episodes || episodes.length <= 1 || !currentEpisode) return null;
+        const currentIndex = episodes.findIndex(ep => ep.id === currentEpisode.id);
+        if (currentIndex !== -1 && currentIndex < episodes.length - 1) {
+            return episodes[currentIndex + 1];
+        }
+        return null;
+    }, [episodes, currentEpisode]);
+
+    const handlePlayNext = () => {
+        if (nextEpisode && movie?.slug) {
+            setShowNextOverlay(false);
+            setCountdown(10);
+            navigate(`/watch/${movie.slug}/${nextEpisode.id}`);
+        }
+    };
+
+    useEffect(() => {
+        let timer;
+        if (showNextOverlay && countdown > 0) {
+            timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+        } else if (showNextOverlay && countdown === 0) {
+            handlePlayNext();
+        }
+        return () => clearInterval(timer);
+    }, [showNextOverlay, countdown]);
 
     const handleTimeUpdate = async (e) => {
         const video = e.target;
@@ -251,15 +282,59 @@ const WatchMovie = () => {
                                 const handlePrev = () => { if (hasPrev) navigate(`/watch/${movie.slug}/${episodes[currentIndex - 1].id}`); };
 
                                 return currentEpisode?.videoUrl ? (
-                                    <HlsPlayer 
-                                        videoUrl={currentEpisode.videoUrl} 
-                                        poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
-                                        onTimeUpdate={handleTimeUpdate}
-                                        onNext={handleNext}
-                                        onPrev={handlePrev}
-                                        hasNext={hasNext}
-                                        hasPrev={hasPrev}
-                                    />
+                                    <>
+                                        <HlsPlayer 
+                                            videoUrl={currentEpisode.videoUrl} 
+                                            poster={movie.backdrop?.startsWith('http') ? movie.backdrop : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.backdrop}`}
+                                            onTimeUpdate={handleTimeUpdate}
+                                            onNext={handleNext}
+                                            onPrev={handlePrev}
+                                            hasNext={hasNext}
+                                            hasPrev={hasPrev}
+                                            onEnded={() => { if (nextEpisode) setShowNextOverlay(true); }}
+                                        />
+                                        {/* Next Episode Auto-play Overlay */}
+                                        {showNextOverlay && nextEpisode && (
+                                            <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
+                                                <div className="text-center space-y-6 max-w-md p-8">
+                                                    <h3 className="text-gray-400 uppercase tracking-widest text-sm font-bold">Tập tiếp theo sẽ phát sau</h3>
+                                                    <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+                                                        <svg className="absolute inset-0 w-full h-full -rotate-90">
+                                                            <circle 
+                                                                cx="48" cy="48" r="45" stroke="currentColor" strokeWidth="4" fill="transparent"
+                                                                className="text-gray-800"
+                                                            />
+                                                            <circle 
+                                                                cx="48" cy="48" r="45" stroke="currentColor" strokeWidth="4" fill="transparent"
+                                                                strokeDasharray="283"
+                                                                strokeDashoffset={283 - (283 * countdown) / 10}
+                                                                className="text-red-600 transition-all duration-1000 ease-linear"
+                                                            />
+                                                        </svg>
+                                                        <span className="text-4xl font-bold text-white">{countdown}</span>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h2 className="text-2xl font-bold text-white line-clamp-1">{movie.title}</h2>
+                                                        <p className="text-red-500 font-medium">Tập {nextEpisode.name}</p>
+                                                    </div>
+                                                    <div className="flex gap-4 justify-center pt-4">
+                                                        <button 
+                                                            onClick={() => { setShowNextOverlay(false); setCountdown(10); }}
+                                                            className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-medium transition"
+                                                        >
+                                                            Hủy
+                                                        </button>
+                                                        <button 
+                                                            onClick={handlePlayNext}
+                                                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-medium transition shadow-lg shadow-red-600/20"
+                                                        >
+                                                            Phát ngay
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-gray-500">
                                         <VideoOff size={48} className="opacity-20" />
