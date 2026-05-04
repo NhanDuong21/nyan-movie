@@ -52,20 +52,60 @@ const AISearchModal = () => {
             return;
         }
 
+        // Stop any existing instance before starting a new one
+        if (window.currentRecognition) {
+            window.currentRecognition.stop();
+        }
+
         const recognition = new SpeechRecognition();
+        window.currentRecognition = recognition; // Store globally to prevent garbage collection issues on mobile
+
         recognition.lang = 'vi-VN';
+        recognition.continuous = false; // Mobile browsers handle 'false' better for single-shot commands
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        recognition.onstart = () => setIsListening(true);
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            setPrompt(transcript);
+            
+            if (typeof setPrompt === 'function') {
+                setPrompt(transcript);
+            }
+            
+            setIsListening(false);
         };
-        recognition.onerror = () => setIsListening(false);
-        recognition.onend = () => setIsListening(false);
 
-        recognition.start();
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+            
+            // Provide user-friendly mobile alerts based on the exact error
+            if (event.error === 'not-allowed') {
+                alert('Lỗi: Bạn chưa cấp quyền sử dụng Micro cho trang web.');
+            } else if (event.error === 'no-speech') {
+                // Silently ignore or show a small toast, 'no-speech' is common on mobile if user pauses
+                console.log('Không nghe thấy âm thanh nào.');
+            } else if (event.error === 'network') {
+                alert('Lỗi mạng: Nhận diện giọng nói cần kết nối internet ổn định.');
+            } else {
+                alert('Lỗi nhận diện giọng nói: ' + event.error);
+            }
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        try {
+            recognition.start();
+        } catch (err) {
+            console.error('Failed to start recognition:', err);
+            setIsListening(false);
+        }
     };
 
     return (
