@@ -386,17 +386,25 @@ const Header = () => {
                 </div>
 
                 {/* Mobile Search Dropdown */}
-                <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isSearchOpen ? 'max-h-20 mt-3 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`lg:hidden transition-all duration-300 ease-in-out relative ${isSearchOpen ? 'mt-3 opacity-100 z-[100]' : 'opacity-0 pointer-events-none'}`}>
                     <form onSubmit={handleSearch} className="relative">
                         <input
                             type="text"
                             placeholder="Tìm kiếm phim..."
-                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-[16px] md:text-sm focus:outline-none focus:border-primary transition-all shadow-xl pr-20"
+                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-[16px] md:text-sm focus:outline-none focus:border-primary transition-all shadow-xl pr-24"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                if (e.target.value.length === 0) setShowDropdown(false);
+                            }}
+                            onFocus={() => { if (suggestions.length > 0) setShowDropdown(true); }}
+                            onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                             autoFocus={isSearchOpen}
                         />
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            {isSearching && (
+                                <Loader2 size={16} className="text-primary animate-spin mr-1" />
+                            )}
                             <button
                                 type="button"
                                 onClick={startListening}
@@ -414,6 +422,34 @@ const Header = () => {
                             </button>
                         </div>
                     </form>
+
+                    {/* Dropdown Suggestions for Mobile */}
+                    {showDropdown && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 w-full mt-2 bg-dark-card border border-white/5 rounded-2xl shadow-2xl overflow-hidden z-[110]">
+                            <ul className="max-h-[50vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+                                {suggestions.map((movie) => (
+                                    <li key={movie._id || movie.id}>
+                                        <Link 
+                                            to={`/movie/${movie.slug}`} 
+                                            className="flex items-center gap-3 p-3 hover:bg-white/5 transition border-b border-white/5 last:border-0"
+                                            onClick={() => setShowDropdown(false)}
+                                        >
+                                            <img 
+                                                src={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
+                                                alt={movie.title} 
+                                                className="w-10 h-14 object-cover rounded-md shadow-md"
+                                            />
+                                            <div className="flex-1 overflow-hidden">
+                                                <h4 className="text-sm font-bold text-white truncate">{movie.title}</h4>
+                                                <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 truncate mt-1">{movie.originTitle || movie.name}</p>
+                                                <span className="text-[10px] text-primary font-black mt-1 block">{movie.year?.year || movie.year || new Date(movie.createdAt).getFullYear()}</span>
+                                            </div>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </nav>
 
