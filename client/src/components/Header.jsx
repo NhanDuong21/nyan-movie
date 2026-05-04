@@ -167,7 +167,7 @@ const Header = () => {
         }
     }, []);
 
-    const toggleListening = () => {
+    const toggleListening = async () => {
         if (!recognitionRef.current) {
             alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome hoặc Safari bản mới nhất.');
             return;
@@ -176,14 +176,34 @@ const Header = () => {
         if (isListening) {
             recognitionRef.current.stop();
             setIsListening(false);
-        } else {
-            try {
-                recognitionRef.current.start();
-            } catch (err) {
-                // Handle cases where the recognition engine is already running in the background
-                console.error('Recognition start error:', err);
-                recognitionRef.current.stop();
-                setIsListening(false);
+            return;
+        }
+
+        try {
+            // --- THE IOS ICEBREAKER HACK ---
+            // Explicitly request microphone access at the hardware level first
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Immediately stop the tracks since we just needed to unlock the permission state
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            // Now that iOS hardware is "warmed up" and permitted, start the speech recognition
+            recognitionRef.current.start();
+            
+        } catch (err) {
+            console.error('Microphone unlock or speech recognition failed:', err);
+            setIsListening(false);
+            
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                alert('Lỗi: Bạn đã từ chối quyền truy cập Micro. Vui lòng vào Cài đặt của Safari/Chrome để mở lại.');
+            } else {
+                // Fallback for when recognition fails to start (e.g. already started)
+                try {
+                    recognitionRef.current.stop();
+                } catch (stopErr) {
+                    console.error(stopErr);
+                }
             }
         }
     };
