@@ -17,6 +17,7 @@ const AISearchModal = () => {
     const [results, setResults] = useState(null);
     const [error, setError] = useState('');
     const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
     
     const messagesEndRef = useRef(null);
 
@@ -45,67 +46,67 @@ const AISearchModal = () => {
         }
     };
 
-    const toggleListening = () => {
-        // If already listening, stop it manually (acts as a toggle)
-        if (isListening && window.currentRecognition) {
-            window.currentRecognition.stop();
-            setIsListening(false);
-            return;
-        }
-
+    useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert('Trình duyệt không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome/Safari.');
+        
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                setIsListening(true);
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                
+                if (typeof setPrompt === 'function') {
+                    setPrompt(transcript);
+                }
+                
+                setIsListening(false);
+            };
+
+            recognition.onerror = (event) => {
+                setIsListening(false);
+                if (event.error === 'aborted' || event.error === 'no-speech') {
+                    // Silently handle Apple's frequent aborts/no-speech without alerting
+                    return; 
+                }
+                if (event.error === 'not-allowed') {
+                    alert('Vui lòng cấp quyền sử dụng Micro trong cài đặt trình duyệt.');
+                }
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognitionRef.current = recognition;
+        }
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) {
+            alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome hoặc Safari bản mới nhất.');
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        window.currentRecognition = recognition;
-
-        recognition.lang = 'vi-VN';
-        recognition.continuous = false; 
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onstart = () => {
-            setIsListening(true);
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            
-            if (typeof setPrompt === 'function') {
-                setPrompt(transcript);
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                recognitionRef.current.start();
+            } catch (err) {
+                // Handle cases where the recognition engine is already running in the background
+                console.error('Recognition start error:', err);
+                recognitionRef.current.stop();
+                setIsListening(false);
             }
-            
-            setIsListening(false);
-        };
-
-        recognition.onerror = (event) => {
-            setIsListening(false);
-            
-            // Suppress 'aborted' and 'no-speech' alerts to prevent annoying mobile popups
-            if (event.error === 'aborted' || event.error === 'no-speech') {
-                console.log('Voice recognition stopped or no speech detected.');
-                return; 
-            }
-            
-            if (event.error === 'not-allowed') {
-                alert('Vui lòng cấp quyền sử dụng Micro trong cài đặt trình duyệt.');
-            } else if (event.error === 'network') {
-                alert('Lỗi mạng: Cần kết nối internet để nhận diện giọng nói.');
-            }
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
-
-        try {
-            recognition.start();
-        } catch (err) {
-            console.error('Start recognition error:', err);
-            setIsListening(false);
         }
     };
 
