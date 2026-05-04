@@ -1,7 +1,7 @@
 import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X, Sparkles, Mic } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X, Sparkles, Mic, Loader2 } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 
@@ -22,6 +22,9 @@ const Header = () => {
     const [isGenresOpen, setIsGenresOpen] = useState(false);
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     // Close menu when location changes
     useEffect(() => {
@@ -56,8 +59,9 @@ const Header = () => {
 
         // Rule 1: length === 0 -> Instantly return to Home (if on search page)
         if (!trimmed) {
+            setSuggestions([]);
+            setShowDropdown(false);
             const currentParams = new URLSearchParams(location.search);
-            // CRITICAL FIX: Only kick the user back to Home if they are currently on the Search Results page AND have a search param
             if (location.pathname === '/browse' && currentParams.has('search')) {
                 navigate('/');
             }
@@ -66,6 +70,8 @@ const Header = () => {
 
         // Rule 2: length === 1 -> Do NOT trigger search
         if (trimmed.length === 1) {
+            setSuggestions([]);
+            setShowDropdown(false);
             return;
         }
 
@@ -74,12 +80,16 @@ const Header = () => {
         // Rule 4: 3+ characters = 400ms delay
         const delay = trimmed.length === 2 ? 1000 : 400;
 
-        searchTimeoutRef.current = setTimeout(() => {
-            const currentParams = new URLSearchParams(location.search);
-            if (location.pathname !== '/browse' || currentParams.get('search') !== trimmed) {
-                // If already on browse, replace to keep history clean, else push
-                const options = location.pathname === '/browse' ? { replace: true } : {};
-                navigate(`/browse?search=${encodeURIComponent(trimmed)}`, options);
+        searchTimeoutRef.current = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const res = await axiosClient.get(`/movies?search=${encodeURIComponent(trimmed)}&limit=5`);
+                setSuggestions(res.data.data || res.data.movies || []);
+                setShowDropdown(true);
+            } catch (error) {
+                console.error("Search failed:", error);
+            } finally {
+                setIsSearching(false);
             }
         }, delay);
 
@@ -107,6 +117,8 @@ const Header = () => {
     const handleSearch = (e) => {
         if (e) e.preventDefault();
         if (searchQuery.trim()) {
+            setShowDropdown(false);
+            setIsSearchOpen(false);
             navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
@@ -223,32 +235,78 @@ const Header = () => {
                     </ul>
 
                     {/* Desktop Search Bar */}
-                    <form onSubmit={handleSearch} className="flex-1 max-w-md hidden lg:relative lg:block">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm phim..."
-                            className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-400 shadow-inner pr-20"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                            <button
-                                type="button"
-                                onClick={startListening}
-                                className={`p-1.5 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                                title="Tìm kiếm bằng giọng nói"
-                            >
-                                <Mic size={16} />
-                            </button>
-                            <button 
-                                type="submit" 
-                                className="p-1.5 text-gray-400 hover:text-primary transition-colors"
-                                aria-label="Tìm kiếm phim"
-                            >
-                                <Search size={18} />
-                            </button>
-                        </div>
-                    </form>
+                    <div className="flex-1 max-w-md hidden lg:relative lg:block">
+                        <form onSubmit={handleSearch} className="relative w-full">
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm phim..."
+                                className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-400 shadow-inner pr-24"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    if (e.target.value.length === 0) setShowDropdown(false);
+                                }}
+                                onFocus={() => { if (suggestions.length > 0) setShowDropdown(true); }}
+                                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                            />
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                                {isSearching && (
+                                    <Loader2 size={16} className="text-primary animate-spin mr-1" />
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={startListening}
+                                    className={`p-1.5 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                                    title="Tìm kiếm bằng giọng nói"
+                                >
+                                    <Mic size={16} />
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="p-1.5 text-gray-400 hover:text-primary transition-colors"
+                                    aria-label="Tìm kiếm phim"
+                                >
+                                    <Search size={18} />
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Dropdown Suggestions */}
+                        {showDropdown && suggestions.length > 0 && (
+                            <div className="absolute top-full left-0 w-full mt-2 bg-dark-card border border-white/5 rounded-2xl shadow-2xl overflow-hidden z-50">
+                                <ul className="max-h-[60vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-700">
+                                    {suggestions.map((movie) => (
+                                        <li key={movie._id || movie.id}>
+                                            <Link 
+                                                to={`/movie/${movie.slug}`} 
+                                                className="flex items-center gap-3 p-3 hover:bg-white/5 transition border-b border-white/5 last:border-0"
+                                                onClick={() => setShowDropdown(false)}
+                                            >
+                                                <img 
+                                                    src={movie.poster?.startsWith('http') ? movie.poster : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${movie.poster}`} 
+                                                    alt={movie.title} 
+                                                    className="w-10 h-14 object-cover rounded-md shadow-md"
+                                                />
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h4 className="text-sm font-bold text-white truncate group-hover:text-primary transition-colors">{movie.title}</h4>
+                                                    <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 truncate mt-1">{movie.originTitle || movie.name}</p>
+                                                    <span className="text-[10px] text-primary font-black mt-1 block">{movie.year?.year || movie.year || new Date(movie.createdAt).getFullYear()}</span>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="p-3 bg-dark-lighter border-t border-white/5 text-center">
+                                    <button 
+                                        onClick={handleSearch}
+                                        className="text-[11px] uppercase font-black tracking-[0.2em] text-primary hover:text-white transition-colors"
+                                    >
+                                        Xem tất cả kết quả
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Auth & Search Toggle */}
                     <div className="flex items-center gap-2 md:gap-4 ml-auto md:ml-0">
