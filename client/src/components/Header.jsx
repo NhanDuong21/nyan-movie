@@ -1,7 +1,7 @@
 import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X, Sparkles } from 'lucide-react';
+import { Search, User, LogOut, Menu, Play, LayoutDashboard, ChevronDown, History as HistoryIcon, X, Sparkles, Mic } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 
@@ -21,6 +21,7 @@ const Header = () => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isGenresOpen, setIsGenresOpen] = useState(false);
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
+    const [isListening, setIsListening] = useState(false);
 
     // Close menu when location changes
     useEffect(() => {
@@ -104,10 +105,33 @@ const Header = () => {
     }, []);
 
     const handleSearch = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (searchQuery.trim()) {
             navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
         }
+    };
+
+    const startListening = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchQuery(transcript);
+        };
+        recognition.onerror = () => setIsListening(false);
+        recognition.onend = () => setIsListening(false);
+
+        recognition.start();
     };
 
     const navLinkClass = ({ isActive }) => 
@@ -203,17 +227,27 @@ const Header = () => {
                         <input
                             type="text"
                             placeholder="Tìm kiếm phim..."
-                            className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-400 shadow-inner"
+                            className="w-full bg-dark-lighter border border-white/10 rounded-full py-2 px-5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-gray-400 shadow-inner pr-20"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button 
-                            type="submit" 
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
-                            aria-label="Tìm kiếm phim"
-                        >
-                            <Search size={18} />
-                        </button>
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={startListening}
+                                className={`p-1.5 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                                title="Tìm kiếm bằng giọng nói"
+                            >
+                                <Mic size={16} />
+                            </button>
+                            <button 
+                                type="submit" 
+                                className="p-1.5 text-gray-400 hover:text-primary transition-colors"
+                                aria-label="Tìm kiếm phim"
+                            >
+                                <Search size={18} />
+                            </button>
+                        </div>
                     </form>
 
                     {/* Auth & Search Toggle */}
@@ -295,22 +329,32 @@ const Header = () => {
 
                 {/* Mobile Search Dropdown */}
                 <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isSearchOpen ? 'max-h-20 mt-3 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <form onSubmit={handleSearch} className="relative pb-2 px-1">
+                    <form onSubmit={handleSearch} className="relative">
                         <input
                             type="text"
                             placeholder="Tìm kiếm phim..."
-                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-[16px] md:text-sm focus:outline-none focus:border-primary transition-all shadow-xl"
+                            className="w-full bg-black border border-white/20 rounded-full py-2.5 px-5 text-[16px] md:text-sm focus:outline-none focus:border-primary transition-all shadow-xl pr-20"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             autoFocus={isSearchOpen}
                         />
-                        <button 
-                            type="submit" 
-                            className="absolute right-4 top-1/2 -translate-y-1/2 -mt-1 text-gray-400 hover:text-primary transition-colors p-2 active:scale-90"
-                            aria-label="Xác nhận tìm kiếm"
-                        >
-                            <Search size={20} />
-                        </button>
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={startListening}
+                                className={`p-2 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 active:scale-90'}`}
+                                title="Tìm kiếm bằng giọng nói"
+                            >
+                                <Mic size={18} />
+                            </button>
+                            <button 
+                                type="submit" 
+                                className="p-2 text-gray-400 hover:text-primary transition-colors active:scale-90"
+                                aria-label="Xác nhận tìm kiếm"
+                            >
+                                <Search size={20} />
+                            </button>
+                        </div>
                     </form>
                 </div>
             </nav>
