@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axiosClient from '../api/axiosClient';
-import { Sparkles, X, Send, Loader2, Film, MessageSquare, Bot } from 'lucide-react';
+import { Sparkles, X, Send, Loader2, Film, MessageSquare, Bot, Mic } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
@@ -16,6 +16,7 @@ const AISearchModal = () => {
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
     const [error, setError] = useState('');
+    const [isListening, setIsListening] = useState(false);
     
     const messagesEndRef = useRef(null);
 
@@ -42,6 +43,29 @@ const AISearchModal = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const startListening = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome hoặc Safari bản mới nhất.');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setPrompt(transcript);
+        };
+        recognition.onerror = () => setIsListening(false);
+        recognition.onend = () => setIsListening(false);
+
+        recognition.start();
     };
 
     return (
@@ -171,15 +195,29 @@ const AISearchModal = () => {
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="Nhập tâm trạng của bạn..."
-                            className="w-full bg-gray-800 border border-gray-700 text-white text-base px-4 py-3 rounded-full focus:outline-none focus:border-primary focus:bg-gray-900 transition pr-12"
+                            className="w-full bg-gray-800 border border-gray-700 text-white text-base px-4 py-3 rounded-full focus:outline-none focus:border-primary focus:bg-gray-900 transition pr-20"
                         />
-                        <button 
-                            type="submit" 
-                            disabled={loading || !prompt.trim()}
-                            className="absolute right-1 w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full disabled:opacity-50 disabled:bg-gray-700 transition"
-                        >
-                            <Send size={14} className="ml-0.5" />
-                        </button>
+                        
+                        <div className="absolute right-1 flex items-center gap-1">
+                            {/* Mic Button */}
+                            <button
+                                type="button"
+                                onClick={startListening}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full transition ${isListening ? 'bg-red-500/20 text-red-500 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                                title="Tìm kiếm bằng giọng nói"
+                            >
+                                <Mic size={16} />
+                            </button>
+
+                            {/* Send Button */}
+                            <button 
+                                type="submit" 
+                                disabled={loading || !prompt.trim()}
+                                className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full disabled:opacity-50 disabled:bg-gray-700 transition"
+                            >
+                                <Send size={14} className="ml-0.5" />
+                            </button>
+                        </div>
                     </form>
                 </div>
 
