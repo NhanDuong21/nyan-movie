@@ -123,23 +123,25 @@ const Header = () => {
         }
     };
 
-    const startListening = () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome hoặc Safari bản mới nhất.');
+    const toggleListening = () => {
+        // If already listening, stop it manually (acts as a toggle)
+        if (isListening && window.currentRecognition) {
+            window.currentRecognition.stop();
+            setIsListening(false);
             return;
         }
 
-        // Stop any existing instance before starting a new one
-        if (window.currentRecognition) {
-            window.currentRecognition.stop();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Trình duyệt không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome/Safari.');
+            return;
         }
 
         const recognition = new SpeechRecognition();
-        window.currentRecognition = recognition; // Store globally to prevent garbage collection issues on mobile
+        window.currentRecognition = recognition;
 
         recognition.lang = 'vi-VN';
-        recognition.continuous = false; // Mobile browsers handle 'false' better for single-shot commands
+        recognition.continuous = false; 
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
@@ -158,19 +160,18 @@ const Header = () => {
         };
 
         recognition.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
             setIsListening(false);
             
-            // Provide user-friendly mobile alerts based on the exact error
+            // Suppress 'aborted' and 'no-speech' alerts to prevent annoying mobile popups
+            if (event.error === 'aborted' || event.error === 'no-speech') {
+                console.log('Voice recognition stopped or no speech detected.');
+                return; 
+            }
+            
             if (event.error === 'not-allowed') {
-                alert('Lỗi: Bạn chưa cấp quyền sử dụng Micro cho trang web.');
-            } else if (event.error === 'no-speech') {
-                // Silently ignore or show a small toast, 'no-speech' is common on mobile if user pauses
-                console.log('Không nghe thấy âm thanh nào.');
+                alert('Vui lòng cấp quyền sử dụng Micro trong cài đặt trình duyệt.');
             } else if (event.error === 'network') {
-                alert('Lỗi mạng: Nhận diện giọng nói cần kết nối internet ổn định.');
-            } else {
-                alert('Lỗi nhận diện giọng nói: ' + event.error);
+                alert('Lỗi mạng: Cần kết nối internet để nhận diện giọng nói.');
             }
         };
 
@@ -181,7 +182,7 @@ const Header = () => {
         try {
             recognition.start();
         } catch (err) {
-            console.error('Failed to start recognition:', err);
+            console.error('Start recognition error:', err);
             setIsListening(false);
         }
     };
@@ -295,7 +296,7 @@ const Header = () => {
                                 )}
                                 <button
                                     type="button"
-                                    onClick={startListening}
+                                    onClick={toggleListening}
                                     className={`p-1.5 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                                     title="Tìm kiếm bằng giọng nói"
                                 >
@@ -447,7 +448,7 @@ const Header = () => {
                             )}
                             <button
                                 type="button"
-                                onClick={startListening}
+                                onClick={toggleListening}
                                 className={`p-2 rounded-full transition ${isListening ? 'text-primary bg-primary/10 animate-pulse' : 'text-gray-400 active:scale-90'}`}
                                 title="Tìm kiếm bằng giọng nói"
                             >
