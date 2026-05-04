@@ -207,20 +207,26 @@ const WatchMovie = () => {
                 <div className={`${movie.type === 'single' ? 'lg:col-span-4' : 'lg:col-span-3'} space-y-8`}>
                     {/* Outer wrapper prevents CLS by reserving space when the player becomes fixed */}
                     <div className="relative w-full">
-                        {/* Placeholder that holds the aspect-video space on desktop when player is floating */}
+                        {/* Placeholder to prevent layout shift on desktop */}
                         {isMiniPlayer && (
-                            <div className="w-full aspect-video bg-black/50 hidden md:block rounded-3xl animate-pulse"></div>
+                            <div className="w-full aspect-video bg-gray-900/20 hidden md:block animate-pulse rounded-3xl border border-gray-800"></div>
                         )}
 
-                        {/* The actual player container — becomes fixed when scrolled past */}
+                        {/* The actual player container with forced CSS overrides to break out of parent stacking contexts */}
                         <div 
                             ref={playerContainerRef}
-                            className={`transition-all duration-300 ease-in-out z-50
-                                ${isMiniPlayer 
-                                    ? 'fixed bottom-4 right-4 w-[90vw] md:w-[400px] shadow-2xl rounded-xl overflow-hidden ring-2 ring-gray-800 aspect-video' 
-                                    : 'relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group'
-                                }
-                            `}
+                            className={isMiniPlayer 
+                                ? '!fixed !bottom-6 !right-6 !w-[90vw] md:!w-[400px] !h-auto !aspect-video !z-[99999] shadow-[0_20px_50px_rgba(0,0,0,0.7)] rounded-xl overflow-hidden ring-4 ring-gray-800 bg-black' 
+                                : 'relative w-full aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl shadow-primary/5 ring-1 ring-white/5 group'
+                            }
+                            style={isMiniPlayer ? { 
+                                position: 'fixed', 
+                                bottom: '24px', 
+                                right: '24px', 
+                                zIndex: 99999, 
+                                transform: 'none', // Critical: break out of parent CSS transforms
+                                margin: 0
+                            } : {}}
                         >
                             {/* Close button visible only in mini player mode */}
                             {isMiniPlayer && (
@@ -229,7 +235,7 @@ const WatchMovie = () => {
                                         setIsMiniPlayer(false);
                                         setIsMiniPlayerDismissed(true);
                                     }}
-                                    className="absolute top-2 right-2 z-50 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-colors backdrop-blur-sm"
+                                    className="absolute top-2 right-2 z-[100000] p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-colors backdrop-blur-md"
                                     title="Đóng trình phát thu nhỏ"
                                 >
                                     <X size={16} />
