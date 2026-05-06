@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
@@ -9,6 +9,7 @@ import {
     Clock, 
     Loader2, 
     Film, 
+    ChevronLeft,
     ChevronRight,
     Play
 } from 'lucide-react';
@@ -20,18 +21,48 @@ const MyList = () => {
     
     const [favorites, setFavorites] = useState([]);
     
-    // History Pagination State
+    // Strict page-based pagination for both tabs
+    const ITEMS_PER_PAGE = 12;
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    // History State
     const [history, setHistory] = useState([]);
-    const [historyPage, setHistoryPage] = useState(1);
-    const [hasMoreHistory, setHasMoreHistory] = useState(true);
     const [historyLoading, setHistoryLoading] = useState(false);
     
     const [initialLoading, setInitialLoading] = useState(true);
-    
-    const observerTarget = useRef(null);
 
     const handleTabChange = (tabName) => {
         setSearchParams({ tab: tabName });
+    };
+
+    // Reset page to 1 when the active tab changes via URL parameter
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
+
+    // Determine active data array (filter out null entries from deleted movies)
+    const currentData = activeTab === 'history' 
+        ? history.filter(Boolean) 
+        : favorites.filter(Boolean);
+
+    // Calculate pagination boundaries
+    const totalPages = Math.ceil(currentData.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const currentItems = currentData.slice(startIndex, endIndex);
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(prev => prev + 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(prev => prev - 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     // Initial Fetch (Favorites only)
@@ -41,12 +72,12 @@ const MyList = () => {
         }
     }, [user]);
 
-    // Fetch History when page changes
+    // Fetch all history when tab becomes active
     useEffect(() => {
-        if (user && activeTab === 'history' && hasMoreHistory) {
+        if (user && activeTab === 'history' && history.length === 0) {
             fetchHistory();
         }
-    }, [user, activeTab, historyPage]);
+    }, [user, activeTab]);
 
     const fetchFavorites = async () => {
         try {
@@ -65,16 +96,8 @@ const MyList = () => {
         
         try {
             setHistoryLoading(true);
-            const res = await axiosClient.get(`/interactions/history?page=${historyPage}&limit=9`);
-            
-            const newData = res.data.data;
-            if (historyPage === 1) {
-                setHistory(newData);
-            } else {
-                setHistory(prev => [...prev, ...newData]);
-            }
-            
-            setHasMoreHistory(res.data.hasMore);
+            const res = await axiosClient.get(`/interactions/history?page=1&limit=9999`);
+            setHistory(res.data.data || []);
         } catch (err) {
             console.error('Failed to fetch history', err);
         } finally {
@@ -83,27 +106,7 @@ const MyList = () => {
         }
     };
 
-    // Intersection Observer for Infinite Scroll
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                if (entries[0].isIntersecting && !historyLoading && hasMoreHistory && activeTab === 'history') {
-                    setHistoryPage(prev => prev + 1);
-                }
-            },
-            { threshold: 1.0 }
-        );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
-        }
-
-        return () => {
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
-            }
-        };
-    }, [historyLoading, hasMoreHistory, activeTab]);
 
     if (initialLoading && history.length === 0 && favorites.length === 0) return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
@@ -152,56 +155,70 @@ const MyList = () => {
                 </div>
             </header>
 
-            {/* Tab Content */}
+            {/* Tab Content - Strict Page-based Pagination */}
             <main>
-                {activeTab === 'saved' ? (
-                    <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {favorites.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
-                                {favorites.map(movie => (
-                                    <MovieCard key={movie.id} movie={movie} />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState 
-                                icon={<Heart size={48} />} 
-                                title="Danh sách trống" 
-                                description="Bạn chưa lưu bộ phim nào. Hãy khám phá và lưu lại những bộ phim yêu thích nhé!" 
-                            />
-                        )}
-                    </section>
-                ) : (
-                    <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {history.length > 0 ? (
-                            <>
+                <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {/* Loading state for history tab */}
+                    {activeTab === 'history' && historyLoading && history.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="animate-spin text-primary" size={40} />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Đang tải lịch sử...</span>
+                        </div>
+                    ) : currentData.length === 0 ? (
+                        <EmptyState 
+                            icon={activeTab === 'saved' ? <Heart size={48} /> : <HistoryIcon size={48} />} 
+                            title={activeTab === 'saved' ? 'Danh sách trống' : 'Chưa có lịch sử'} 
+                            description={activeTab === 'saved' 
+                                ? 'Bạn chưa lưu bộ phim nào. Hãy khám phá và lưu lại những bộ phim yêu thích nhé!' 
+                                : 'Bạn chưa xem bộ phim nào gần đây.'
+                            } 
+                        />
+                    ) : (
+                        <>
+                            {/* Strict Grid: Renders EXACTLY up to 12 items per page */}
+                            {activeTab === 'saved' ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
+                                    {currentItems.map(movie => (
+                                        <MovieCard key={movie.id} movie={movie} />
+                                    ))}
+                                </div>
+                            ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {history.map(item => (
+                                    {currentItems.map(item => (
                                         <HistoryCard key={item.id} item={item} />
                                     ))}
                                 </div>
-                                
-                                {/* Observer for Infinite Scroll */}
-                                <div ref={observerTarget} className="h-20 w-full flex items-center justify-center">
-                                    {historyLoading && (
-                                        <div className="flex items-center gap-3 text-gray-500">
-                                            <Loader2 className="animate-spin" size={24} />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Đang tải thêm...</span>
-                                        </div>
-                                    )}
-                                    {!hasMoreHistory && history.length > 0 && (
-                                        <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mt-8">Đã tải hết lịch sử của bạn</p>
-                                    )}
+                            )}
+
+                            {/* Strict Pagination Controls */}
+                            {totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-6 mt-12 mb-8">
+                                    <button 
+                                        onClick={handlePrevPage}
+                                        disabled={currentPage === 1}
+                                        className="flex items-center gap-2 px-6 py-2.5 border border-gray-700 rounded-full font-bold uppercase tracking-widest text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 hover:border-gray-500 text-white"
+                                    >
+                                        <ChevronLeft size={16} />
+                                        Trang trước
+                                    </button>
+                                    
+                                    <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+                                        Trang <span className="text-white">{currentPage}</span> / {totalPages}
+                                    </span>
+
+                                    <button 
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages}
+                                        className="flex items-center gap-2 px-6 py-2.5 border border-gray-700 rounded-full font-bold uppercase tracking-widest text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 hover:border-gray-500 text-white"
+                                    >
+                                        Trang sau
+                                        <ChevronRight size={16} />
+                                    </button>
                                 </div>
-                            </>
-                        ) : (
-                            <EmptyState 
-                                icon={<HistoryIcon size={48} />} 
-                                title="Chưa có lịch sử" 
-                                description="Bạn chưa xem bộ phim nào gần đây." 
-                            />
-                        )}
-                    </section>
-                )}
+                            )}
+                        </>
+                    )}
+                </section>
             </main>
         </div>
     );
